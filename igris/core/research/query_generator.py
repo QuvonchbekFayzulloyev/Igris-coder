@@ -11,6 +11,7 @@ Each area gets multiple query variants targeting different source types:
 """
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import TYPE_CHECKING
 
@@ -119,9 +120,16 @@ async def generate_all_queries(
     areas: list[ResearchArea],
     max_per_area: int = 30,
 ) -> list[GeneratedQuery]:
-    """Generate queries for all research areas."""
+    """Generate queries for all research areas in parallel."""
+    sem = asyncio.Semaphore(4)
+
+    async def _one(area: ResearchArea) -> list[GeneratedQuery]:
+        async with sem:
+            return await generate_queries(llm, area, max_per_area)
+
+    results = await asyncio.gather(*[_one(a) for a in areas], return_exceptions=True)
     all_queries = []
-    for area in areas:
-        queries = await generate_queries(llm, area, max_per_area)
-        all_queries.extend(queries)
+    for r in results:
+        if isinstance(r, list):
+            all_queries.extend(r)
     return all_queries

@@ -50,15 +50,17 @@ class ResearchPipeline:
     def __init__(
         self,
         llm: OpenAICompatibleClient,
-        max_queries_per_area: int = 25,
-        max_repos_for_patterns: int = 50,
+        max_queries_per_area: int = 3,
+        max_repos_for_patterns: int = 10,
         min_claim_confidence: float = 0.4,
+        max_areas: int = 5,
         on_stage: Callable[[str, str], Awaitable[None]] | None = None,
     ):
         self.llm = llm
         self.max_queries_per_area = max_queries_per_area
         self.max_repos_for_patterns = max_repos_for_patterns
         self.min_claim_confidence = min_claim_confidence
+        self.max_areas = max_areas
         self._on_stage = on_stage
 
     async def _trace(self, result: ResearchResult, stage: str, detail: str) -> None:
@@ -78,8 +80,9 @@ class ResearchPipeline:
         # Stage 1: Research Planning
         await self._trace(result, "planner", "decomposing request into research areas")
         areas = await plan_research(self.llm, user_request)
+        areas = areas[:self.max_areas]
         result.areas = areas
-        await self._trace(result, "planner", f"found {len(areas)} research areas")
+        await self._trace(result, "planner", f"found {len(areas)} research areas (limited to {self.max_areas})")
 
         # Stage 2: Query Generation
         await self._trace(result, "query_gen", "generating search queries")
@@ -93,11 +96,12 @@ class ResearchPipeline:
         result.sources_collected = len(sources)
         await self._trace(result, "collector", f"collected {len(sources)} sources")
 
-        # Stage 4: Evidence Extraction
+        # Stage 4: Evidence Extraction (sample best sources)
         await self._trace(result, "evidence", "extracting structured evidence")
-        evidence = await extract_all(self.llm, sources)
+        scored_sources = sorted(sources, key=lambda s: len(s.raw_content), reverse=True)
+        evidence = await extract_all(self.llm, scored_sources[:15])
         result.evidence_extracted = len(evidence)
-        await self._trace(result, "evidence", f"extracted {len(evidence)} evidence items")
+        await self._trace(result, "evidence", f"extracted {len(evidence)} evidence items from {min(len(sources), 15)} sources")
 
         # Stage 5: Claim Extraction
         await self._trace(result, "claims", "extracting verifiable claims")

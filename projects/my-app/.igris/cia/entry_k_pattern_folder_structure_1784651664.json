@@ -1,0 +1,16 @@
+{
+  "id": "k_pattern_folder_structure_1784651664",
+  "text": "L1: Pattern: folder_structure (0% frequency)\nL2: Pattern: folder_structure (0% frequency)\nMost common directories (out of 1 repos analyzed):\n\nMost common top-level structures:\nL3: Pattern: folder_structure (0% frequency)\nMost common directories (out of 1 repos analyzed):\n\nMost common top-level structures:\n",
+  "memory_type": "pattern",
+  "priority": 4,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

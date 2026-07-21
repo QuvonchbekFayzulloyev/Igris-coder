@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_connection_pooling_1784651664",
+  "text": "L1: Recommendation: connection_pooling -> pgBouncer\nL2: Recommendation: connection_pooling -> pgBouncer\nReasoning: pgBouncer directly addresses the validated claims about connection pooling improving ASGI request handling capacity and preventing timeouts.\nAlternatives: asyncpg, psycopg3\nL3: Recommendation: connection_pooling -> pgBouncer\nReasoning: pgBouncer directly addresses the validated claims about connection pooling improving ASGI request handling capacity and preventing timeouts.\nAlternatives: asyncpg, psycopg3",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "connection_pooling",
+    "pgBouncer"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

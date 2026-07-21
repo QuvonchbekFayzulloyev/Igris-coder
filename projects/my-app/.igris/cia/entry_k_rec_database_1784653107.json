@@ -1,0 +1,16 @@
+{
+  "id": "k_rec_database_1784653107",
+  "text": "L1: database -> PostgreSQL\nL2: database -> PostgreSQL\nL3: database -> PostgreSQL",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

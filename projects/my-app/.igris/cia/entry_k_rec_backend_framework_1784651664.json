@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_backend_framework_1784651664",
+  "text": "L1: Recommendation: backend_framework -> FastAPI\nL2: Recommendation: backend_framework -> FastAPI\nReasoning: FastAPI is explicitly requested and aligns with lightweight, local-first requirements. It provides asynchronous capabilities and excellent performance for ASGI apps.\nAlternatives: Starlette, Django\nL3: Recommendation: backend_framework -> FastAPI\nReasoning: FastAPI is explicitly requested and aligns with lightweight, local-first requirements. It provides asynchronous capabilities and excellent performance for ASGI apps.\nAlternatives: Starlette, Django",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "backend_framework",
+    "FastAPI"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

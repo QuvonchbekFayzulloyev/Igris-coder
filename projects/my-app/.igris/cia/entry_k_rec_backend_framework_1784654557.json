@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_backend_framework_1784654557",
+  "text": "L1: Recommendation: backend_framework -> FastAPI\nL2: Recommendation: backend_framework -> FastAPI\nReasoning: FastAPI provides asynchronous request handling and built-in support for PostgreSQL ORM integration. Its lightweight nature aligns with the 'lightweight and local-first' constraint.\nAlternatives: Starlette, Flask\nL3: Recommendation: backend_framework -> FastAPI\nReasoning: FastAPI provides asynchronous request handling and built-in support for PostgreSQL ORM integration. Its lightweight nature aligns with the 'lightweight and local-first' constraint.\nAlternatives: Starlette, Flask",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "backend_framework",
+    "FastAPI"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

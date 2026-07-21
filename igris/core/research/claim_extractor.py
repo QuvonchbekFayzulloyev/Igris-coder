@@ -13,6 +13,7 @@ Vague statements like "React is popular" are rejected.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import TYPE_CHECKING
@@ -114,7 +115,7 @@ async def extract_claims(
     ]
 
     try:
-        result = await llm.chat(messages=messages)
+        result = await asyncio.wait_for(llm.chat(messages=messages), timeout=30.0)
         raw = result.content.strip()
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()

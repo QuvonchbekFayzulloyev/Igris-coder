@@ -14,6 +14,7 @@ Produces a concrete architecture recommendation.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import TYPE_CHECKING
 
@@ -87,26 +88,26 @@ async def synthesize_architecture(
     ]
 
     claims_summary = "\n".join(
-        f"- [{vc.confidence:.0%}] {vc.claim}" for vc in validated_claims[:30]
+        f"- [{vc.confidence:.0%}] {vc.claim}" for vc in validated_claims[:15]
     )
 
     graph_summary = ""
     if graph.nodes:
         graph_summary = f"Knowledge graph: {len(graph.nodes)} technologies, {len(graph.edges)} relationships\n"
-        for edge in graph.edges[:15]:
+        for edge in graph.edges[:8]:
             src = graph.nodes.get(edge.source, None)
             tgt = graph.nodes.get(edge.target, None)
             if src and tgt:
                 graph_summary += f"  {src.label} --{edge.relationship}--> {tgt.label}\n"
 
     patterns_summary = ""
-    for p in patterns[:10]:
+    for p in patterns[:5]:
         patterns_summary += f"- {p.name}: {p.frequency:.0%} adoption\n"
 
     visual_summary = ""
     if visual_assets:
         visual_summary = "Discovered visual assets:\n"
-        for va in visual_assets[:15]:
+        for va in visual_assets[:8]:
             visual_summary += f"- [{va.asset_type.value if hasattr(va.asset_type, 'value') else va.asset_type}] {va.name}: {va.source_url} ({va.confidence:.0%})\n"
 
     prompt = (
@@ -126,7 +127,7 @@ async def synthesize_architecture(
     ]
 
     try:
-        result = await llm.chat(messages=messages)
+        result = await asyncio.wait_for(llm.chat(messages=messages), timeout=60.0)
         raw = result.content.strip()
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()

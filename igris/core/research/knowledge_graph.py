@@ -240,6 +240,8 @@ def add_visual_assets_to_graph(
         ))
 
         for tag in asset.tags[:3]:
+            if not isinstance(tag, str):
+                continue
             tech_id = _make_id(tag)
             if tech_id in graph.nodes:
                 graph.add_edge(GraphEdge(

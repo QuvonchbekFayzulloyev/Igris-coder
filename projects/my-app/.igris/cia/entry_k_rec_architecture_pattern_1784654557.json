@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_architecture_pattern_1784654557",
+  "text": "L1: Recommendation: architecture_pattern -> Connection Pooling (pgBouncer)\nL2: Recommendation: architecture_pattern -> Connection Pooling (pgBouncer)\nReasoning: pgBouncer reduces connection overhead and improves PostgreSQL performance under load, satisfying the 'fast startup' and 'low memory usage' constraints.\nAlternatives: Single Connection, No Pooling\nL3: Recommendation: architecture_pattern -> Connection Pooling (pgBouncer)\nReasoning: pgBouncer reduces connection overhead and improves PostgreSQL performance under load, satisfying the 'fast startup' and 'low memory usage' constraints.\nAlternatives: Single Connection, No Pooling",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "architecture_pattern",
+    "Connection Pooling (pgBouncer)"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

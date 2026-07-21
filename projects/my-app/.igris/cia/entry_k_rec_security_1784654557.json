@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_security_1784654557",
+  "text": "L1: Recommendation: security -> JWT + Pydantic Validation\nL2: Recommendation: security -> JWT + Pydantic Validation\nReasoning: JWT provides stateless authentication, while Pydantic's strict validation aligns with OWASP protections. Both are lightweight and compatible with FastAPI.\nAlternatives: OAuth2, API Keys\nL3: Recommendation: security -> JWT + Pydantic Validation\nReasoning: JWT provides stateless authentication, while Pydantic's strict validation aligns with OWASP protections. Both are lightweight and compatible with FastAPI.\nAlternatives: OAuth2, API Keys",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "security",
+    "JWT + Pydantic Validation"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

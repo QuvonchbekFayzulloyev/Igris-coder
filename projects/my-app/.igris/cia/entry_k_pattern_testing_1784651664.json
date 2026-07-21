@@ -1,0 +1,16 @@
+{
+  "id": "k_pattern_testing_1784651664",
+  "text": "L1: Pattern: testing (0% frequency)\nL2: Pattern: testing (0% frequency)\nTesting adoption: 0/1 repos have tests (0%)\nFramework distribution:\nL3: Pattern: testing (0% frequency)\nTesting adoption: 0/1 repos have tests (0%)\nFramework distribution:\n",
+  "memory_type": "pattern",
+  "priority": 4,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

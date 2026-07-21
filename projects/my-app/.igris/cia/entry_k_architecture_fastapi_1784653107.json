@@ -1,0 +1,16 @@
+{
+  "id": "k_architecture_fastapi_1784653107",
+  "text": "L1: # Recommended Architecture (Fallback)\nL2: # Recommended Architecture (Fallback)\n\n- **database**: PostgreSQL (100%)\n\n## Visual Assets\nL3: # Recommended Architecture (Fallback)\n\n- **database**: PostgreSQL (100%)\n\n## Visual Assets\n- [icon] @j178/prek: https://www.npmjs.com/package/@j178/prek\n- [icon] neo-async: https://www.npmjs.com/package/neo-async\n- [icon] svgo: https://www.npmjs.com/package/svgo\n- [icon] react-zoom-pan-pinch: https://www.npmjs.com/package/react-zoom-pan-pinch\n- [icon] @biomejs/biome: https://www.npmjs.com/package/@biomejs/biome\n- [photo] fastapi logo photo: https://unsplash.com/s/photos/fastapi logo\n- [icon] drizzle-orm: https://www.npmjs.com/package/drizzle-orm\n- [icon] libpg-query: https://www.npmjs.com/package/libpg-query\n- [icon] @libpg-query/parser: https://www.npmjs.com/package/@libpg-query/parser\n- [icon] @postgresql-typed/oids: https://www.npmjs.com/package/@postgresql-typed/oids",
+  "memory_type": "architecture",
+  "priority": 2,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

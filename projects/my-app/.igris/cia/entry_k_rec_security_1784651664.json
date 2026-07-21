@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_security_1784651664",
+  "text": "L1: Recommendation: security -> HTTPS + OAuth2 (JWT)\nL2: Recommendation: security -> HTTPS + OAuth2 (JWT)\nReasoning: HTTPS is mandatory for secure communication. OAuth2 JWT provides scalable authentication without cloud dependencies, matching lightweight requirements.\nAlternatives: API keys, Basic Auth\nL3: Recommendation: security -> HTTPS + OAuth2 (JWT)\nReasoning: HTTPS is mandatory for secure communication. OAuth2 JWT provides scalable authentication without cloud dependencies, matching lightweight requirements.\nAlternatives: API keys, Basic Auth",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "security",
+    "HTTPS + OAuth2 (JWT)"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

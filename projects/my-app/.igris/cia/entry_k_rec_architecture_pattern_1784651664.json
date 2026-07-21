@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_architecture_pattern_1784651664",
+  "text": "L1: Recommendation: architecture_pattern -> Monolithic\nL2: Recommendation: architecture_pattern -> Monolithic\nReasoning: Monolithic architecture ensures minimal resource usage and simplifies deployment on a single developer machine while maintaining performance.\nAlternatives: Microservices, Serverless\nL3: Recommendation: architecture_pattern -> Monolithic\nReasoning: Monolithic architecture ensures minimal resource usage and simplifies deployment on a single developer machine while maintaining performance.\nAlternatives: Microservices, Serverless",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "architecture_pattern",
+    "Monolithic"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

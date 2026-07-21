@@ -1,0 +1,19 @@
+{
+  "id": "k_rec_database_1784651664",
+  "text": "L1: Recommendation: database -> PostgreSQL\nL2: Recommendation: database -> PostgreSQL\nReasoning: PostgreSQL is required and validated for high-concurrency ASGI applications with connection pooling. pgBouncer configuration addresses the 4-6GB GPU constraint via efficient connection management.\nAlternatives: SQLite, MySQL\nL3: Recommendation: database -> PostgreSQL\nReasoning: PostgreSQL is required and validated for high-concurrency ASGI applications with connection pooling. pgBouncer configuration addresses the 4-6GB GPU constraint via efficient connection management.\nAlternatives: SQLite, MySQL",
+  "memory_type": "decision",
+  "priority": 3,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [
+    "database",
+    "PostgreSQL"
+  ],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}

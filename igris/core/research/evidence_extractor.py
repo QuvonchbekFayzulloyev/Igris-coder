@@ -18,6 +18,7 @@ controls what it looks for.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import TYPE_CHECKING
@@ -98,10 +99,10 @@ def _heuristic_extract(source: CollectedSource) -> list[Evidence]:
 async def extract_evidence(
     llm: OpenAICompatibleClient,
     source: CollectedSource,
-    max_evidence: int = 15,
+    max_evidence: int = 3,
 ) -> list[Evidence]:
     """Extract structured evidence from a collected source."""
-    content = source.raw_content[:8000]
+    content = source.raw_content[:1500]
     if not content.strip():
         return []
 
@@ -119,7 +120,7 @@ async def extract_evidence(
     ]
 
     try:
-        result = await llm.chat(messages=messages)
+        result = await asyncio.wait_for(llm.chat(messages=messages), timeout=30.0)
         raw = result.content.strip()
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
@@ -155,7 +156,7 @@ async def extract_all(
 ) -> list[Evidence]:
     """Extract evidence from all collected sources."""
     import asyncio
-    sem = asyncio.Semaphore(5)
+    sem = asyncio.Semaphore(10)
 
     async def _bounded(s: CollectedSource) -> list[Evidence]:
         async with sem:

@@ -1,0 +1,16 @@
+{
+  "id": "k_architecture_fastapi_project_with_postgr_1784651664",
+  "text": "L1: # FastAPI-PostgreSQL-Local\nL2: # FastAPI-PostgreSQL-Local\n\n## Components\n\n### Backend Framework\nL3: # FastAPI-PostgreSQL-Local\n\n## Components\n\n### Backend Framework\n**Recommendation:** FastAPI (confidence: 100%)\n**Alternatives:**\n  - Starlette (30%)\n  - Django (20%)\n**Reasoning:** FastAPI is explicitly requested and aligns with lightweight, local-first requirements. It provides asynchronous capabilities and excellent performance for ASGI apps.\n**Evidence:** 6 sources\n\n### Database\n**Recommendation:** PostgreSQL (confidence: 100%)\n**Alternatives:**\n  - SQLite (40%)\n  - MySQL (30%)\n**Reasoning:** PostgreSQL is required and validated for high-concurrency ASGI applications with connection pooling. pgBouncer configuration addresses the 4-6GB GPU constraint via efficient connection management.\n**Evidence:** 8 sources\n\n### Security\n**Recommendation:** HTTPS + OAuth2 (JWT) (confidence: 95%)\n**Alternatives:**\n  - API keys (70%)\n  - Basic Auth (60%)\n**Reasoning:** HTTPS is mandatory for secure communication. OAuth2 JWT provides scalable authentication without cloud dependencies, matching lightweight requirements.\n**Evidence:** 4 sources\n\n### Architecture Pattern\n**Recommendation:** Monolithic (confidence: 98%)\n**Alternatives:**\n  - Microservices (30%)\n  - Serverless (20%)\n**Reasoning:** Monolithic architecture ensures minimal resource usage and simplifies deployment on a single developer machine while maintaining performance.\n**Evidence:** 5 sources\n\n### Connection Pooling\n**Recommendation:** pgBouncer (confidence: 100%)\n**Alternatives:**\n  - asyncpg (60%)\n  - psycopg3 (50%)\n**Reasoning:** pgBouncer directly addresses the validated claims about connection pooling improving ASGI request handling capacity and preventing timeouts.\n**Evidence:** 7 sources\n\n## Visual Assets\n\n- **logo**: FastAPI Logo Concept\n  URL: https://unsplash.com/s/photos/FastAPI logo concept\n  Matches the project's tech stack and provides a clean, modern brand identity.\n- **icon**: HTTP Proxy Icon\n  URL: https://www.npmjs.com/package/http-proxy\n  Relevant for API gateway or proxy components in the architecture.\n- **3d_model**: Computer with Keyboard/Mouse\n  URL: https://sketchfab.com/3d-models/none-726931420ede4f7ca16aa052e8a5c4f9\n  Use as a UI element for local development environment visualization.\n- **icon**: Reload Arrow Circle\n  URL: https://sketchfab.com/3d-models/none-549c9fb4ea7944978aa8513cfd69d037\n  Symbolizes connection pooling and request cycle in the architecture.\n\n## Constraints Satisfied\n- 4-6GB GPU (local LLM inference)\n- Lightweight and local-first\n- Can run on a single developer machine\n- Minimal cloud dependencies\n- Fast startup and low memory usage\n",
+  "memory_type": "architecture",
+  "priority": 2,
+  "level": 3,
+  "created_at": 0.0,
+  "last_accessed": 0.0,
+  "access_count": 0,
+  "ttl_seconds": 2592000.0,
+  "status": "active",
+  "tags": [],
+  "related_ids": [],
+  "metadata": {},
+  "_kind": "entry"
+}
