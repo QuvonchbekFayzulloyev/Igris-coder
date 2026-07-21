@@ -1,0 +1,154 @@
+[
+  {
+    "id": "24089cac",
+    "text": "igris is a local Claude-Code-style agent: a Python backend (FastAPI + MCP tool-calling) with an optional Tauri+React desktop UI, organized as one CLI install containing a projects/ folder -- each project gets its own .igris/ config, not a separate top-level install per project.",
+    "module_path": "",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "architecture"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.1299644
+  },
+  {
+    "id": "e0e7e1a9",
+    "text": "Windows-first policy: default shell is PowerShell, WSL is never chosen automatically by any tool (terminal_server.py's shell='auto') -- only used if explicitly requested.",
+    "module_path": "",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "windows",
+      "shell"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.1306114
+  },
+  {
+    "id": "fa91e5f6",
+    "text": "The reprompt loop (RepromptLoop) always runs before any raw user message reaches the LLM: snapshot -> intent classify -> clarify/assume gate -> complexity analysis -> loop template selection -> skill routing -> context gather -> spec synthesis -> execute -> self-review. The model never sees the raw request alone.",
+    "module_path": "",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "reprompt-loop"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.171344
+  },
+  {
+    "id": "483c45e1",
+    "text": "Intent confidence has two thresholds: below hard_block_confidence_threshold (0.35) igris asks a clarifying question; between that and clarify_confidence_threshold (0.55) igris proceeds but states its assumption explicitly; at or above 0.55 it proceeds silently.",
+    "module_path": "",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "intent",
+      "human-in-the-loop"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.2323391
+  },
+  {
+    "id": "35bac04d",
+    "text": "gateway.provider in .igris/config.yaml selects the active LLM backend: ollama (default, local), lmstudio (local, OpenAI-compatible), or openrouter (hosted, needs an API key). All three implement the same chat()/run_with_tools() interface returning a shared ChatResult.",
+    "module_path": "",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "gateway",
+      "providers"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.2880287
+  },
+  {
+    "id": "1733692c",
+    "text": "Ollama's local embedding model nomic-embed-text is ~274MB, ~137M parameters, loads into VRAM in about a second, and runs even CPU-only -- comfortably under 8GB VRAM. The current batch-capable endpoint is POST /api/embed (input: string|list of strings, returns embeddings: list of vectors); the older POST /api/embeddings (prompt: string, returns embedding: one vector) is still supported but singular-input only.",
+    "module_path": "",
+    "kind": "description",
+    "source": "web_verified",
+    "tags": [
+      "embeddings",
+      "ollama"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.3266876
+  },
+  {
+    "id": "4d8206a8",
+    "text": "igris is a local Claude-Code-style agent: a Python backend (FastAPI + MCP tool-calling) with an optional Tauri+React desktop UI, organized as one CLI install containing a projects/ folder -- each project gets its own .igris/ config, not a separate top-level install per project.",
+    "module_path": "",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "architecture"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.0463989
+  },
+  {
+    "id": "262c6155",
+    "text": "Windows-first policy: default shell is PowerShell, WSL is never chosen automatically by any tool (terminal_server.py's shell='auto') -- only used if explicitly requested.",
+    "module_path": "",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "windows",
+      "shell"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.0743806
+  },
+  {
+    "id": "5b92eae2",
+    "text": "The reprompt loop (RepromptLoop) always runs before any raw user message reaches the LLM: snapshot -> intent classify -> clarify/assume gate -> complexity analysis -> loop template selection -> skill routing -> context gather -> spec synthesis -> execute -> self-review. The model never sees the raw request alone.",
+    "module_path": "",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "reprompt-loop"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.1350977
+  },
+  {
+    "id": "7153b3b1",
+    "text": "Intent confidence has two thresholds: below hard_block_confidence_threshold (0.35) igris asks a clarifying question; between that and clarify_confidence_threshold (0.55) igris proceeds but states its assumption explicitly; at or above 0.55 it proceeds silently.",
+    "module_path": "",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "intent",
+      "human-in-the-loop"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.1506288
+  },
+  {
+    "id": "c6c444a5",
+    "text": "gateway.provider in .igris/config.yaml selects the active LLM backend: ollama (default, local), lmstudio (local, OpenAI-compatible), or openrouter (hosted, needs an API key). All three implement the same chat()/run_with_tools() interface returning a shared ChatResult.",
+    "module_path": "",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "gateway",
+      "providers"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.1805441
+  },
+  {
+    "id": "089d9289",
+    "text": "Ollama's local embedding model nomic-embed-text is ~274MB, ~137M parameters, loads into VRAM in about a second, and runs even CPU-only -- comfortably under 8GB VRAM. The current batch-capable endpoint is POST /api/embed (input: string|list of strings, returns embeddings: list of vectors); the older POST /api/embeddings (prompt: string, returns embedding: one vector) is still supported but singular-input only.",
+    "module_path": "",
+    "kind": "description",
+    "source": "web_verified",
+    "tags": [
+      "embeddings",
+      "ollama"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.2215548
+  }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "13c92a3a",
+    "text": "Every interactive control needs a keyboard path and a clear disabled state with a stated reason (see Conversation.tsx's disabledReason prop) -- a disabled button with no explanation is a usability gap, not acceptable polish debt (desktop-ux-usability-audit).",
+    "module_path": "frontend.components",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "usability",
+      "keyboard"
+    ],
+    "embedding": [],
+    "created_at": 1784634534.0656657
+  },
+  {
+    "id": "6ea54456",
+    "text": "The Loop panel (LoopTracker.tsx) is the product's signature UI element: it renders StageEvent[] as an ordered, live-updating timeline as the WebSocket streams them, making the reprompt loop's normally-invisible reasoning process visible.",
+    "module_path": "frontend.components",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "loop-tracker"
+    ],
+    "embedding": [],
+    "created_at": 1784634534.0665715
+  },
+  {
+    "id": "ceea145c",
+    "text": "Standard component shape used throughout desktop/src/components: props interface first, then the component function, styled with Tailwind utility classes only (no inline style objects), network/state operations delegated to props (callbacks) rather than the component calling lib/api.ts itself -- keeps components unit-testable with plain prop mocks, no fetch mocking needed at that layer.",
+    "module_path": "frontend.components",
+    "kind": "template",
+    "source": "manual",
+    "tags": [
+      "component",
+      "pattern"
+    ],
+    "embedding": [],
+    "created_at": 1784634534.086754
+  },
+  {
+    "id": "60e46ab6",
+    "text": "Every interactive control needs a keyboard path and a clear disabled state with a stated reason (see Conversation.tsx's disabledReason prop) -- a disabled button with no explanation is a usability gap, not acceptable polish debt (desktop-ux-usability-audit).",
+    "module_path": "frontend.components",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "usability",
+      "keyboard"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.2571363
+  },
+  {
+    "id": "a46144b2",
+    "text": "The Loop panel (LoopTracker.tsx) is the product's signature UI element: it renders StageEvent[] as an ordered, live-updating timeline as the WebSocket streams them, making the reprompt loop's normally-invisible reasoning process visible.",
+    "module_path": "frontend.components",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "loop-tracker"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.2825365
+  },
+  {
+    "id": "0ada3a7d",
+    "text": "Standard component shape used throughout desktop/src/components: props interface first, then the component function, styled with Tailwind utility classes only (no inline style objects), network/state operations delegated to props (callbacks) rather than the component calling lib/api.ts itself -- keeps components unit-testable with plain prop mocks, no fetch mocking needed at that layer.",
+    "module_path": "frontend.components",
+    "kind": "template",
+    "source": "manual",
+    "tags": [
+      "component",
+      "pattern"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.3258228
+  }
+]

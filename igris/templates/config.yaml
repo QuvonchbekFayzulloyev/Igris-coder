@@ -1,0 +1,86 @@
+# .igris/config.yaml
+# Project-local configuration for igris-cli. Overrides built-in defaults.
+# This file is meant to be edited and committed alongside your project,
+# the same way .claude/settings.json travels with a Claude Code project.
+
+gateway:
+  provider: "ollama"    # ollama | lmstudio | openrouter -- swap to change which LLM backend runs
+
+ollama:
+  host: "http://localhost:11434"
+  model: "qwen3"        # native tool-calling; swap per-project if needed
+  temperature: 0.4
+  keep_alive: "10m"
+  timeout_seconds: 120
+  # recovers tool calls from models like qwen2.5-coder that print
+  # {"name":..., "arguments":...} as text instead of real tool_calls.
+  # harmless to leave on even with qwen3.
+  enable_json_tool_call_fallback: true
+
+lmstudio:
+  host: "http://localhost:1234/v1"   # LM Studio's local server (Developer -> Local Server)
+  model: "local-model"                # whatever model LM Studio currently has loaded
+  temperature: 0.4
+  timeout_seconds: 120
+  enable_json_tool_call_fallback: true
+
+openrouter:
+  host: "https://openrouter.ai/api/v1"
+  model: "openrouter/auto"
+  api_key: ""            # prefer the OPENROUTER_API_KEY env var instead of setting this
+  temperature: 0.4
+  timeout_seconds: 120
+  enable_json_tool_call_fallback: true
+  # cost estimation is opt-in and honest: 0.0 means "not configured", not
+  # "free". OpenRouter pricing varies by model -- set these to your
+  # chosen model's published per-1k-token rates if you want cost shown
+  # in the desktop app's status bar.
+  price_per_1k_prompt_tokens: 0.0
+  price_per_1k_completion_tokens: 0.0
+
+loop:
+  max_review_iterations: 2        # bounded self-review retries
+  clarify_confidence_threshold: 0.55   # below this, igris asks
+  hard_block_confidence_threshold: 0.35  # below THIS, still asks; between the
+                                          # two, igris proceeds on a stated
+                                          # assumption instead of asking
+  max_tool_iterations: 12
+  enable_self_review: true
+  trace: false                    # set true to print every mini-loop stage
+
+skills:
+  dir: ".igris/skills"
+  max_active_skills: 3
+
+mcp:
+  config_file: ".igris/mcp.json"
+
+memory:
+  dir: ".igris/memory"
+  session_log: "session.jsonl"
+  checkpoints_file: "checkpoints.json"
+
+knowledge:
+  dir: ".igris/knowledge"     # hierarchical project knowledge base -- see knowledge_base.py
+
+coder_memory:
+  # Reusable artefacts + metadata indexes; intentionally separate from chat history.
+  dir: ".igris/coder_memory"
+  max_context_results: 5
+
+embeddings:
+  host: ""                     # empty = reuse ollama.host above
+  model: "nomic-embed-text"    # ~274MB, well under 8GB VRAM, runs CPU-only
+  keep_alive: "10m"
+  # Retrieval is enrichment; fail fast when the local embedding model is unavailable.
+  timeout_seconds: 10
+
+platform:
+  prefer_native_windows: true     # never suggest WSL unless explicitly asked
+  shell: "powershell"             # powershell | cmd | bash
+
+research:
+  enabled: true                   # enable the 12-stage research pipeline
+  max_queries_per_area: 25        # queries per research area
+  max_repos: 50                   # GitHub repos for pattern mining
+  min_confidence: 0.4             # minimum confidence to keep a recommendation

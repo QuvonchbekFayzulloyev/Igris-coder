@@ -1,0 +1,104 @@
+[
+  {
+    "id": "3f369f05",
+    "text": "Every LLM provider (OllamaClient, OpenAICompatibleClient) must implement async chat(messages, tools) and async run_with_tools(system_prompt, user_prompt, mcp_manager, max_iterations, on_tool_call) returning a shared ChatResult (content, tool_calls, prompt_tokens, completion_tokens, used_fallback_parsing, tool_iterations).",
+    "module_path": "backend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "providers",
+      "interface"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.3531568
+  },
+  {
+    "id": "29a5e848",
+    "text": "Models that don't populate a real tool_calls field (e.g. qwen2.5-coder printing {\"name\":...,\"arguments\":...} as plain text) are recovered via _extract_fallback_tool_calls in llm_common.py -- every provider's run_with_tools loop must check for this fallback before treating a response as final content.",
+    "module_path": "backend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "tool-calling",
+      "fallback"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.353917
+  },
+  {
+    "id": "54f1d01f",
+    "text": "Cost estimation is opt-in and honest: local providers always report $0.00; OpenRouter cost is computed only from explicitly configured openrouter.price_per_1k_*_tokens rates, never a hardcoded price table (see igris/core/cost.py).",
+    "module_path": "backend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "cost",
+      "honesty"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.3760421
+  },
+  {
+    "id": "c597939e",
+    "text": "Backend testing convention: pytest, async tests via asyncio.run(), MockLLM (tests/mock_llm.py) stands in for any provider by implementing the same chat()/run_with_tools() interface. Real MCP servers are spawned as real subprocesses in integration tests (via MCPManager), not mocked, when testing MCP tool behavior itself.",
+    "module_path": "backend",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "testing"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.3989499
+  },
+  {
+    "id": "576c9942",
+    "text": "Every LLM provider (OllamaClient, OpenAICompatibleClient) must implement async chat(messages, tools) and async run_with_tools(system_prompt, user_prompt, mcp_manager, max_iterations, on_tool_call) returning a shared ChatResult (content, tool_calls, prompt_tokens, completion_tokens, used_fallback_parsing, tool_iterations).",
+    "module_path": "backend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "providers",
+      "interface"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.2949793
+  },
+  {
+    "id": "821fa4b7",
+    "text": "Models that don't populate a real tool_calls field (e.g. qwen2.5-coder printing {\"name\":...,\"arguments\":...} as plain text) are recovered via _extract_fallback_tool_calls in llm_common.py -- every provider's run_with_tools loop must check for this fallback before treating a response as final content.",
+    "module_path": "backend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "tool-calling",
+      "fallback"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.3715057
+  },
+  {
+    "id": "129193a0",
+    "text": "Cost estimation is opt-in and honest: local providers always report $0.00; OpenRouter cost is computed only from explicitly configured openrouter.price_per_1k_*_tokens rates, never a hardcoded price table (see igris/core/cost.py).",
+    "module_path": "backend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "cost",
+      "honesty"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.4327512
+  },
+  {
+    "id": "736acaf7",
+    "text": "Backend testing convention: pytest, async tests via asyncio.run(), MockLLM (tests/mock_llm.py) stands in for any provider by implementing the same chat()/run_with_tools() interface. Real MCP servers are spawned as real subprocesses in integration tests (via MCPManager), not mocked, when testing MCP tool behavior itself.",
+    "module_path": "backend",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "testing"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.478281
+  }
+]

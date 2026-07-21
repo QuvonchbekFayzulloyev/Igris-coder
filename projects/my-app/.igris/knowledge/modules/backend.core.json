@@ -1,0 +1,126 @@
+[
+  {
+    "id": "c390a2b7",
+    "text": "loop_generator.py maps intent category + complexity tier to a stage-sequence template (e.g. bug_fix -> Observe/Locate/Hypothesis/Patch/Test); for complexity=multi_agent it instead produces independent per-subsystem branches run concurrently via execution_graph.py's ExecutionGraph (asyncio.gather per topological layer).",
+    "module_path": "backend.core",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "loop-generator"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.433383
+  },
+  {
+    "id": "a16fadb6",
+    "text": "task_analyzer.py classifies complexity as simple/medium/complex/multi_agent using heuristics: connector count, file-mention count, architecture-language detection, and (for multi_agent) two or more named independent subsystems (frontend/backend/database/testing/deployment).",
+    "module_path": "backend.core",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "task-analyzer"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.434467
+  },
+  {
+    "id": "e475c098",
+    "text": "TaskSpec (spec.py) is the actual 'reprompt': it bundles the raw request with category-specific acceptance criteria, global constraints (Windows-first, English code/docs), the loop generator's stage guidance, gathered context (git status, file reads, knowledge base results), and skill guidance -- this whole structure is what the model sees, never the raw message alone.",
+    "module_path": "backend.core",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "spec",
+      "reprompt"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.4706986
+  },
+  {
+    "id": "6a847bcd",
+    "text": "Self-review (RepromptLoop._self_review) is a single LLM-as-judge call per attempt: forces a PASS/FAIL first line plus one feedback sentence, bounded by loop.max_review_iterations so it can never retry forever.",
+    "module_path": "backend.core",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "self-review"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.5051658
+  },
+  {
+    "id": "44f1ba8c",
+    "text": "Adding a new stage template to loop_generator.py: add an entry to STAGE_TEMPLATES keyed by the intent category, e.g. STAGE_TEMPLATES['research'] = ['Collect', 'Analyze', 'Compare', 'Reason', 'Find Gap']. For a category that should fan out into parallel subsystem branches, add its keyword patterns to task_analyzer.py's SUBSYSTEM_KEYWORDS instead, and a matching entry in loop_generator.py's SUBSYSTEM_TEMPLATES.",
+    "module_path": "backend.core",
+    "kind": "template",
+    "source": "manual",
+    "tags": [
+      "loop-generator",
+      "stage-template"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.5485816
+  },
+  {
+    "id": "7863f633",
+    "text": "loop_generator.py maps intent category + complexity tier to a stage-sequence template (e.g. bug_fix -> Observe/Locate/Hypothesis/Patch/Test); for complexity=multi_agent it instead produces independent per-subsystem branches run concurrently via execution_graph.py's ExecutionGraph (asyncio.gather per topological layer).",
+    "module_path": "backend.core",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "loop-generator"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.527274
+  },
+  {
+    "id": "f5975656",
+    "text": "task_analyzer.py classifies complexity as simple/medium/complex/multi_agent using heuristics: connector count, file-mention count, architecture-language detection, and (for multi_agent) two or more named independent subsystems (frontend/backend/database/testing/deployment).",
+    "module_path": "backend.core",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "task-analyzer"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.5734057
+  },
+  {
+    "id": "fc8d669c",
+    "text": "TaskSpec (spec.py) is the actual 'reprompt': it bundles the raw request with category-specific acceptance criteria, global constraints (Windows-first, English code/docs), the loop generator's stage guidance, gathered context (git status, file reads, knowledge base results), and skill guidance -- this whole structure is what the model sees, never the raw message alone.",
+    "module_path": "backend.core",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "spec",
+      "reprompt"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.6105244
+  },
+  {
+    "id": "f399d475",
+    "text": "Self-review (RepromptLoop._self_review) is a single LLM-as-judge call per attempt: forces a PASS/FAIL first line plus one feedback sentence, bounded by loop.max_review_iterations so it can never retry forever.",
+    "module_path": "backend.core",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "self-review"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.6599498
+  },
+  {
+    "id": "28565c81",
+    "text": "Adding a new stage template to loop_generator.py: add an entry to STAGE_TEMPLATES keyed by the intent category, e.g. STAGE_TEMPLATES['research'] = ['Collect', 'Analyze', 'Compare', 'Reason', 'Find Gap']. For a category that should fan out into parallel subsystem branches, add its keyword patterns to task_analyzer.py's SUBSYSTEM_KEYWORDS instead, and a matching entry in loop_generator.py's SUBSYSTEM_TEMPLATES.",
+    "module_path": "backend.core",
+    "kind": "template",
+    "source": "manual",
+    "tags": [
+      "loop-generator",
+      "stage-template"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.7419467
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "servers": {
+    "filesystem": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.filesystem_server"],
+      "description": "Read/write/list/search files within the project root."
+    },
+    "terminal": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.terminal_server"],
+      "description": "Run shell commands (PowerShell-first on Windows, bash elsewhere)."
+    },
+    "git": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.git_server"],
+      "description": "git status/diff/log/commit against the current repo."
+    },
+    "knowledge": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.knowledge_server"],
+      "description": "Search/grow the hierarchical project knowledge base (rules, descriptions, code templates), scoped by module."
+    },
+    "memory": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.memory_server"],
+      "description": "Collect, retrieve, and preserve source-backed reusable Coder Knowledge Memory artefacts."
+    },
+    "sandbox": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.sandbox_server"],
+      "description": "Create isolated source copies and run allow-listed verification profiles without writing to the working tree."
+    },
+    "browser": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.browser_server"],
+      "description": "Run local Playwright user journeys: click, fill, assert visible/text/URL, and capture screenshots."
+    },
+    "web": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.web_server"],
+      "description": "Web search (DuckDuckGo) and URL fetch for research and fact-checking."
+    },
+    "ml": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.ml_server"],
+      "description": "ML/AI engineering: model recommendation, training script generation, export format suggestions, inference cost estimation."
+    },
+    "desktop_testing": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.desktop_testing_server"],
+      "description": "Desktop GUI automation, screen capture, computer vision, OCR, pixel/color verification."
+    },
+    "document_testing": {
+      "command": "python",
+      "args": ["-m", "igris.mcp_servers.document_testing_server"],
+      "description": "PowerPoint and Word file inspection, design consistency, structure validation, color palette analysis."
+    }
+  }
+}

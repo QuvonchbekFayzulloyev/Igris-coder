@@ -1,0 +1,28 @@
+[
+  {
+    "id": "29d66f62",
+    "text": "api.ts's openChatSocket() wraps the raw WebSocket and exposes only send()/close()/raw -- callers drive it via onEvent callbacks dispatching on a discriminated union WsEvent (stage | final | error), never by inspecting raw.readyState directly outside api.ts itself.",
+    "module_path": "frontend.lib",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "api-client",
+      "websocket"
+    ],
+    "embedding": [],
+    "created_at": 1784634534.1154828
+  },
+  {
+    "id": "dde0b60b",
+    "text": "api.ts's openChatSocket() wraps the raw WebSocket and exposes only send()/close()/raw -- callers drive it via onEvent callbacks dispatching on a discriminated union WsEvent (stage | final | error), never by inspecting raw.readyState directly outside api.ts itself.",
+    "module_path": "frontend.lib",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "api-client",
+      "websocket"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.3593833
+  }
+]

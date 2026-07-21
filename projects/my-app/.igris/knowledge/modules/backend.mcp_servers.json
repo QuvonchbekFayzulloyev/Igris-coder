@@ -1,0 +1,132 @@
+[
+  {
+    "id": "d4aab568",
+    "text": "All MCP servers use the official mcp Python SDK's FastMCP class, spawned by MCPManager over stdio with cwd pinned to the resolved project root (StdioServerParameters(cwd=...)) -- never relying on inherited cwd from wherever `igris` itself was launched.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "mcp",
+      "cwd"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.6121593
+  },
+  {
+    "id": "9f4a5869",
+    "text": "filesystem_server.py resolves every path against ROOT and refuses anything outside it (path traversal guard); delete_path requires an explicit confirm=true parameter enforced in code, not just documented, per agent-safety-boundaries.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "filesystem",
+      "safety"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.6182916
+  },
+  {
+    "id": "65cd1c52",
+    "text": "terminal_server.py's shell='auto' resolves to PowerShell/pwsh on Windows and bash only on non-Windows hosts or when WSL is explicitly requested -- WSL is never the automatic default.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "terminal",
+      "windows"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.6657543
+  },
+  {
+    "id": "7d928836",
+    "text": "Tool functions must never let an unhandled exception propagate to the MCP transport layer -- wrap failure-prone calls (e.g. embedding requests) and return a clear 'ERROR: ...' string the model can read and self-correct from, per tool-call-reliability.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "reliability",
+      "errors"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.7177453
+  },
+  {
+    "id": "4e3c7c46",
+    "text": "Minimal FastMCP tool pattern used throughout this project:\n@mcp.tool()\nasync def my_tool(arg: str, confirm: bool = False) -> str:\n    \"\"\"One-line description the model reads to decide when to call this.\"\"\"\n    if is_destructive and not confirm:\n        return \"REFUSED: pass confirm=true to proceed.\"\n    try:\n        result = await do_the_thing(arg)\n        return f\"OK: {result}\"\n    except ExpectedFailureType as e:\n        return f\"ERROR: {e}\"",
+    "module_path": "backend.mcp_servers",
+    "kind": "template",
+    "source": "manual",
+    "tags": [
+      "mcp",
+      "fastmcp"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.7500944
+  },
+  {
+    "id": "07fced5d",
+    "text": "All MCP servers use the official mcp Python SDK's FastMCP class, spawned by MCPManager over stdio with cwd pinned to the resolved project root (StdioServerParameters(cwd=...)) -- never relying on inherited cwd from wherever `igris` itself was launched.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "mcp",
+      "cwd"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.8065233
+  },
+  {
+    "id": "c7b440b5",
+    "text": "filesystem_server.py resolves every path against ROOT and refuses anything outside it (path traversal guard); delete_path requires an explicit confirm=true parameter enforced in code, not just documented, per agent-safety-boundaries.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "filesystem",
+      "safety"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.836932
+  },
+  {
+    "id": "bb1475a2",
+    "text": "terminal_server.py's shell='auto' resolves to PowerShell/pwsh on Windows and bash only on non-Windows hosts or when WSL is explicitly requested -- WSL is never the automatic default.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "terminal",
+      "windows"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.8835173
+  },
+  {
+    "id": "a0271308",
+    "text": "Tool functions must never let an unhandled exception propagate to the MCP transport layer -- wrap failure-prone calls (e.g. embedding requests) and return a clear 'ERROR: ...' string the model can read and self-correct from, per tool-call-reliability.",
+    "module_path": "backend.mcp_servers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "reliability",
+      "errors"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.9205463
+  },
+  {
+    "id": "ec11ba23",
+    "text": "Minimal FastMCP tool pattern used throughout this project:\n@mcp.tool()\nasync def my_tool(arg: str, confirm: bool = False) -> str:\n    \"\"\"One-line description the model reads to decide when to call this.\"\"\"\n    if is_destructive and not confirm:\n        return \"REFUSED: pass confirm=true to proceed.\"\n    try:\n        result = await do_the_thing(arg)\n        return f\"OK: {result}\"\n    except ExpectedFailureType as e:\n        return f\"ERROR: {e}\"",
+    "module_path": "backend.mcp_servers",
+    "kind": "template",
+    "source": "manual",
+    "tags": [
+      "mcp",
+      "fastmcp"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.9401264
+  }
+]

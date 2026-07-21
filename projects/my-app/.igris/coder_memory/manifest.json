@@ -1,0 +1,33 @@
+[
+  {
+    "id": "mem-1c33a84b4562",
+    "title": "my-app folder structure",
+    "category": "folder_structure",
+    "subcategory": "project-tree",
+    "tags": [
+      "folder-tree",
+      "project"
+    ],
+    "language": "",
+    "framework": "",
+    "source": "project",
+    "author": "",
+    "created_at": 1784634576.3908298,
+    "updated_at": 1784634576.3908298,
+    "version": "sha256:505cba25a2a7",
+    "license": "",
+    "quality_score": 0.8,
+    "trust_score": 0.9,
+    "reuse_score": 0.7,
+    "embedding_id": "",
+    "related_items": [],
+    "source_uri": "project://folder-tree",
+    "format": "text",
+    "content_path": "artifacts/mem-1c33a84b4562/content.txt",
+    "content_hash": "505cba25a2a7632209857599b373059854526d91c34f2c4cd15b9c2f53a510f9",
+    "details": {
+      "root": "my-app",
+      "generated": true
+    }
+  }
+]

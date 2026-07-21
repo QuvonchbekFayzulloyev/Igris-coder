@@ -1,0 +1,76 @@
+[
+  {
+    "id": "211ce2f2",
+    "text": "OpenAICompatibleClient (providers/openai_compatible.py) is shared by both LM Studio and OpenRouter since they speak the same protocol; the only differences are base_url, whether an api_key/auth header is required, and default model.",
+    "module_path": "backend.providers",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "openai-compatible"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.7977345
+  },
+  {
+    "id": "79cf9191",
+    "text": "Tool-call responses in the OpenAI protocol must echo back tool_calls[i].id as tool_call_id on the following 'tool' role message -- Ollama's protocol doesn't require this, OpenAI's does. Missing this breaks multi-turn tool calling silently on OpenRouter/LM Studio.",
+    "module_path": "backend.providers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "tool-calls",
+      "protocol"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.7985573
+  },
+  {
+    "id": "b39c6e03",
+    "text": "gateway.py's build_llm(config) is the only place that should ever choose a provider class -- everything downstream (RepromptLoop, server.py, cli.py) depends only on the shared chat()/run_with_tools() interface, never imports a specific provider directly.",
+    "module_path": "backend.providers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "gateway"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.8239505
+  },
+  {
+    "id": "b91b6e61",
+    "text": "OpenAICompatibleClient (providers/openai_compatible.py) is shared by both LM Studio and OpenRouter since they speak the same protocol; the only differences are base_url, whether an api_key/auth header is required, and default model.",
+    "module_path": "backend.providers",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "openai-compatible"
+    ],
+    "embedding": [],
+    "created_at": 1784634575.993213
+  },
+  {
+    "id": "9b78d8fa",
+    "text": "Tool-call responses in the OpenAI protocol must echo back tool_calls[i].id as tool_call_id on the following 'tool' role message -- Ollama's protocol doesn't require this, OpenAI's does. Missing this breaks multi-turn tool calling silently on OpenRouter/LM Studio.",
+    "module_path": "backend.providers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "tool-calls",
+      "protocol"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.0666087
+  },
+  {
+    "id": "a2ac90c5",
+    "text": "gateway.py's build_llm(config) is the only place that should ever choose a provider class -- everything downstream (RepromptLoop, server.py, cli.py) depends only on the shared chat()/run_with_tools() interface, never imports a specific provider directly.",
+    "module_path": "backend.providers",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "gateway"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.1075063
+  }
+]

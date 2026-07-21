@@ -1,0 +1,50 @@
+gateway:
+  provider: ollama
+ollama:
+  host: http://localhost:11434
+  model: qwen3:latest
+  temperature: 0.4
+  keep_alive: 10m
+  timeout_seconds: 120
+  enable_json_tool_call_fallback: true
+lmstudio:
+  host: http://localhost:1234/v1
+  model: local-model
+  temperature: 0.4
+  timeout_seconds: 120
+  enable_json_tool_call_fallback: true
+openrouter:
+  host: https://openrouter.ai/api/v1
+  model: openrouter/auto
+  api_key: ''
+  temperature: 0.4
+  timeout_seconds: 120
+  enable_json_tool_call_fallback: true
+  price_per_1k_prompt_tokens: 0.0
+  price_per_1k_completion_tokens: 0.0
+loop:
+  max_review_iterations: 2
+  clarify_confidence_threshold: 0.55
+  hard_block_confidence_threshold: 0.35
+  max_tool_iterations: 12
+  enable_self_review: true
+  trace: false
+skills:
+  dir: .igris/skills
+  max_active_skills: 3
+mcp:
+  config_file: .igris/mcp.json
+memory:
+  dir: .igris/memory
+  session_log: session.jsonl
+  checkpoints_file: checkpoints.json
+knowledge:
+  dir: .igris/knowledge
+embeddings:
+  host: ''
+  model: nomic-embed-text
+  keep_alive: 10m
+  timeout_seconds: 60
+platform:
+  prefer_native_windows: true
+  shell: powershell

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "0e8dc2c6",
+    "text": "server.py is the FastAPI+WebSocket bridge for the desktop UI: REST endpoints for state (projects/skills/mcp-tools/settings), one streaming WebSocket (/ws/chat) that emits one JSON stage event per RepromptLoop pipeline stage via an on_stage callback, then a final event with the response plus prompt_tokens/completion_tokens/cost_usd.",
+    "module_path": "backend.server",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "fastapi",
+      "websocket"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.8663304
+  },
+  {
+    "id": "263b606c",
+    "text": "CORS in server.py is scoped to known dev/Tauri origins (localhost:5173, tauri://localhost, http://tauri.localhost) -- tauri.conf.json's security.csp connect-src must list the exact same backend host:port or the frontend's fetch/WebSocket calls will be silently blocked by the webview, not the server.",
+    "module_path": "backend.server",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "csp",
+      "cors",
+      "tauri"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.8683321
+  },
+  {
+    "id": "4928176d",
+    "text": "server.py is the FastAPI+WebSocket bridge for the desktop UI: REST endpoints for state (projects/skills/mcp-tools/settings), one streaming WebSocket (/ws/chat) that emits one JSON stage event per RepromptLoop pipeline stage via an on_stage callback, then a final event with the response plus prompt_tokens/completion_tokens/cost_usd.",
+    "module_path": "backend.server",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "fastapi",
+      "websocket"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.1283445
+  },
+  {
+    "id": "606db036",
+    "text": "CORS in server.py is scoped to known dev/Tauri origins (localhost:5173, tauri://localhost, http://tauri.localhost) -- tauri.conf.json's security.csp connect-src must list the exact same backend host:port or the frontend's fetch/WebSocket calls will be silently blocked by the webview, not the server.",
+    "module_path": "backend.server",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "csp",
+      "cors",
+      "tauri"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.1804953
+  }
+]

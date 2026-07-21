@@ -1,0 +1,104 @@
+[
+  {
+    "id": "c2b2aaf6",
+    "text": "Design tokens (desktop/tailwind.config.js): bg #FFFFFF, blue #1D5FD6 (interactive accent), green #1FA463 / green-dark #0B4D33 (state/methodology), Segoe UI for UI text (Windows-first, no web font fetch needed), Cascadia Code for monospace/logs (ships with Windows Terminal).",
+    "module_path": "frontend",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "design-tokens"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.9005318
+  },
+  {
+    "id": "8f758932",
+    "text": "Every network call (fetch or WebSocket) must go through desktop/src/lib/api.ts -- no component calls fetch/WebSocket directly. Enforced by convention, not code, so review new components for direct fetch() calls (see architecture-layer-classification's violation check).",
+    "module_path": "frontend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "api-client",
+      "layering"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.9060009
+  },
+  {
+    "id": "8a3fcb28",
+    "text": "Async effects that call setState must guard against post-unmount execution with a cancelled/active flag -- found via component tests raising React act() warnings, not by inspection; see App.tsx's mount-time effects and SettingsPanel's load effect.",
+    "module_path": "frontend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "react",
+      "effects",
+      "testing"
+    ],
+    "embedding": [],
+    "created_at": 1784634533.9811473
+  },
+  {
+    "id": "ce107011",
+    "text": "Frontend testing convention: Vitest + jsdom + @testing-library/react + user-event; WebSocket-driven components are tested with a hand-rolled FakeWebSocket class (static .OPEN/.CLOSED constants, .emit() helper) since jsdom has no real WebSocket implementation -- see ui-component-testing skill.",
+    "module_path": "frontend",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "testing"
+    ],
+    "embedding": [],
+    "created_at": 1784634534.038247
+  },
+  {
+    "id": "65255c67",
+    "text": "Design tokens (desktop/tailwind.config.js): bg #FFFFFF, blue #1D5FD6 (interactive accent), green #1FA463 / green-dark #0B4D33 (state/methodology), Segoe UI for UI text (Windows-first, no web font fetch needed), Cascadia Code for monospace/logs (ships with Windows Terminal).",
+    "module_path": "frontend",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "design-tokens"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.1963408
+  },
+  {
+    "id": "93a8f140",
+    "text": "Every network call (fetch or WebSocket) must go through desktop/src/lib/api.ts -- no component calls fetch/WebSocket directly. Enforced by convention, not code, so review new components for direct fetch() calls (see architecture-layer-classification's violation check).",
+    "module_path": "frontend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "api-client",
+      "layering"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.208122
+  },
+  {
+    "id": "cec76d8f",
+    "text": "Async effects that call setState must guard against post-unmount execution with a cancelled/active flag -- found via component tests raising React act() warnings, not by inspection; see App.tsx's mount-time effects and SettingsPanel's load effect.",
+    "module_path": "frontend",
+    "kind": "rule",
+    "source": "manual",
+    "tags": [
+      "react",
+      "effects",
+      "testing"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.2254813
+  },
+  {
+    "id": "fb61ca09",
+    "text": "Frontend testing convention: Vitest + jsdom + @testing-library/react + user-event; WebSocket-driven components are tested with a hand-rolled FakeWebSocket class (static .OPEN/.CLOSED constants, .emit() helper) since jsdom has no real WebSocket implementation -- see ui-component-testing skill.",
+    "module_path": "frontend",
+    "kind": "description",
+    "source": "manual",
+    "tags": [
+      "testing"
+    ],
+    "embedding": [],
+    "created_at": 1784634576.2388718
+  }
+]
