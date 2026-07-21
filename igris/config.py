@@ -30,13 +30,14 @@ DEFAULTS: dict[str, Any] = {
     },
     "ollama": {
         "host": "http://localhost:11434",
-        "model": "qwen3",  # native tool-calling support, established local default
+        "model": "qwen2.5-coder:7b",  # lighter than qwen3, good code quality, JSON fallback
         "keep_alive": "10m",
         "temperature": 0.4,
         "timeout_seconds": 120,
         # recovers tool calls from models (e.g. qwen2.5-coder) that print
         # {"name":..., "arguments":...} as plain text instead of using
-        # Ollama's real tool_calls field. Not needed with qwen3.
+        # Ollama's real tool_calls field. Now strict: only matches ```json
+        # fences or pure JSON, skips ```python code blocks.
         "enable_json_tool_call_fallback": True,
     },
     "lmstudio": {

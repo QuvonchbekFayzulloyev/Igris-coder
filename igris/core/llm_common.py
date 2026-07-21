@@ -19,27 +19,44 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+_FENCE_RE = re.compile(r"```json\s*(.*?)```", re.DOTALL)
 
 
 def _looks_like_call(obj: Any) -> bool:
-    return isinstance(obj, dict) and "name" in obj and isinstance(obj.get("name"), str)
+    if not isinstance(obj, dict):
+        return False
+    name = obj.get("name")
+    if not isinstance(name, str) or not name.strip():
+        return False
+    args = obj.get("arguments") or obj.get("parameters")
+    if not isinstance(args, dict):
+        args = {}
+    obj["arguments"] = args
+    return True
 
 
 def _extract_fallback_tool_calls(content: str) -> list[dict] | None:
     """
-    If `content` is (or contains, fenced) a JSON object/array shaped like
-    {"name": ..., "arguments": {...}} -- or {"name":..., "parameters":{...}}
-    -- treat it as the tool call(s) the model meant to make. Returns None
-    if content doesn't parse as a recognizable tool call, in which case
-    the caller should treat content as a normal final answer.
+    If `content` is — or contains inside a ```json fence — a JSON
+    object/array shaped like {"name": ..., "arguments": {...}} treat it as
+    the tool call(s) the model meant to make. Returns None if content
+    doesn't parse as a recognizable tool call, in which case the caller
+    should treat content as a normal final answer.
+
+    Strict: only ```json fences are matched (not ```python or bare fences).
+    For unfenced content, the ENTIRE text must be valid tool-call JSON.
     """
     text = content.strip()
     if not text:
         return None
 
     fence_match = _FENCE_RE.search(text)
-    candidate = fence_match.group(1).strip() if fence_match else text
+    if fence_match:
+        candidate = fence_match.group(1).strip()
+    else:
+        candidate = text
+        if not (candidate.startswith("{") or candidate.startswith("[")):
+            return None
 
     try:
         parsed = json.loads(candidate)

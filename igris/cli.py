@@ -256,7 +256,7 @@ def _cmd_research(request: str, constraints: list[str], explicit_project: str | 
 
     config = Config.load(project_root=project_root)
     host = config.get("ollama.host", "http://localhost:11434")
-    model = config.get("ollama.model", "qwen2.5-coder:1.5b")
+    model = config.get("research.model", "qwen2.5-coder:1.5b")
     llm = OpenAICompatibleClient(base_url=f"{host}/v1", model=model, temperature=0.3)
 
     cia_dir = config.igris_dir / "cia"
