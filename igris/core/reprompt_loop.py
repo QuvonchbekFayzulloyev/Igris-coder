@@ -68,15 +68,20 @@ class RepromptLoop:
 
     def _format_llm_error(self, exc: Exception) -> str:
         msg = str(exc)
-        if "ConnectError" in msg or "Connection refused" in msg:
-            return "Ollama is not running. Start it with `ollama serve`."
+        err_lower = msg.lower()
+        if "connecterror" in err_lower or "connection refused" in err_lower:
+            return "I can't reach the AI model. Make sure Ollama is running (`ollama serve`) and check the host in Settings."
         if "500" in msg:
-            return "Ollama returned an error. Test it manually: `ollama run qwen3` in a terminal. If that works, check that the model name and host in Settings match exactly (default host: http://localhost:11434, default model: qwen3)."
-        if "401" in msg or "Unauthorized" in msg:
-            return "Invalid API key. Check your provider settings."
-        if "timeout" in msg.lower():
-            return "The LLM provider timed out. Check that the server is running and reachable."
-        return f"LLM error: {msg}"
+            return "The AI model returned an error. Try running the model manually to verify it works, then check Settings for the correct model name."
+        if "401" in msg or "unauthorized" in err_lower:
+            return "Authentication failed. Check your API key in Settings."
+        if "timeout" in err_lower or "timed out" in err_lower:
+            return "The AI model is taking too long to respond. Check that it's running and not overloaded."
+        if "connect" in err_lower:
+            return "Could not connect to the AI model provider. Check Settings for the correct host and port."
+        if "model" in err_lower and "not found" in err_lower:
+            return "The selected model wasn't found. Make sure it's downloaded and the name in Settings is correct."
+        return "I'm having trouble connecting to the AI model. Check your provider settings or try again."
 
     async def _research_pipeline(self, user_input: str, conversation_context: str, trace: list) -> LoopResult:
         """Run the full 12-stage research pipeline for architecture requests."""
@@ -129,6 +134,20 @@ class RepromptLoop:
             msg = self._format_llm_error(e)
             await self._trace(trace, "research:error", msg)
             return LoopResult(final_response=msg, trace=trace)
+
+    async def _handle_greeting(self, intent: Intent, conversation_context: str, trace: list) -> LoopResult:
+        """Hardcoded greeting responses -- no LLM call, no risk of connection error."""
+        await self._trace(trace, "greeting", "hardcoded greeting response")
+        responses = [
+            "Hello! I'm igris, your coding assistant. How can I help you today?",
+            "Hi there! What would you like me to work on?",
+            "Hey! I'm ready to help you code. What's the task?",
+            "Salom! Qanday yordam kerak?",
+        ]
+        import random
+        resp = random.choice(responses)
+        self.memory.log_turn("greeting", resp, meta={"mode": "greeting"})
+        return LoopResult(final_response=resp, trace=trace)
 
     async def _simple_chat(self, user_input: str, conversation_context: str, trace: list) -> LoopResult:
         """Context-aware Q&A that deliberately stays outside the tool loop."""
@@ -202,9 +221,12 @@ class RepromptLoop:
         if is_research:
             return await self._research_pipeline(user_input, conversation_context, trace)
 
-        # Stage D -- simple chat for Q&A intents (no tools, no agentic loop)
-        QA_CATEGORIES = {"question", "greeting"}
-        if intent.category in QA_CATEGORIES:
+        # Stage D -- hardcoded greeting responses (no LLM call needed)
+        if intent.category == "greeting":
+            return await self._handle_greeting(intent, conversation_context, trace)
+
+        # Stage E -- simple chat for questions (no tools, no agentic loop)
+        if intent.category == "question":
             return await self._simple_chat(user_input, conversation_context, trace)
 
         # Stage E -- full agentic pipeline for task intents
