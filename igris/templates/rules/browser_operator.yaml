@@ -1,0 +1,61 @@
+# Browser Operator Rules
+module: backend.browser_operator
+kind: rule
+
+rules:
+  - title: Browser Operator mission
+    text: >
+      Browser Operator never authenticates users, never creates accounts,
+      never deletes conversations, and never exposes credentials. It only
+      operates already-authenticated browser sessions exactly as a human
+      would. Always observe before acting, always verify after acting,
+      never assume UI state.
+
+  - title: Goal-oriented element detection
+    text: >
+      Never use hardcoded CSS selectors tied to a specific website version.
+      Instead, describe what to find: "find text input", "find submit button",
+      "detect generating state", "find response block". Search the DOM for
+      matching elements by role, type, aria-label, and content pattern.
+
+  - title: State machine before every action
+    text: >
+      Before sending any prompt to an AI web interface, check browser state
+      via browser_state(). If state is login_required, stop and notify user.
+      If rate_limited, switch provider or wait. If generating from previous
+      query, wait until finished.
+
+  - title: Provider routing
+    text: >
+      Route queries by type: coding to ChatGPT/Claude/DeepSeek,
+      architecture to Claude/ChatGPT, images to ChatGPT/Kimi,
+      reasoning to Claude/ChatGPT/Kimi, general research to
+      Perplexity/DeepSeek (no login needed).
+
+  - title: Recovery on failure
+    text: >
+      If a provider fails (rate limit, login expired, timeout, crash),
+      use browser_recover() to check state. If rate limited, suggest
+      alternative providers. If login expired, notify user. Never retry
+      blindly — always check state first.
+
+  - title: Browser memory tracking
+    text: >
+      Track per-provider state in browser memory: session state,
+      chat state, last check time, error count, rate limit hits.
+      Check cached state before launching a new browser session
+      to avoid unnecessary Chrome instances.
+
+  - title: Chrome only, no Chromium
+    text: >
+      Always use Google Chrome via Playwright's channel: "chrome".
+      Never use Chromium. Chrome has better profile management,
+      multi-account extensions (Mr. Twin), and matches real user
+      browser fingerprints more closely.
+
+  - title: No hardcoded site-specific selectors
+    text: >
+      Do not hardcode selectors per AI site. Instead use the
+      goal-oriented detection system in the runner script.
+      Sites change their UI frequently; intent-based detection
+      adapts automatically.

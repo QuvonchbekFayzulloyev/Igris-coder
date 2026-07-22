@@ -181,6 +181,122 @@ class RepromptLoop:
                 trace=trace,
             )
 
+    async def _quick_research(self, user_input: str, conversation_context: str, trace: list) -> LoopResult:
+        """Multi-AI research pipeline with parallel provider queries, fact voting, and self-critique.
+
+        Stages:
+          1. Provider Selection    — pick providers by query type
+          2. Parallel Query         — each provider gets a specialized prompt
+          3. Evidence Graph         — structure facts with source attribution
+          4. Conflict Resolution    — detect contradictions, vote-confidence
+          5. Fact Verification      — local LLM confirms/contradicts claims
+          6. Reasoning Synthesis    — build reasoning chain
+          7. Self-Critique          — score accuracy/completeness
+          8. Final Answer           — polished output with confidence indicators
+        """
+        await self._trace(trace, "quick_research", "multi-AI research pipeline (8 stages)")
+        try:
+            from .research import GeneratedQuery, SourceType
+            from .research.collector import collect_all
+            from igris.mcp_servers.multi_ai_research_server import (
+                provider_select as _provider_select,
+                provider_query as _provider_query,
+                evidence_graph as _evidence_graph,
+                resolve_conflicts as _resolve_conflicts,
+                verify_facts as _verify_facts,
+                synthesize_reasoning as _synthesize_reasoning,
+                self_critique as _self_critique,
+                final_answer as _final_answer,
+            )
+
+            # Stage 1: Provider Selection
+            await self._trace(trace, "research:select", "selecting providers")
+            select_raw = _provider_select(query=user_input, use_local=True)
+            select_data = json.loads(select_raw)
+            providers = select_data.get("providers", [])
+            strategy = select_data.get("strategy", "multi_ai")
+            await self._trace(trace, "research:select", f"strategy={strategy}, providers={[p['provider'] for p in providers]}")
+
+            if strategy == "local_only":
+                result = await self.llm.chat(
+                    messages=build_conversation_messages(user_input, conversation_context)
+                )
+                final_text = result.content
+            else:
+                # Stage 2: Parallel Provider Queries
+                await self._trace(trace, "research:query", f"querying {len(providers)} providers in parallel")
+                providers_json = json.dumps({"providers": providers})
+                query_raw = _provider_query(query=user_input, providers_json=providers_json)
+                query_data = json.loads(query_raw)
+                await self._trace(trace, "research:query", f"got {query_data.get('provider_count', 0)} responses")
+
+                if not query_data.get("ok") or not query_data.get("responses"):
+                    await self._trace(trace, "research:query", "all providers failed, falling back")
+                    result = await self.llm.chat(
+                        messages=build_conversation_messages(user_input, conversation_context)
+                    )
+                    final_text = result.content
+                else:
+                    # Stage 3: Evidence Graph
+                    await self._trace(trace, "research:graph", "building evidence graph")
+                    graph_raw = _evidence_graph(json.dumps(query_data))
+                    graph_data = json.loads(graph_raw)
+                    await self._trace(trace, "research:graph", f"{graph_data.get('evidence_count', 0)} evidence nodes")
+
+                    # Stage 4: Conflict Resolution
+                    await self._trace(trace, "research:conflicts", "resolving conflicts")
+                    resolved_raw = _resolve_conflicts(json.dumps(graph_data))
+                    resolved_data = json.loads(resolved_raw)
+                    await self._trace(trace, "research:conflicts", f"{resolved_data.get('conflicts_found', 0)} conflicts")
+
+                    # Stage 5: Fact Verification
+                    await self._trace(trace, "research:verify", "verifying facts")
+                    verified_raw = _verify_facts(json.dumps(resolved_data))
+                    verified_data = json.loads(verified_raw)
+                    confirmed = sum(1 for v in verified_data.get("verifications", []) if v.get("verdict") == "confirmed")
+                    await self._trace(trace, "research:verify", f"{confirmed} confirmed, {verified_data.get('verified_count', 0)} total")
+
+                    # Stage 6: Reasoning Synthesis
+                    await self._trace(trace, "research:reason", "synthesizing reasoning")
+                    reason_raw = _synthesize_reasoning(json.dumps(verified_data), query=user_input)
+                    reason_data = json.loads(reason_raw)
+                    await self._trace(trace, "research:reason", f"{reason_data.get('confirmed_count', 0)} confirmed, {reason_data.get('uncertain_count', 0)} uncertain")
+
+                    # Stage 7: Self-Critique
+                    await self._trace(trace, "research:critique", "self-critiquing")
+                    critique_raw = _self_critique(json.dumps(reason_data), query=user_input)
+                    critique_data = json.loads(critique_raw)
+                    scores = critique_data.get("scores", {})
+                    score_str = ", ".join(f"{k}={v}/10" for k, v in scores.items())
+                    await self._trace(trace, "research:critique", score_str or "critique complete")
+
+                    # Stage 8: Final Answer
+                    await self._trace(trace, "research:answer", "generating final answer")
+                    answer_raw = _final_answer(json.dumps(critique_data), query=user_input)
+                    answer_data = json.loads(answer_raw)
+                    final_text = answer_data.get("answer", "")
+                    if answer_data.get("needs_warning"):
+                        final_text = f"[Confidence: {answer_data.get('quality_score', 0):.1f}/10 — this answer may be uncertain]\n\n{final_text}"
+                    await self._trace(trace, "research:answer", f"quality_score={answer_data.get('quality_score', 0):.1f}/10")
+
+            if self._on_chunk and len(final_text) > 500:
+                from .data_manager import chunk_response, validate_output
+                vr = validate_output(final_text)
+                if vr.passed:
+                    chunks = chunk_response(final_text)
+                    for c in chunks:
+                        await self._on_chunk(c)
+
+            return LoopResult(
+                final_response=final_text,
+                trace=trace,
+                prompt_tokens=0,
+                completion_tokens=0,
+            )
+        except Exception as e:
+            msg = self._format_llm_error(e)
+            return LoopResult(final_response=msg, trace=trace)
+
     async def run(self, user_input: str, on_stage=None, on_preview=None, on_chunk=None) -> LoopResult:
         """
         Two-stage dispatch:
@@ -236,9 +352,12 @@ class RepromptLoop:
         if intent.category == "greeting":
             return await self._handle_greeting(intent, conversation_context, trace)
 
-        # Stage E -- simple chat for research/question intents (no tools, no agentic loop)
-        CHAT_CATEGORIES = {"question", "research"}
-        if intent.category in CHAT_CATEGORIES:
+        # Stage E -- web-backed research for knowledge queries (no arch keywords)
+        if intent.category in ("research", "media"):
+            return await self._quick_research(user_input, conversation_context, trace)
+
+        # Stage F -- simple chat for questions (no tools, no agentic loop)
+        if intent.category == "question":
             return await self._simple_chat(user_input, conversation_context, trace)
 
         # Stage E -- full agentic pipeline for task intents
@@ -327,6 +446,18 @@ class RepromptLoop:
 
         if assumption_note:
             response_text = f"_{assumption_note}_\n\n{response_text}"
+
+        # Translate response back to user's language if they wrote in a different language
+        user_lang = getattr(self.intent_resolver, "user_language", "en")
+        if user_lang != "en":
+            try:
+                from .translation import translate_from_canonical
+                translated = await translate_from_canonical(response_text[:3000], user_lang)
+                if translated and translated != response_text[:3000]:
+                    suffix = response_text[3000:] if len(response_text) > 3000 else ""
+                    response_text = translated + suffix
+            except Exception:
+                pass  # fall through to English response
 
         self.memory.log_turn("user", user_input, meta={"intent": intent.category, "complexity": complexity.tier})
         self.memory.log_turn("assistant", response_text, meta={"iterations": total_attempts})

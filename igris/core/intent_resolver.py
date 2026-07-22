@@ -8,6 +8,11 @@ clarifying question instead of guessing.
 Heuristics run first (cheap, instant, no network). Only when the heuristic
 confidence is below threshold do we escalate to a small classification
 call against the same local model -- so most turns never pay that cost.
+
+Unified Understanding Module:
+- All languages go through a single set of patterns.
+- Non-English text is translated to canonical (English) before classification.
+- Responses are translated back to the user's language if needed.
 """
 from __future__ import annotations
 
@@ -19,6 +24,7 @@ CATEGORY_KEYWORDS = {
         r"\bimplement\b", r"\badd\b", r"\bfix\b", r"\bbug\b", r"\brefactor\b", r"\bbuild\b",
         r"\bwrite (a |the )?(function|class|script|module)\b", r"\bcreate\b.*\b(cli|tool|app|script)\b",
         r"\byarat\b", r"qo'sh", r"\btuzat\b", r"o'zgartir", r"\byaxshila\b",
+        r"\bgenerate\b", r"\bcreate\b",
         # Architecture vocabulary is normally a request to change this
         # coding agent, not a casual mention; route it to the tool-capable
         # task path so MCP, skills, and review can do their jobs.
@@ -54,6 +60,15 @@ CATEGORY_KEYWORDS = {
         r"\bnima\b", r"\bkim\b", r"\bqayerda\b", r"\bqachon\b", r"\bnega\b",
         r"\bqanday\b", r"\bqanaqa\b", r"\bhaqida\b",
         r"\bcompare\b", r"\bqiyosla\b", r"\bfarqi\b",
+        # Uzbek image/media research
+        r"\b(?:rasm|surat|tasvir)\b", r"\bfoto\b",
+        r"\b(?:video|clip|film)\b",
+    ],
+    "media": [
+        r"\brasm\w*\b", r"\bsurat\b", r"\btasvir\b",
+        r"\b(?:image|picture|photo)\b",
+        r"\b(?:draw|paint|illustrate)\b",
+        r"\b(?:dalle|midjourney|stable diffusion)\b",
     ],
     "command": [
         r"\brun\b", r"\bexecute\b", r"ishga tushir", r"\bbajar\b",
@@ -92,6 +107,29 @@ class IntentResolver:
     def __init__(self, config, llm=None):
         self.config = config
         self.llm = llm  # optional OllamaClient, only used when heuristics are unsure
+        self._user_language = "en"
+        self._canonical_seen: set[str] = set()  # track already-translated texts
+
+    async def _canonicalize(self, text: str) -> str:
+        """Translate non-English text to canonical English for understanding.
+
+        The Understanding Module works exclusively on canonical text.
+        The original language is stored for response translation.
+        """
+        from .translation import detect_language, translate_to_canonical
+
+        lang = detect_language(text)
+        self._user_language = lang
+        if lang == "en":
+            return text
+        translated = await translate_to_canonical(text, lang)
+        self._canonical_seen.add(text.lower().strip())
+        return translated
+
+    @property
+    def user_language(self) -> str:
+        """The detected language of the most recent user input."""
+        return self._user_language
 
     def _heuristic(self, text: str) -> Intent:
         lowered = text.lower()
@@ -125,17 +163,34 @@ class IntentResolver:
         )
 
     async def classify(self, text: str) -> Intent:
-        heuristic = self._heuristic(text)
-        threshold = self.config.get("loop.clarify_confidence_threshold", 0.55)
+        # Run heuristics on BOTH original and canonical (translated) text.
+        # Pick the best result. This handles two cases:
+        #   1. Original already matches patterns (e.g. Uzbek "ko'rsat" → command)
+        #      → no translation needed, work with original
+        #   2. Original doesn't match well, translation helps
+        #      → use canonical text for classification
+        # Translation quality from small local models can be imperfect,
+        # so the hybrid approach is more robust.
+        original_heuristic = self._heuristic(text)
+        canonical = await self._canonicalize(text)
+        canonical_heuristic = self._heuristic(canonical) if canonical != text else original_heuristic
 
+        # Pick the heuristic with higher confidence
+        if original_heuristic.confidence >= canonical_heuristic.confidence:
+            heuristic = original_heuristic
+        else:
+            heuristic = canonical_heuristic
+
+        threshold = self.config.get("loop.clarify_confidence_threshold", 0.55)
         if heuristic.confidence >= threshold or self.llm is None:
             return heuristic
 
-        # Escalate to a tiny, cheap classification call.
+        # Escalate to LLM classification — use canonical text for the LLM
+        # so language doesn't confuse the classifier.
         prompt = (
             "Classify the user's request into exactly one label: "
             "code_task, bug_fix, review, research, command, question, ambiguous.\n"
-            f"Request: {text}\n"
+            f"Request: {canonical}\n"
             "Reply with only the label."
         )
         try:

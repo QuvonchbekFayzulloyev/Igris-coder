@@ -1,0 +1,37 @@
+# Multi-AI Research Pipeline Rules
+module: backend.multi_ai_research
+kind: rule
+
+rules:
+  - title: Multi-AI parallel specialization
+    text: >
+      Never send the same prompt to all providers. Each provider receives a
+      prompt optimized for its strength: Perplexity gets "Research with web
+      sources"; ChatGPT gets "Comprehensive overview including multiple
+      interpretations"; Kimi gets "Deep technical analysis"; local LLM gets
+      "Answer concisely". This is parallel specialization.
+
+  - title: Never pass external AI output directly to user
+    text: >
+      External AI responses (ChatGPT, Kimi, Perplexity) must never be passed
+      directly to the user. Always merge through the pipeline: evidence graph
+      -> conflict resolution -> fact verification -> reasoning -> self-critique
+      -> final answer.
+
+  - title: Fact voting confidence
+    text: >
+      A claim supported by 2+ providers is high confidence (>0.6).
+      A single-source claim is medium confidence (0.3-0.6).
+      A claim with conflicts is low confidence (<0.3) and should be flagged.
+
+  - title: Self-critique before delivering
+    text: >
+      Always run self-critique before delivering the final answer. Score
+      factual accuracy, completeness, and uncertainty handling. If average
+      score < 5/10, prefix the answer with a confidence warning.
+
+  - title: Provider fallback
+    text: >
+      If all external providers fail (timeout, login required, unavailable),
+      fall back to the local LLM with conversation context. Never return a
+      raw error message to the user.

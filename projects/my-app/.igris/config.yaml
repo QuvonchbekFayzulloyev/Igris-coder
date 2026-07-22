@@ -2,7 +2,7 @@ gateway:
   provider: ollama
 ollama:
   host: http://localhost:11434
-  model: qwen3:latest
+  model: gemma4:latest
   temperature: 0.4
   keep_alive: 10m
   timeout_seconds: 120

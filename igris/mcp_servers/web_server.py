@@ -1,8 +1,9 @@
-"""MCP surface for web search and fetch operations.
+"""MCP surface for web search, fetch, and trending operations.
 
-Provides two tools:
+Provides three tools:
 - web_search: search the web via DuckDuckGo (no API key needed)
 - web_fetch: fetch and extract text content from a URL
+- web_trending: find trending GitHub repositories by topic / language
 
 Used by the research pipeline and available as standalone MCP tools.
 """
@@ -111,6 +112,102 @@ async def web_fetch(url: str, max_chars: int = 15000) -> str:
 
     except Exception as e:
         return f"ERROR: fetch failed: {e}"
+
+
+@mcp.tool()
+async def web_trending(topic: str = "", language: str = "", since: str = "weekly") -> str:
+    """Find trending GitHub repositories.
+
+    Scrapes GitHub trending page for the given topic/language/period.
+    Returns repo names, descriptions, stars, and URLs.
+
+    Args:
+        topic: Optional topic keyword (e.g. "machine learning", "react", "rust").
+        language: Optional language filter (e.g. "python", "typescript", "rust").
+        since: Time range — "daily", "weekly", "monthly" (default weekly).
+    """
+    params = {}
+    if language:
+        params["spoken_language_code"] = ""
+        params["since"] = since
+    base = "https://github.com/trending"
+    path = f"/{language}" if language else ""
+    param_str = f"?since={since}" if not language else ""
+    if topic:
+        param_str = f"?since={since}&q={quote_plus(topic)}" if not language else f"&q={quote_plus(topic)}"
+    url = f"{base}{path}{param_str}"
+
+    try:
+        async with httpx.AsyncClient(
+            headers={"User-Agent": _USER_AGENT},
+            follow_redirects=True,
+        ) as client:
+            resp = await client.get(url, timeout=_TIMEOUT)
+            if resp.status_code != 200:
+                return f"ERROR: trending returned status {resp.status_code}"
+
+            html = resp.text
+            repos = []
+            articles = re.findall(
+                r'<article[^>]*class="[^"]*Box-row[^"]*"[^>]*>(.*?)</article>',
+                html, re.DOTALL,
+            )
+
+            for article in articles[:20]:
+                href_match = re.search(r'href="/([^/"]+/[^/"]+)"', article)
+                if not href_match:
+                    continue
+                full_name = href_match.group(1)
+
+                desc_match = re.search(
+                    r'<p[^>]*class="[^"]*col-9[^"]*"[^>]*>\s*(.*?)\s*</p>',
+                    article, re.DOTALL,
+                )
+                description = ""
+                if desc_match:
+                    description = re.sub(r"<[^>]+>", "", desc_match.group(1)).strip()
+
+                stars_match = re.search(
+                    r'<span[^>]*class="[^"]*d-inline-block[^"]*float-sm-right[^"]*"[^>]*>\s*(.*?)\s*</span>',
+                    article, re.DOTALL,
+                )
+                stars = ""
+                if stars_match:
+                    stars = re.sub(r"<[^>]+>", "", stars_match.group(1)).strip()
+
+                lang_match = re.search(
+                    r'<span[^>]*itemprop="programmingLanguage"[^>]*>(.*?)</span>',
+                    article, re.DOTALL,
+                )
+                lang = ""
+                if lang_match:
+                    lang = re.sub(r"<[^>]+>", "", lang_match.group(1)).strip()
+
+                repos.append({
+                    "name": full_name,
+                    "url": f"https://github.com/{full_name}",
+                    "description": description[:200] if description else "",
+                    "language": lang,
+                    "stars": stars,
+                })
+
+            if not repos:
+                return "(no trending repos found)"
+
+            lines = [f"Trending repositories{f' -- {topic}' if topic else ''} ({since}):"]
+            for r in repos:
+                stars_str = r.get('stars', '') or ''
+                lang_str = f" [{r['language']}]" if r.get('language') else ''
+                lines.append(f"  {r['name']}  *{stars_str}{lang_str}")
+                if r['description']:
+                    lines.append(f"    {r['description']}")
+                lines.append(f"    {r['url']}")
+                lines.append("")
+
+            return "\n".join(lines)
+
+    except Exception as e:
+        return f"ERROR: trending fetch failed: {e}"
 
 
 if __name__ == "__main__":
