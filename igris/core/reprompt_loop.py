@@ -225,8 +225,9 @@ class RepromptLoop:
         if intent.category == "greeting":
             return await self._handle_greeting(intent, conversation_context, trace)
 
-        # Stage E -- simple chat for questions (no tools, no agentic loop)
-        if intent.category == "question":
+        # Stage E -- simple chat for research/question intents (no tools, no agentic loop)
+        CHAT_CATEGORIES = {"question", "research"}
+        if intent.category in CHAT_CATEGORIES:
             return await self._simple_chat(user_input, conversation_context, trace)
 
         # Stage E -- full agentic pipeline for task intents
