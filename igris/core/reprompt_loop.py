@@ -158,6 +158,16 @@ class RepromptLoop:
             )
             self.memory.log_turn("user", user_input, meta={"mode": "simple_chat"})
             self.memory.log_turn("assistant", result.content)
+
+            if self._on_chunk and len(result.content) > 500:
+                from .data_manager import chunk_response, validate_output
+                vr = validate_output(result.content)
+                if vr.passed:
+                    chunks = chunk_response(result.content)
+                    for c in chunks:
+                        await self._on_chunk(c)
+                    await self._trace(trace, "chat:chunks", f"{len(chunks)} chunk(s) streamed")
+
             return LoopResult(
                 final_response=result.content,
                 trace=trace,
@@ -171,7 +181,7 @@ class RepromptLoop:
                 trace=trace,
             )
 
-    async def run(self, user_input: str, on_stage=None, on_preview=None) -> LoopResult:
+    async def run(self, user_input: str, on_stage=None, on_preview=None, on_chunk=None) -> LoopResult:
         """
         Two-stage dispatch:
           A. Intent classify (heuristic)
@@ -181,6 +191,7 @@ class RepromptLoop:
         """
         self._on_stage = on_stage
         self._on_preview = on_preview
+        self._on_chunk = on_chunk
         trace: list[tuple[str, str]] = []
 
         # Stage A -- intent classification (heuristic, LLM escalation only if unsure)
@@ -375,8 +386,17 @@ class RepromptLoop:
                 max_iterations=max_tool_iters,
             )
 
-            parts.append(f"## Cycle {i+1}: {cycle.name}\n" + result.content)
+            cycle_text = f"## Cycle {i+1}: {cycle.name}\n" + result.content
+            parts.append(cycle_text)
             total_prompt_tokens += result.prompt_tokens
+
+            if self._on_chunk and len(result.content) > 300:
+                from .data_manager import chunk_response, validate_output
+                vr = validate_output(result.content)
+                if vr.passed:
+                    chunks = chunk_response(result.content, chunk_callback=None)
+                    for c in chunks:
+                        await self._on_chunk(c)
             total_completion_tokens += result.completion_tokens
 
             cycle.result = result.content[:200]

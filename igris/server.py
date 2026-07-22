@@ -400,9 +400,22 @@ async def ws_chat(websocket: WebSocket):
                     "artifacts": result.artifacts,
                 })
 
+            async def on_chunk(chunk, ws=websocket):
+                await ws.send_json({
+                    "type": "chunk",
+                    "id": chunk.id,
+                    "index": chunk.index,
+                    "total": chunk.total,
+                    "content": chunk.content,
+                    "summary": chunk.summary,
+                    "connector_prev": chunk.connector_prev,
+                    "connector_next": chunk.connector_next,
+                    "quality_score": chunk.quality_score,
+                })
+
             async with MCPManager(config) as mcp:
                 loop = RepromptLoop(config, llm, mcp, skills, context_engine, intent_resolver, memory)
-                result = await loop.run(message, on_stage=on_stage, on_preview=on_preview)
+                result = await loop.run(message, on_stage=on_stage, on_preview=on_preview, on_chunk=on_chunk)
 
             provider = config.get("gateway.provider", "ollama")
             await websocket.send_json({

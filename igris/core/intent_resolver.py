@@ -30,6 +30,14 @@ CATEGORY_KEYWORDS = {
     ],
     "review": [
         r"\breview\b", r"\bcheck (this|my)\b", r"\baudit\b", r"\btekshir\b",
+        r"\bquality\b", r"\bsecurity\b.*\b(check|audit)\b",
+    ],
+    "data_manage": [
+        r"\b(?:data|ma'lumot|malumot)\b.*\b(?:manage|manager|boshqar|nazorat|control)\b",
+        r"\bvalidat\w+\b.*\b(?:data|output|chiqish)\b",
+        r"\bchunk\w*\b", r"\bstream\w*\b.*\b(?:data|output)\b",
+        r"\b(?:security|xavsizlik)\b.*\b(?:check|tekshir|nazorat)\b",
+        r"\binput\b.*\b(?:valid|filter|clean)\b",
     ],
     "research": [
         r"\bwhat is\b", r"\bwhat are\b", r"\bwhat's\b",

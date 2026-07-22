@@ -36,8 +36,8 @@ def test_complex_code_task_gets_full_pipeline():
     assert names == [
         "objective", "research", "dependencies", "plan", "scaffold",
         "backend", "frontend", "diff", "test", "validate",
-        "security", "preview", "analyze_preview", "performance",
-        "documentation", "report",
+        "security", "preview", "analyze_preview", "data_stream",
+        "performance", "documentation", "report",
     ]
 
 

@@ -90,6 +90,17 @@ export interface PreviewData {
   artifacts: string[];
 }
 
+export interface DataChunk {
+  id: string;
+  index: number;
+  total: number;
+  content: string;
+  summary: string;
+  connector_prev: string;
+  connector_next: string;
+  quality_score: number;
+}
+
 export type WsEvent =
   | { type: "stage"; stage: string; detail: string }
   | {
@@ -103,7 +114,8 @@ export type WsEvent =
       cost_usd: number;
     }
   | { type: "error"; detail: string }
-  | { type: "preview" } & PreviewData;
+  | { type: "preview" } & PreviewData
+  | { type: "chunk" } & DataChunk;
 
 export interface ConversationMessage {
   id: string;

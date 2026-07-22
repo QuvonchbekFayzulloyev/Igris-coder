@@ -39,6 +39,7 @@ TOOL_SUBSETS: dict[str, list[str]] = {
     "report": ["read", "write"],
     "preview": ["read", "bash", "terminal", "browser", "desktop"],
     "analyze_preview": ["read", "bash", "desktop", "browser"],
+    "data_stream": ["read", "write", "bash", "terminal"],
 }
 
 # Full 14-stage pipeline for complex code tasks
@@ -56,6 +57,7 @@ FULL_PIPELINE = [
     {"name": "security", "goal": "Check for common security vulnerabilities", "tools": "security"},
     {"name": "preview", "goal": "Run live preview: start server, auto-detect project type (web/api/cli/desktop), run tests", "tools": "preview"},
     {"name": "analyze_preview", "goal": "Analyze preview results: screenshots, console/network logs, test reports", "tools": "analyze_preview"},
+    {"name": "data_stream", "goal": "Validate, chunk, and stream output progressively for speed and quality", "tools": "data_stream"},
     {"name": "performance", "goal": "Evaluate performance implications and optimize", "tools": "performance"},
     {"name": "documentation", "goal": "Update README, API docs, usage guides", "tools": "docs"},
     {"name": "report", "goal": "Summarize what was done, what remains, and how to use the result", "tools": "report"},
