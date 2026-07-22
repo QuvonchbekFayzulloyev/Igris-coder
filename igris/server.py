@@ -389,9 +389,20 @@ async def ws_chat(websocket: WebSocket):
             async def on_stage(stage: str, detail: str, ws=websocket):
                 await ws.send_json({"type": "stage", "stage": stage, "detail": detail})
 
+            async def on_preview(result, ws=websocket):
+                await ws.send_json({
+                    "type": "preview",
+                    "tester_name": result.tester_name,
+                    "success": result.success,
+                    "summary": result.summary,
+                    "details": result.details,
+                    "errors": result.errors,
+                    "artifacts": result.artifacts,
+                })
+
             async with MCPManager(config) as mcp:
                 loop = RepromptLoop(config, llm, mcp, skills, context_engine, intent_resolver, memory)
-                result = await loop.run(message, on_stage=on_stage)
+                result = await loop.run(message, on_stage=on_stage, on_preview=on_preview)
 
             provider = config.get("gateway.provider", "ollama")
             await websocket.send_json({

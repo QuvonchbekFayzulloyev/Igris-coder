@@ -81,6 +81,15 @@ export interface StageEvent {
   detail: string;
 }
 
+export interface PreviewData {
+  tester_name: string;
+  success: boolean;
+  summary: string;
+  details: string[];
+  errors: string[];
+  artifacts: string[];
+}
+
 export type WsEvent =
   | { type: "stage"; stage: string; detail: string }
   | {
@@ -93,7 +102,8 @@ export type WsEvent =
       completion_tokens: number;
       cost_usd: number;
     }
-  | { type: "error"; detail: string };
+  | { type: "error"; detail: string }
+  | { type: "preview" } & PreviewData;
 
 export interface ConversationMessage {
   id: string;

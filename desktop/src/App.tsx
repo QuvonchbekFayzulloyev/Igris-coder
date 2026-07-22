@@ -5,8 +5,9 @@ import Conversation from "./components/Conversation";
 import RuntimePanel from "./components/RuntimePanel";
 import StatusBar from "./components/StatusBar";
 import SettingsPanel from "./components/SettingsPanel";
+import PreviewPanel from "./components/PreviewPanel";
 import { api, openChatSocket } from "./lib/api";
-import type { ConversationMessage, Skill, StageEvent, WsEvent } from "./lib/types";
+import type { ConversationMessage, PreviewData, Skill, StageEvent, WsEvent } from "./lib/types";
 
 let idCounter = 0;
 const nextId = () => `msg-${++idCounter}-${Date.now()}`;
@@ -32,6 +33,8 @@ export default function App() {
   const [completionTokens, setCompletionTokens] = useState(0);
   const [costUsd, setCostUsd] = useState(0);
   const [backendReachable, setBackendReachable] = useState(true);
+  const [view, setView] = useState<"chat" | "preview">("chat");
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
 
   const socketRef = useRef<ReturnType<typeof openChatSocket> | null>(null);
 
@@ -63,6 +66,16 @@ export default function App() {
         ...prev,
         { id: nextId(), role: "assistant", content: `Error: ${event.detail}`, timestamp: Date.now() },
       ]);
+    }
+    if (event.type === "preview") {
+      setPreviewData({
+        tester_name: event.tester_name,
+        success: event.success,
+        summary: event.summary,
+        details: event.details,
+        errors: event.errors,
+        artifacts: event.artifacts,
+      });
     }
   }, []);
 
@@ -212,6 +225,8 @@ export default function App() {
       <TopBar
         projectName={activeProject}
         connected={connected}
+        view={view}
+        onToggleView={() => setView((v) => (v === "chat" ? "preview" : "chat"))}
         onOpenSettings={() => setSettingsOpen(true)}
       />
       {actionError && (
@@ -235,12 +250,16 @@ export default function App() {
           selectedProvider={selectedProvider}
           onSelectProvider={handleSelectProvider}
         />
-        <Conversation
-          messages={messages}
-          onSend={handleSend}
-          running={running}
-          disabledReason={activeProject ? null : "Create or select a project to start."}
-        />
+        {view === "chat" ? (
+          <Conversation
+            messages={messages}
+            onSend={handleSend}
+            running={running}
+            disabledReason={activeProject ? null : "Create or select a project to start."}
+          />
+        ) : (
+          <PreviewPanel data={previewData} />
+        )}
         <RuntimePanel events={stageEvents} running={running} />
       </div>
       <StatusBar

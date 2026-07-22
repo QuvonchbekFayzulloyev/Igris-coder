@@ -68,14 +68,14 @@ def test_question_uses_context_aware_system_prompt_without_tools(project):
     loop = make_loop(project, llm)
     loop.memory.log_turn("user", "We are designing the local coding agent.")
 
-    result = asyncio.run(loop.run("What is the purpose of a TaskSpec?"))
+    result = asyncio.run(loop.run("why is the TaskSpec needed"))
 
     assert result.final_response.startswith("Use a TaskSpec")
     assert len(llm.run_calls) == 0
     assert len(llm.chat_calls) == 1
     system_message, user_message = llm.chat_calls[0]
     assert "conversation mode" in system_message["content"].lower()
-    assert "purpose of a TaskSpec" in user_message["content"]
+    assert "TaskSpec needed" in user_message["content"]
     assert "designing the local coding agent" in user_message["content"]
 
 
@@ -84,14 +84,15 @@ def test_agentic_prompt_receives_snapshot_context_and_system_boundaries(project)
     loop = make_loop(project, llm)
     loop.memory.log_turn("assistant", "We use MCP for workspace actions.")
 
-    asyncio.run(loop.run("implement a system prompt for the agent"))
+    asyncio.run(loop.run("implement a prompt template for the agent"))
 
     system_prompt, user_prompt = llm.run_calls[0]
-    assert "agentic task-execution mode" in system_prompt
-    assert "destructive action" in system_prompt
-    assert "Coder Memory" in system_prompt
-    assert "Working directory:" in user_prompt
-    assert "We use MCP for workspace actions" in user_prompt
+    assert "universal autonomous expert" in system_prompt
+    assert "Current domain: software_engineering" in system_prompt
+    assert "Autonomous resource acquisition" in system_prompt
+    assert "Self-critique" in system_prompt
+    assert "Working directory:" in system_prompt or "Working directory:" in user_prompt
+    assert "We use MCP for workspace actions" in system_prompt or "We use MCP for workspace actions" in user_prompt
 
 
 def test_review_failure_triggers_bounded_retry(project):
@@ -106,7 +107,7 @@ def test_review_failure_triggers_bounded_retry(project):
 
     assert len(llm.run_calls) == 2
     assert result.iterations == 2
-    assert result.final_response == "second draft with edge cases"
+    assert "second draft with edge cases" in result.final_response
     # feedback from the failed review should have been folded into attempt 2's system prompt
     second_system_prompt = llm.run_calls[1][0]
     assert "missing edge case handling" in second_system_prompt

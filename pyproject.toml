@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+preview = ["playwright>=1.60"]
 
 [project.scripts]
 igris = "igris.cli:main"

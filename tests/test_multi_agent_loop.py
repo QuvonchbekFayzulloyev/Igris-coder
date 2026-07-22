@@ -48,7 +48,7 @@ def test_multi_subsystem_request_runs_branches_and_merges(project):
     loop = make_loop(project, llm)
 
     result = asyncio.run(loop.run(
-        "build an ecommerce site with frontend, backend, and a database schema"
+        "implement an ecommerce site with frontend, backend, and a database schema"
     ))
 
     assert result.needs_clarification is False
@@ -67,12 +67,13 @@ def test_multi_agent_trace_records_branch_names(project):
     llm = MockLLM(run_responses=["b", "d", "f"])
     loop = make_loop(project, llm)
 
-    result = asyncio.run(loop.run("build frontend and backend and database for this app"))
+    result = asyncio.run(loop.run("add frontend and backend and database for this codebase"))
 
     stages = dict(result.trace)
-    assert "multi_agent" in stages
-    assert "backend" in stages["multi_agent"]
-    assert "frontend" in stages["multi_agent"]
+    assert "complexity" in stages
+    assert "multi_agent" in stages["complexity"]
+    assert "backend" in stages["complexity"]
+    assert "frontend" in stages["complexity"]
 
 
 def test_single_subsystem_request_does_not_trigger_multi_agent(project):
@@ -98,7 +99,7 @@ def test_multi_agent_tokens_sum_across_all_branches(project):
     loop = make_loop(project, llm)
 
     result = asyncio.run(loop.run(
-        "build an ecommerce site with frontend, backend, and a database schema"
+        "implement an ecommerce site with frontend, backend, and a database schema"
     ))
 
     assert result.prompt_tokens == 100 + 110 + 120 + 40

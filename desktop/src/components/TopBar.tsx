@@ -1,10 +1,12 @@
 interface TopBarProps {
   projectName: string | null;
   connected: boolean;
+  view: "chat" | "preview";
+  onToggleView: () => void;
   onOpenSettings: () => void;
 }
 
-export default function TopBar({ projectName, connected, onOpenSettings }: TopBarProps) {
+export default function TopBar({ projectName, connected, view, onToggleView, onOpenSettings }: TopBarProps) {
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-bg px-4">
       <div className="flex items-center gap-2">
@@ -27,6 +29,17 @@ export default function TopBar({ projectName, connected, onOpenSettings }: TopBa
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          onClick={onToggleView}
+          className={`rounded-md px-2 py-1 text-xs transition-colors ${
+            view === "preview"
+              ? "bg-green-dark text-white"
+              : "text-ink-muted hover:bg-bg-inset"
+          }`}
+          title={view === "chat" ? "Show test results" : "Show chat"}
+        >
+          {view === "chat" ? "Preview" : "Chat"}
+        </button>
         <div className="flex items-center gap-1.5 text-2xs text-ink-muted">
           <span
             className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-green" : "bg-red"}`}

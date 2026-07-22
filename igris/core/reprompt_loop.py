@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from . import loop_generator, task_analyzer
 from .execution_graph import ExecutionGraph
 from .spec import TaskSpec, build_conversation_messages, synthesize_acceptance_criteria
+from .memory2 import MemoryEngine
 
 
 @dataclass
@@ -52,6 +53,11 @@ class RepromptLoop:
         self.memory = memory
         self.trace_enabled = config.get("loop.trace", False)
         self._on_stage = None  # set per-run() call; async callback(stage, detail)
+        self._preview = None   # PreviewSystem instance, created per run
+        # Unified memory engine
+        memory2_rel = config.get("memory2.dir")
+        store_dir = (config.project_root / memory2_rel) if memory2_rel else config.project_root / ".igris" / "memory2"
+        self.memory2 = MemoryEngine(store_dir, model_size=config.get("model.size", "7b"))
 
     async def _trace(self, trace: list, stage: str, detail: str) -> None:
         trace.append((stage, detail))
@@ -146,7 +152,7 @@ class RepromptLoop:
                 trace=trace,
             )
 
-    async def run(self, user_input: str, on_stage=None) -> LoopResult:
+    async def run(self, user_input: str, on_stage=None, on_preview=None) -> LoopResult:
         """
         Two-stage dispatch:
           A. Intent classify (heuristic)
@@ -155,6 +161,7 @@ class RepromptLoop:
           D. If task (code_task, bug_fix, review, command) → full agentic pipeline
         """
         self._on_stage = on_stage
+        self._on_preview = on_preview
         trace: list[tuple[str, str]] = []
 
         # Stage A -- intent classification (heuristic, LLM escalation only if unsure)
@@ -229,63 +236,56 @@ class RepromptLoop:
         spec = TaskSpec(
             original_input=user_input,
             intent_category=intent.category,
+            domain=complexity.domain,
             acceptance_criteria=synthesize_acceptance_criteria(intent.category, user_input),
             context_block=gathered.to_prompt_block(),
             conversation_context=conversation_context,
             skill_block=self.skills.prompt_block_for(active_skills),
-            loop_block="" if loop_plan.is_multi_branch else loop_plan.to_prompt_block(),
+            loop_block=loop_plan.to_prompt_block(),
         )
-        await self._trace(trace, "spec", f"{len(spec.acceptance_criteria)} acceptance criteria synthesized")
+        await self._trace(trace, "spec", f"{spec.domain} task, {len(spec.acceptance_criteria)} acceptance criteria")
 
-        # D6 -- bounded execute + self-review, or parallel multi-agent branches
-        max_reviews = self.config.get("loop.max_review_iterations", 2)
+        # D6 -- mini work cycles via ExecutionGraph with bounded retry
         enable_review = self.config.get("loop.enable_self_review", True)
-        max_tool_iters = self.config.get("loop.max_tool_iterations", 12)
-        tool_desc = self.mcp_manager.describe_tools() if self.mcp_manager else ""
+        max_tool_iters = self.config.get("loop.max_tool_iterations", 8)
+        max_review_iters = self.config.get("loop.max_review_iterations", 3) if enable_review else 1
+        total_attempts = 0
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
 
         try:
-            if loop_plan.is_multi_branch:
-                response_text, branch_prompt_tokens, branch_completion_tokens = await self._run_multi_agent(
-                    spec, loop_plan, tool_desc, max_tool_iters, trace
-                )
-                total_prompt_tokens = branch_prompt_tokens
-                total_completion_tokens = branch_completion_tokens
-                attempt = 1
-                if enable_review:
-                    review_passed, feedback, rev_pt, rev_ct = await self._self_review(spec, response_text)
-                    total_prompt_tokens += rev_pt
-                    total_completion_tokens += rev_ct
-                    await self._trace(trace, "review_1", f"pass={review_passed} feedback={feedback[:120]}")
-            else:
-                attempt = 0
-                response_text = ""
-                total_prompt_tokens = 0
-                total_completion_tokens = 0
-                while attempt < max(max_reviews, 1):
-                    attempt += 1
-                    result = await self.llm.run_with_tools(
-                        system_prompt=spec.to_system_prompt(tool_desc),
-                        user_prompt=spec.to_user_prompt(),
-                        mcp_manager=self.mcp_manager,
-                        max_iterations=max_tool_iters,
+            for review_attempt in range(max_review_iters):
+                if loop_plan.has_parallel:
+                    response_text, pt, ct, attempt = await self._run_parallel_cycles(
+                        spec, loop_plan, max_tool_iters, trace
                     )
-                    response_text = result.content
-                    total_prompt_tokens += result.prompt_tokens
-                    total_completion_tokens += result.completion_tokens
-                    fallback_note = " (used JSON-text tool-call fallback -- consider `ollama pull qwen3` for reliability)" if result.used_fallback_parsing else ""
-                    await self._trace(trace, f"attempt_{attempt}", f"{len(response_text)} chars, {result.tool_iterations} tool rounds, {result.prompt_tokens}+{result.completion_tokens} tokens{fallback_note}")
+                else:
+                    response_text, pt, ct, attempt = await self._run_sequential_cycles(
+                        spec, loop_plan, max_tool_iters, enable_review, trace
+                    )
+                total_prompt_tokens += pt
+                total_completion_tokens += ct
+                total_attempts += attempt
 
-                    if not enable_review:
-                        break
+                if not enable_review or not response_text.strip():
+                    break
 
-                    review_passed, feedback, rev_pt, rev_ct = await self._self_review(spec, response_text)
-                    total_prompt_tokens += rev_pt
-                    total_completion_tokens += rev_ct
-                    await self._trace(trace, f"review_{attempt}", f"pass={review_passed} feedback={feedback[:120]}")
+                review_passed, feedback, rev_pt, rev_ct = await self._self_review(spec, response_text)
+                total_prompt_tokens += rev_pt
+                total_completion_tokens += rev_ct
+                await self._trace(trace, "final_review",
+                    f"attempt={review_attempt+1} pass={review_passed} feedback={feedback[:120]}")
 
-                    if review_passed or attempt >= max_reviews:
-                        break
+                if review_passed:
+                    break
+
+                if review_attempt < max_review_iters - 1:
                     spec = spec.with_feedback(feedback)
+                else:
+                    response_text += f"\n\n[Review note: {feedback}]"
+
+            response_text = response_text or "(no output produced)"
+
         except Exception as e:
             msg = self._format_llm_error(e)
             await self._trace(trace, "error", msg)
@@ -295,62 +295,170 @@ class RepromptLoop:
             response_text = f"_{assumption_note}_\n\n{response_text}"
 
         self.memory.log_turn("user", user_input, meta={"intent": intent.category, "complexity": complexity.tier})
-        self.memory.log_turn("assistant", response_text, meta={"iterations": attempt})
+        self.memory.log_turn("assistant", response_text, meta={"iterations": total_attempts})
+
+        self.memory2.remember(user_input, session_id="default", question=user_input, answer=response_text[:2000])
+        self.memory2.remember(
+            f"[{intent.category}] {user_input[:200]} -> {response_text[:200]}",
+            session_id="default", tags=["task", intent.category]
+        )
 
         return LoopResult(
             final_response=response_text,
             trace=trace,
-            iterations=attempt,
+            iterations=total_attempts,
             assumption_note=assumption_note,
             prompt_tokens=total_prompt_tokens,
             completion_tokens=total_completion_tokens,
         )
 
-    async def _run_multi_agent(self, spec: TaskSpec, loop_plan, tool_desc: str, max_tool_iters: int, trace: list) -> tuple[str, int, int]:
-        """
-        Execution Graph path: each subsystem branch from the Loop Generator
-        gets its own scoped TaskSpec and runs concurrently (branches are
-        independent by construction -- loop_generator only produces them
-        for complexity=multi_agent, where the subsystems were named
-        explicitly and separately in the request). Results are merged
-        under per-branch headings; a single review pass then judges the
-        merged whole against the original acceptance criteria. Returns
-        (merged_text, total_prompt_tokens, total_completion_tokens).
-        """
-        graph = ExecutionGraph()
+    async def _run_sequential_cycles(
+        self, spec: TaskSpec, loop_plan, max_tool_iters: int, enable_review: bool, trace: list
+    ) -> tuple[str, int, int, int]:
+        """Run mini work cycles one at a time. Each cycle gets a focused prompt and verified before next."""
+        parts = []
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
+        full_tool_desc = self.mcp_manager.describe_tools() if self.mcp_manager else ""
+        current_spec = spec
 
-        def make_branch_runner(branch_name: str, stages: list[str]):
-            branch_spec = TaskSpec(
-                original_input=f"[{branch_name} subsystem] {spec.original_input}",
-                intent_category=spec.intent_category,
-                acceptance_criteria=spec.acceptance_criteria,
-                constraints=spec.constraints,
-                context_block=spec.context_block,
-                conversation_context=spec.conversation_context,
-                skill_block=spec.skill_block,
-                loop_block=f"Follow this stage sequence for the {branch_name} subsystem: {' -> '.join(stages)}",
+        self._preview = None
+
+        for i, cycle in enumerate(loop_plan.cycles):
+            if cycle.name in ("preview", "analyze_preview"):
+                preview_part, ppt, pct = await self._run_preview_cycle(cycle, trace)
+                parts.append(preview_part)
+                total_prompt_tokens += ppt
+                total_completion_tokens += pct
+                await self._trace(trace, f"cycle_{cycle.name}", f"preview done, {len(preview_part)} chars")
+                continue
+
+            system = current_spec.to_system_prompt(tool_description=full_tool_desc)
+            if current_spec.conversation_context:
+                system += "\n\n## Workspace context\n" + current_spec.conversation_context
+            previous = "\n".join(parts[-2:]) if parts else "This is the first cycle."
+            cycle_prompt = (
+                f"## Mini Work Cycle {i+1}/{len(loop_plan.cycles)}: {cycle.name}\n\n"
+                f"**Goal:** {cycle.goal}\n"
+                f"**Available tools:** {cycle.tool_group}\n\n"
+                f"**Previous work:**\n{previous}\n\n"
+                f"Focus ONLY on this cycle's goal. Do not do future work."
             )
 
-            async def _run():
-                return await self.llm.run_with_tools(
-                    system_prompt=branch_spec.to_system_prompt(tool_desc),
-                    user_prompt=branch_spec.to_user_prompt(),
+            result = await self.llm.run_with_tools(
+                system_prompt=system,
+                user_prompt=cycle_prompt,
+                mcp_manager=self.mcp_manager,
+                max_iterations=max_tool_iters,
+            )
+
+            parts.append(f"## Cycle {i+1}: {cycle.name}\n" + result.content)
+            total_prompt_tokens += result.prompt_tokens
+            total_completion_tokens += result.completion_tokens
+
+            cycle.result = result.content[:200]
+            fallback_note = " (fallback)" if result.used_fallback_parsing else ""
+            await self._trace(trace, f"cycle_{cycle.name}",
+                f"done, {len(result.content)} chars, {result.tool_iterations} tool rounds, {result.prompt_tokens}+{result.completion_tokens} tokens{fallback_note}")
+
+            if enable_review and i < len(loop_plan.cycles) - 1:
+                ok, feedback, rpt, rct = await self._self_review(current_spec, result.content[:2000])
+                total_prompt_tokens += rpt
+                total_completion_tokens += rct
+                if not ok:
+                    await self._trace(trace, f"cycle_{cycle.name}_review", f"FAIL: {feedback[:100]}")
+                    current_spec = current_spec.with_feedback(feedback)
+
+        if self._preview:
+            await self._preview.close()
+            self._preview = None
+
+        return "\n\n".join(parts), total_prompt_tokens, total_completion_tokens, len(loop_plan.cycles)
+
+    async def _run_preview_cycle(self, cycle, trace: list) -> tuple[str, int, int]:
+        """Run a preview or analyze_preview mini-cycle using the PreviewSystem.
+
+        PreviewSystem auto-detects project type (web, API, CLI, desktop, etc.)
+        and runs the appropriate tester(s). Results include screenshots for
+        web/desktop, console logs for web, test reports for libraries, etc.
+        """
+        from .preview import PreviewSystem
+
+        project_root = self.config.project_root
+
+        if cycle.name == "preview":
+            if self._preview is None:
+                self._preview = PreviewSystem(project_root)
+
+            ps = self._preview
+            result = await ps.start_preview()
+
+            if self._on_preview:
+                await self._on_preview(result)
+
+            output_parts = [f"### Live Test Results"]
+            output_parts.append(result.to_text())
+
+            return "\n".join(output_parts), 0, 0
+
+        elif cycle.name == "analyze_preview":
+            if self._preview is None:
+                return "## Preview analysis\nNo test data available.", 0, 0
+
+            return "## Preview analysis\nSee test results above.", 0, 0
+
+        return "", 0, 0
+
+    async def _run_parallel_cycles(
+        self, spec: TaskSpec, loop_plan, max_tool_iters: int, trace: list
+    ) -> tuple[str, int, int, int]:
+        """
+        Run independent subsystem branches concurrently via ExecutionGraph.
+        Each subsystem runs one focused call (internal mini-cycle decomposition
+        is prompt-level, not separate LLM calls).
+        """
+        from .execution_graph import ExecutionGraph
+
+        full_tool_desc = self.mcp_manager.describe_tools() if self.mcp_manager else ""
+        graph = ExecutionGraph()
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
+
+        for group in loop_plan.parallel_groups:
+            prefix = group[0].name.split("_")[0]
+            cycle_names = " -> ".join(f"{c.name.split('_')[-1]}:{c.goal}" for c in group)
+
+            async def _run_branch(c_list=group, sub=prefix, stages=cycle_names):
+                system = spec.to_system_prompt(tool_description=full_tool_desc)
+                if spec.conversation_context:
+                    system += "\n\n## Workspace context\n" + spec.conversation_context
+                user = (
+                    f"## Subsystem: {sub}\n\n"
+                    f"**Internal stages:** {stages}\n\n"
+                    f"**Acceptance criteria:**\n" + "\n".join(f"- {ac}" for ac in spec.acceptance_criteria)
+                )
+                result = await self.llm.run_with_tools(
+                    system_prompt=system,
+                    user_prompt=user,
                     mcp_manager=self.mcp_manager,
                     max_iterations=max_tool_iters,
                 )
+                return result
 
-            return _run
-
-        for branch_name, stages in loop_plan.branches.items():
-            graph.add(branch_name, make_branch_runner(branch_name, stages))
+            runner = _run_branch
+            runner.__name__ = f"run_{prefix}"
+            graph.add(prefix, runner)
 
         results = await graph.run()
-        await self._trace(trace, "multi_agent", f"ran {len(results)} branches concurrently: {', '.join(results.keys())}")
+        for name, result in results.items():
+            total_prompt_tokens += result.prompt_tokens
+            total_completion_tokens += result.completion_tokens
+            fallback_note = " (fallback)" if result.used_fallback_parsing else ""
+            await self._trace(trace, f"branch_{name}",
+                f"done, {len(result.content)} chars, {result.tool_iterations} tool rounds, {result.prompt_tokens}+{result.completion_tokens} tokens{fallback_note}")
 
         merged_parts = [f"## {name.capitalize()}\n{result.content}" for name, result in results.items()]
-        total_prompt_tokens = sum(r.prompt_tokens for r in results.values())
-        total_completion_tokens = sum(r.completion_tokens for r in results.values())
-        return "\n\n".join(merged_parts), total_prompt_tokens, total_completion_tokens
+        return "\n\n".join(merged_parts), total_prompt_tokens, total_completion_tokens, len(results)
 
     async def _self_review(self, spec: TaskSpec, response_text: str) -> tuple[bool, str, int, int]:
         """

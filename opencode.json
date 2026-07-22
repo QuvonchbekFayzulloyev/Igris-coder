@@ -1,84 +1,229 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": ["AGENTS.md"],
+
+  "model": "ollama/qwen2.5-coder:7b",
+  "small_model": "ollama/qwen2.5-coder:1.5b",
+
+  "shell": "powershell",
+  "logLevel": "INFO",
+
+  "formatter": false,
+  "lsp": false,
+
+  "compaction": {
+    "auto": true,
+    "tail_turns": 20
+  },
+
+  "tool_output": {
+    "max_lines": 100,
+    "max_bytes": 4096
+  },
+
+  "skills": {
+    "paths": [
+      "igris/skills",
+      ".opencode/skills"
+    ]
+  },
+
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen2.5-coder:7b": {
+          "name": "Qwen 2.5 Coder 7B",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen2.5-coder:1.5b": {
+          "name": "Qwen 2.5 Coder 1.5B",
+          "limit": {
+            "context": 32768,
+            "output": 4096
+          }
+        },
+        "qwen3:latest": {
+          "name": "Qwen 3",
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "gemma4:latest": {
+          "name": "Gemma 4",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+
   "mcp": {
     "filesystem": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.filesystem_server"],
-      "description": "Read/write/list/search files within the project root",
       "enabled": true
     },
     "terminal": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.terminal_server"],
-      "description": "Run shell commands (PowerShell-first on Windows, bash elsewhere)",
       "enabled": true
     },
     "git": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.git_server"],
-      "description": "git status/diff/log/commit against the current repo",
       "enabled": true
     },
     "knowledge": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.knowledge_server"],
-      "description": "Search/grow the hierarchical project knowledge base (rules, descriptions, code templates), scoped by module",
       "enabled": true
     },
     "memory": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.memory_server"],
-      "description": "Collect, retrieve, and preserve source-backed Coder Knowledge Memory artefacts",
       "enabled": true
     },
     "sandbox": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.sandbox_server"],
-      "description": "Create isolated source copies and run allow-listed verification profiles without writing to the working tree",
-      "enabled": true
-    },
-    "browser": {
-      "type": "local",
-      "command": ["python", "-m", "igris.mcp_servers.browser_server"],
-      "description": "Run local Playwright user journeys: click, fill, assert visible/text/URL, and capture screenshots",
       "enabled": true
     },
     "web": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.web_server"],
-      "description": "Web search (DuckDuckGo) and URL fetch for research and fact-checking",
       "enabled": true
+    },
+    "browser": {
+      "type": "local",
+      "command": ["python", "-m", "igris.mcp_servers.browser_server"],
+      "enabled": false
     },
     "documentation": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.documentation_server"],
-      "description": "LaTeX document generation, Mermaid/PlantUML diagrams, BibTeX, Markdown-to-PDF for academic-quality reports",
-      "enabled": true
+      "enabled": false
     },
     "hardware": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.hardware_server"],
-      "description": "MCU pin planning, PID calculations, BOM generation, sensor info for hardware/robotics work",
-      "enabled": true
+      "enabled": false
     },
     "ml": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.ml_server"],
-      "description": "ML/AI engineering: model recommendation, training script generation, export format suggestions, inference cost estimation",
-      "enabled": true
+      "enabled": false
     },
     "desktop_testing": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.desktop_testing_server"],
-      "description": "Desktop GUI automation (PyAutoGUI), screen capture, computer vision (OpenCV template matching), OCR (Tesseract), pixel/color verification",
-      "enabled": true
+      "enabled": false
     },
     "document_testing": {
       "type": "local",
       "command": ["python", "-m", "igris.mcp_servers.document_testing_server"],
-      "description": "PowerPoint (PPTX) and Word (DOCX) file inspection, design consistency check, structure validation, color palette analysis, layout verification",
+      "enabled": false
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@context7/mcp-server"],
+      "description": "Fetches real-time, version-pinned documentation for any library. Stops package-API hallucination.",
       "enabled": true
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": ["npx", "-y", "@anthropic-ai/mcp-sequential-thinking"],
+      "description": "Structured reasoning: break down complex problems step by step, revise, and explore alternative paths.",
+      "enabled": true
+    }
+  },
+
+  "command": {
+    "test": {
+      "description": "Run pytest tests (optional: path/file pattern)",
+      "template": "Run pytest tests matching: {{input}}. Use: python -m pytest tests\\{{input}} -v --tb=short. Report results: passed, failed, errors."
+    },
+    "cicd": {
+      "description": "Run full verification suite: backend tests, frontend types/tests/build",
+      "template": "Run the full verification suite: python -m pytest tests\\ -v --tb=short (backend); if frontend changed: cd desktop && npx tsc -b && npx vitest run && npx vite build. Fix all issues found."
+    },
+    "train": {
+      "description": "Train/fine-tune an ML model with given config",
+      "template": "Set up and run ML training with: {{input}}. Include dataset prep, model config, training loop, eval, and checkpointing."
+    },
+    "eval": {
+      "description": "Evaluate a trained model on benchmarks or custom metrics",
+      "template": "Evaluate ML model: {{input}}. Run inference, compute metrics, generate report with visualizations."
+    },
+    "deploy": {
+      "description": "Deploy model to serving endpoint (vLLM, TGI, ONNX, TFLite)",
+      "template": "Deploy model for serving: {{input}}. Handle export format, serving config, API endpoint, and health checks."
+    },
+    "mlops": {
+      "description": "Set up ML pipeline: data validation, experiment tracking, CI/CD",
+      "template": "Set up MLOps pipeline: {{input}}. Include data validation (Great Expectations), experiment tracking (MLflow), and CI/CD."
+    },
+    "remember": {
+      "description": "Store a fact or note in persistent memory",
+      "template": "Store this fact in the project's MemoryEngine: {{input}}. Use Python to import and call MemoryEngine."
+    },
+    "recall": {
+      "description": "Search memory for stored knowledge",
+      "template": "Search the project's MemoryEngine for: {{input}}. Use Python to import and call MemoryEngine.recall()."
+    }
+  },
+
+  "references": {
+    "docs": {
+      "path": "./docs",
+      "description": "Project documentation in docs/ folder"
+    },
+    "agents": {
+      "path": "./AGENTS.md",
+      "description": "Project-level coding conventions and build/test commands"
+    },
+    "igris-core": {
+      "path": "./igris/README.md",
+      "description": "igris backend package overview"
+    },
+    "mcp-servers": {
+      "path": "./igris/mcp_servers/README.md",
+      "description": "MCP server implementations and conventions"
+    },
+    "providers": {
+      "path": "./igris/core/providers/README.md",
+      "description": "LLM Gateway provider implementations"
+    }
+  },
+
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "rm *": "deny",
+      "Remove-Item *": "deny",
+      "del *": "deny",
+      "rm -rf *": "deny",
+      "rm -r *": "deny",
+      "rm --recursive *": "deny",
+      "format *": "deny",
+      "format-*": "deny",
+      "Clear-*": "deny",
+      "*": "ask"
+    },
+    "external_directory": {
+      "C:\\Users\\user\\AppData\\Local\\Temp\\opencode": "allow",
+      "C:\\Users\\user\\.config\\opencode": "allow",
+      "*": "ask"
     }
   }
 }

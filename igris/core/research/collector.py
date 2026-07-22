@@ -16,6 +16,7 @@ Uses httpx for async fetching with rate limiting and timeout protection.
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 import time
 import urllib.parse
@@ -34,10 +35,32 @@ _FETCH_TIMEOUT = 15.0
 _MAX_CONTENT_LENGTH = 200_000
 _USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) igris-research/1.0"
 
+# Simple TTL cache for search results (avoids re-fetching same queries within window)
+_CACHE: dict[str, tuple[float, list]] = {}
+_CACHE_TTL = 300  # 5 minutes
+
+
+def _cache_get(key: str) -> list | None:
+    entry = _CACHE.get(key)
+    if entry and (time.time() - entry[0]) < _CACHE_TTL:
+        return entry[1]
+    if entry:
+        del _CACHE[key]
+    return None
+
+
+def _cache_set(key: str, data: list) -> None:
+    _CACHE[key] = (time.time(), data)
+    # Evict oldest entries when cache grows too large
+    if len(_CACHE) > 500:
+        oldest = sorted(_CACHE.keys(), key=lambda k: _CACHE[k][0])[:100]
+        for k in oldest:
+            del _CACHE[k]
+
 
 def _domain_sem(domain: str) -> asyncio.Semaphore:
     if domain not in _DOMAIN_SEMAPHORES:
-        _DOMAIN_SEMAPHORES[domain] = asyncio.Semaphore(2)
+        _DOMAIN_SEMAPHORES[domain] = asyncio.Semaphore(4)
     return _DOMAIN_SEMAPHORES[domain]
 
 
@@ -151,7 +174,39 @@ async def _search_pypi(client: httpx.AsyncClient, query: str) -> list[CollectedS
     return sources
 
 
+async def _search_tavily(query: str, source_type: SourceType) -> list[CollectedSource]:
+    """Faster, more accurate search via Tavily API (requires TAVILY_API_KEY env var)."""
+    api_key = os.environ.get("TAVILY_API_KEY", "")
+    if not api_key:
+        return []
+    sources = []
+    try:
+        async with httpx.AsyncClient(timeout=_FETCH_TIMEOUT) as client:
+            resp = await client.post(
+                "https://api.tavily.com/search",
+                json={"api_key": api_key, "query": query, "search_depth": "basic", "max_results": 5},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                for r in data.get("results", []):
+                    sources.append(CollectedSource(
+                        url=r.get("url", ""),
+                        source_type=source_type,
+                        title=r.get("title", ""),
+                        raw_content=r.get("content", "")[:5000],
+                        fetched_at=time.time(),
+                        metadata={"score": r.get("score", 0)},
+                    ))
+    except Exception:
+        pass
+    return sources
+
+
 async def _search_duckduckgo(client: httpx.AsyncClient, query: str, source_type: SourceType) -> list[CollectedSource]:
+    cache_key = f"ddg:{source_type}:{query}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
     sources = []
     try:
         url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
@@ -183,6 +238,7 @@ async def _search_duckduckgo(client: httpx.AsyncClient, query: str, source_type:
                     ))
     except Exception:
         pass
+    _cache_set(cache_key, sources)
     return sources
 
 
@@ -264,6 +320,13 @@ async def collect_for_query(
     tasks = []
     source_hints = query.source_hints or [SourceType.GITHUB, SourceType.STACKOVERFLOW, SourceType.OFFICIAL_DOCS]
 
+    # Try Tavily first for faster, more accurate search results
+    if source_hints and any(s in (SourceType.OFFICIAL_DOCS, SourceType.BLOG, SourceType.MEDIUM) for s in source_hints):
+        tavily_task = _search_tavily(query.text, SourceType.OFFICIAL_DOCS)
+        tavily_results = await tavily_task
+        if tavily_results:
+            return tavily_results + await collect_for_query_specific(client, query, source_hints, exclude_generic=True)
+
     for source_type in source_hints:
         if source_type == SourceType.GITHUB:
             tasks.append(_search_github(client, query.text))
@@ -288,16 +351,52 @@ async def collect_for_query(
     return sources
 
 
+async def collect_for_query_specific(
+    client: httpx.AsyncClient,
+    query: GeneratedQuery,
+    source_hints: list[SourceType],
+    exclude_generic: bool = False,
+) -> list[CollectedSource]:
+    """Collect from specific sources (GitHub, StackOverflow, npm, PyPI, Reddit) only."""
+    tasks = []
+    for source_type in source_hints:
+        if source_type == SourceType.GITHUB:
+            tasks.append(_search_github(client, query.text))
+        elif source_type == SourceType.NPM:
+            tasks.append(_search_npm(client, query.text))
+        elif source_type == SourceType.PYPI:
+            tasks.append(_search_pypi(client, query.text))
+        elif source_type == SourceType.STACKOVERFLOW:
+            tasks.append(_search_stackoverflow(client, query.text))
+        elif source_type == SourceType.REDDIT:
+            tasks.append(_search_reddit(client, query.text))
+    results = await asyncio.gather(*tasks, return_exceptions=True) if tasks else []
+    sources = []
+    for r in results:
+        if isinstance(r, list):
+            sources.extend(r)
+    return sources
+
+
 async def collect_all(
     queries: list[GeneratedQuery],
-    max_concurrent: int = 6,
+    max_concurrent: int = 10,
 ) -> list[CollectedSource]:
     """
     Collect sources for all queries with bounded concurrency.
-    Deduplicates by URL.
+    Deduplicates by URL and query text.
     """
     all_sources: list[CollectedSource] = []
     seen_urls: set[str] = set()
+
+    # Deduplicate queries by text to avoid redundant fetches
+    seen_queries: set[str] = set()
+    unique_queries: list[GeneratedQuery] = []
+    for q in queries:
+        key = q.text.lower().strip()
+        if key not in seen_queries:
+            seen_queries.add(key)
+            unique_queries.append(q)
 
     async with httpx.AsyncClient(
         headers={"User-Agent": _USER_AGENT},
@@ -310,7 +409,7 @@ async def collect_all(
             async with sem:
                 return await collect_for_query(client, q)
 
-        tasks = [_bounded_collect(q) for q in queries]
+        tasks = [_bounded_collect(q) for q in unique_queries]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         for r in results:
@@ -326,7 +425,7 @@ async def collect_all(
             if len(s.raw_content) < 500 and not s.url.startswith("https://api.github.com"):
                 enrich_tasks.append(_enrich_source(client, s))
         if enrich_tasks:
-            batch_size = 5
+            batch_size = 8
             for i in range(0, len(enrich_tasks), batch_size):
                 batch = enrich_tasks[i:i + batch_size]
                 await asyncio.gather(*batch, return_exceptions=True)
