@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #09090b;
+    color: #e4e4e7;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Live build — detail-by-detail drawing preview                        */
+/* ------------------------------------------------------------------ */
+
+.live-build [data-build] {
+  opacity: 0;
+  /* Part M (B4): "soxta" scale/pop effekti olib tashlandi — haqiqiy qurilish
+     fidelity'ni o'zgartiradi (kontur -> rang), transform yuk qilmasin. */
+  transition: opacity 0.3s ease;
+}
+
+.live-build [data-build].lb-visible {
+  opacity: 1;
+}
+
+.live-build svg text {
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/* 2nd Brain — yangi node'larni belgilovchi oltin halqa animatsiyasi   */
+/* ------------------------------------------------------------------ */
+
+.brain-fresh-ring {
+  transform-origin: center;
+  transform-box: fill-box;
+  /* Cheksiz puls 'bir ko'rinib, bir ko'rinmaydi' hissini berardi — yangi
+     node 2 marta yumshoq 'pop' qilib, halqa sokinlashadi (ko'z charchamaydi). */
+  animation: brain-fresh 1.4s ease-out 2;
+}
+
+@keyframes brain-fresh {
+  0% { transform: scale(0.6); opacity: 1; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ------------------------------------------------------------------ */
+/* 2nd Brain — YANGI SUHBAT node'lari: teal sonar halqa + o'zida pop   */
+/* ------------------------------------------------------------------ */
+
+.brain-fresh-chat-ring {
+  transform-origin: center;
+  transform-box: fill-box;
+  /* Suhbatlar ayniqsa ajralib turadi: halqa biroz kattaroq, teal rangda,
+     yumshoq ikki marta 'sonar' zarbasi — qaysi suhbat yangi ekani darhol ko'rinadi. */
+  animation: brain-fresh-chat 1.2s ease-out 2;
+}
+
+@keyframes brain-fresh-chat {
+  0% { transform: scale(0.7); opacity: 1; }
+  65% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+.brain-fresh-pop {
+  transform-origin: center;
+  transform-box: fill-box;
+  /* Node'ning o'zi ham qisqa 'pop' qiladi — halqa bilan birga ko'zni tortadi. */
+  animation: brain-fresh-pop 0.9s ease-out 1;
+}
+
+@keyframes brain-fresh-pop {
+  0% { transform: scale(0.5); opacity: 0.4; }
+  55% { transform: scale(1.35); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}

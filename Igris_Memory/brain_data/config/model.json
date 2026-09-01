@@ -1,0 +1,27 @@
+{
+  "id": "model-config-001",
+  "type": "config-model",
+  "providers": {
+    "local-1.5b": {
+      "type": "local",
+      "model": "qwen2.5-1.5b-instruct",
+      "parameters": {
+        "temperature": 0.2,
+        "max_tokens": 4096
+      }
+    }
+  },
+  "routing": {
+    "strategy": "cost_based",
+    "rules": [
+      {
+        "query_type": "simple",
+        "model": "local-1.5b"
+      },
+      {
+        "query_type": "complex",
+        "model": "local-1.5b"
+      }
+    ]
+  }
+}

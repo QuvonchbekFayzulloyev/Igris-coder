@@ -1,0 +1,11 @@
+Tetris o'yinini yasash uchun quyidagi qadamlar izohlani:
+1. O'yin maydonini (grid) yaratish (10x20 hundeklar).
+2. Tetrino shakllarini (I, O, T, S, Z, J, L) aniqlash va ularni random tarzda tanlash.
+3. O'yin dasturiy taqsimotini yaratish: 
+   - O'yinchi harakatlarini (yuklab olish, pastga tushirish, chap/onga qaytarish) kiritish.
+   - Tetrino yuqori qatlamga tushganda yuqori qatlamni to'ldirish.
+   - To'plangan qatlamlar sonini hisoblash va o'yin tugatish shartlarini aniqlash.
+4. O'yin dasturini test qilish va xatolarni tuzatish.
+5. O'yin uchun grafikani yoki terminalda chizish funksiyasini kiritish.
+
+Bu qadamlar orqali Tetris o'yini muhim komponentlarini o'z ichiga oladi.

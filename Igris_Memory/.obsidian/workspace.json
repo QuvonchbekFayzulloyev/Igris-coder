@@ -1,0 +1,85 @@
+{
+  "main": {
+    "id": "main",
+    "type": "split",
+    "children": [
+      {
+        "id": "graph",
+        "type": "leaf",
+        "state": {
+          "type": "graph",
+          "state": {
+            "collapse-filter": false,
+            "search": "",
+            "showTags": true,
+            "showAttachments": false,
+            "hideUnresolved": false,
+            "showOrphans": true,
+            "collapse-color-groups": false,
+            "colorGroups": [],
+            "collapse-display": false,
+            "showArrow": false,
+            "textFadeMultiplier": 0,
+            "nodeSizeMultiplier": 1.1,
+            "lineSizeMultiplier": 1,
+            "collapse-forces": false,
+            "centerStrength": 0.5,
+            "repelStrength": 10,
+            "linkStrength": 1,
+            "linkDistance": 250,
+            "scale": 1,
+            "close": false
+          }
+        },
+        "dimension": {
+          "width": 800,
+          "height": 600
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "left",
+    "type": "split",
+    "children": [
+      {
+        "id": "file-explorer",
+        "type": "leaf",
+        "state": {
+          "type": "file-explorer"
+        },
+        "dimension": {
+          "width": 250,
+          "height": 600
+        }
+      }
+    ],
+    "direction": "horizontal",
+    "width": 250
+  },
+  "right": {
+    "id": "right",
+    "type": "split",
+    "children": [
+      {
+        "id": "backlink",
+        "type": "leaf",
+        "state": {
+          "type": "backlink"
+        },
+        "dimension": {
+          "width": 250,
+          "height": 600
+        }
+      }
+    ],
+    "direction": "horizontal",
+    "width": 250
+  },
+  "active": "graph",
+  "lastOpenFiles": [
+    "00 - Igris Memory System.md",
+    "Memory Architecture.md"
+  ]
+}

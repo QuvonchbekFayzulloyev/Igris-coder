@@ -1,0 +1,2678 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon: Qanday qilib bu darajaga yetdi? — Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #0a0a0a; 
+            color: #fff; 
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Main container */
+        .presentation { 
+            width: 100vw; 
+            height: 100vh; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        
+        /* Slide base */
+        .slide { 
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 60px 80px; 
+            opacity: 0;
+            transform: translateX(100px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        .slide.prev {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+        
+        /* Content */
+        .slide-content { max-width: 1100px; width: 100%; }
+        .slide-title { font-size: 42px; font-weight: 700; margin-bottom: 30px; text-align: center; }
+        .slide-subtitle { font-size: 20px; color: #999; margin-bottom: 40px; text-align: center; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
+        .card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 24px; }
+        .card h3 { font-size: 18px; margin-bottom: 12px; color: #ff9900; }
+        .card p { font-size: 14px; color: #aaa; line-height: 1.6; }
+        .stat { text-align: center; padding: 20px; }
+        .stat .number { font-size: 48px; font-weight: 700; color: #ff9900; }
+        .stat .label { font-size: 14px; color: #888; margin-top: 8px; }
+        .highlight { color: #ff9900; }
+        .tag { display: inline-block; background: #ff990020; color: #ff9900; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin: 4px; }
+        .quote { font-size: 22px; font-style: italic; color: #ccc; text-align: center; max-width: 800px; line-height: 1.6; }
+        .quote-author { font-size: 14px; color: #ff9900; margin-top: 16px; text-align: center; }
+        .bg-gradient { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); }
+        .bg-amazon { background: linear-gradient(135deg, #0a0a0a 0%, #232f3e 100%); }
+        
+        /* ========== ANIMATIONS ========== */
+        
+        /* Slide content animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 153, 0, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 153, 0, 0.6); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink {
+            0%, 50% { border-color: #ff9900; }
+            51%, 100% { border-color: transparent; }
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes barGrow {
+            from { width: 0; }
+            to { width: var(--bar-width); }
+        }
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+        }
+        @keyframes timelineDraw {
+            from { height: 0; }
+            to { height: 100%; }
+        }
+        @keyframes itemAppear {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes cardFlip {
+            from { opacity: 0; transform: rotateY(-90deg); }
+            to { opacity: 1; transform: rotateY(0); }
+        }
+        @keyframes iconBounce {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.1); }
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Animation classes */
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+        .animate-fade-in-down { animation: fadeInDown 0.6s ease forwards; }
+        .animate-fade-in-left { animation: fadeInLeft 0.6s ease forwards; }
+        .animate-fade-in-right { animation: fadeInRight 0.6s ease forwards; }
+        .animate-scale-in { animation: scaleIn 0.5s ease forwards; }
+        .animate-slide-in-up { animation: slideInUp 0.7s ease forwards; }
+        .animate-slide-in-down { animation: slideInDown 0.7s ease forwards; }
+        .animate-slide-in-left { animation: slideInLeft 0.7s ease forwards; }
+        .animate-slide-in-right { animation: slideInRight 0.7s ease forwards; }
+        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+        .animate-glow { animation: glow 2s ease-in-out infinite; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-shimmer { animation: shimmer 2s linear infinite; }
+        .animate-typewriter { animation: typewriter 2s steps(40) forwards; overflow: hidden; }
+        .animate-blink { animation: blink 1s step-end infinite; }
+        .animate-count-up { animation: countUp 0.8s ease forwards; }
+        .animate-bar-grow { animation: barGrow 1s ease forwards; }
+        .animate-dot-pulse { animation: dotPulse 1.5s ease-in-out infinite; }
+        .animate-timeline-draw { animation: timelineDraw 1s ease forwards; }
+        .animate-item-appear { animation: itemAppear 0.5s ease forwards; }
+        .animate-card-flip { animation: cardFlip 0.6s ease forwards; }
+        .animate-icon-bounce { animation: iconBounce 0.8s ease; }
+        
+        /* Stagger delays */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        .delay-6 { animation-delay: 0.6s; }
+        .delay-7 { animation-delay: 0.7s; }
+        .delay-8 { animation-delay: 0.8s; }
+        
+        /* Card hover effects */
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+            border-color: #ff9900;
+        }
+        
+        /* Stat number animation */
+        .stat .number {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .stat:hover .number {
+            transform: scale(1.1);
+            color: #ffb84d;
+        }
+        
+        /* Tag hover */
+        .tag {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .tag:hover {
+            background: #ff990040;
+            transform: scale(1.05);
+        }
+        
+        /* Timeline item hover */
+        .timeline-item {
+            transition: all 0.3s ease;
+        }
+        .timeline-item:hover {
+            transform: translateX(10px);
+        }
+        .timeline-item:hover::before {
+            background: #ffb84d;
+            box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+        }
+        
+        /* Quote animation */
+        .quote {
+            position: relative;
+            padding: 20px 30px;
+        }
+        .quote::before {
+            content: '"';
+            position: absolute;
+            left: 0;
+            top: -10px;
+            font-size: 80px;
+            color: #ff9900;
+            opacity: 0.3;
+            font-family: Georgia, serif;
+        }
+        
+        /* Button hover */
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+        }
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        /* Progress bar animation */
+        .progress-fill {
+            transition: width 0.5s ease;
+        }
+        
+        /* Slide transition enhancement */
+        .slide {
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Particle container */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ff9900;
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleFloat 8s linear infinite;
+        }
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 7s; }
+        .particle:nth-child(2) { left: 20%; animation-delay: 1s; animation-duration: 9s; }
+        .particle:nth-child(3) { left: 30%; animation-delay: 2s; animation-duration: 6s; }
+        .particle:nth-child(4) { left: 40%; animation-delay: 0.5s; animation-duration: 8s; }
+        .particle:nth-child(5) { left: 50%; animation-delay: 1.5s; animation-duration: 10s; }
+        .particle:nth-child(6) { left: 60%; animation-delay: 2.5s; animation-duration: 7s; }
+        .particle:nth-child(7) { left: 70%; animation-delay: 0.8s; animation-duration: 9s; }
+        .particle:nth-child(8) { left: 80%; animation-delay: 1.8s; animation-duration: 6s; }
+        .particle:nth-child(9) { left: 90%; animation-delay: 2.8s; animation-duration: 8s; }
+        .particle:nth-child(10) { left: 95%; animation-delay: 0.3s; animation-duration: 11s; }
+        
+        /* Cover slide special effects */
+        .cover-title {
+            text-shadow: 0 0 40px rgba(255, 153, 0, 0.5);
+        }
+        .cover-subtitle {
+            background: linear-gradient(90deg, #ff9900, #ffcc00, #ff9900);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        /* Chart bar animation */
+        .chart-bar {
+            transform-origin: left;
+            animation: barGrow 1.2s ease forwards;
+            animation-play-state: paused;
+        }
+        .slide.active .chart-bar {
+            animation-play-state: running;
+        }
+        
+        /* ========== PRINT/PDF STYLES ========== */
+        @media print {
+            body {
+                background: white !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .presentation {
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .slide {
+                position: static !important;
+                opacity: 1 !important;
+                transform: none !important;
+                pointer-events: auto !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                height: 100vh !important;
+                width: 100vw !important;
+                background: white !important;
+                color: #333 !important;
+            }
+            .slide:last-child {
+                page-break-after: avoid;
+            }
+            .slide-title, .slide-subtitle, h2, h3 {
+                color: #333 !important;
+            }
+            .slide-title {
+                font-size: 36px !important;
+            }
+            .card {
+                background: #f5f5f5 !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+            }
+            .card h3 {
+                color: #ff9900 !important;
+            }
+            .card p, .card li, td {
+                color: #555 !important;
+            }
+            .highlight {
+                color: #ff6600 !important;
+            }
+            .tag {
+                background: #fff3e0 !important;
+                color: #ff6600 !important;
+                border: 1px solid #ff9900 !important;
+            }
+            .stat .number {
+                color: #ff6600 !important;
+            }
+            .stat .label {
+                color: #666 !important;
+            }
+            .chart-bar {
+                background: #ff9900 !important;
+                animation: none !important;
+                width: var(--bar-width, 50%) !important;
+            }
+            .nav-bar, .nav-btn, .keyboard-hints, .fullscreen-btn, .slide-counter, .thumbnail-strip, .pdf-btn {
+                display: none !important;
+            }
+            .particles {
+                display: none !important;
+            }
+            .timeline::before {
+                background: #ccc !important;
+            }
+            .timeline-item::before {
+                background: #ff9900 !important;
+            }
+            th {
+                background: #f0f0f0 !important;
+                color: #333 !important;
+            }
+            table {
+                border: 1px solid #ddd !important;
+            }
+            th, td {
+                border: 1px solid #ddd !important;
+            }
+            .quote {
+                color: #555 !important;
+                font-style: italic !important;
+            }
+            .quote::before {
+                color: #ff9900 !important;
+            }
+            .quote-author {
+                color: #ff6600 !important;
+            }
+            /* PDF qo'shimcha sahifalar */
+            .pdf-cover {
+                display: flex !important;
+            }
+            .pdf-footer {
+                display: block !important;
+                position: fixed;
+                bottom: 20px;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 10px;
+                color: #999;
+            }
+        }
+        
+        /* PDF qo'shimcha elementlar */
+        .pdf-cover {
+            display: none;
+        }
+        .pdf-footer {
+            display: none;
+        }
+        
+        /* PDF Export button */
+        .pdf-btn {
+            position: fixed;
+            top: 20px;
+            left: 80px;
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pdf-btn:hover {
+            background: #333;
+            color: #ff9900;
+            border-color: #ff9900;
+        }
+        .pdf-btn.exporting {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .pdf-btn.exporting::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border: 2px solid #ff9900;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* PDF Options Modal */
+        .pdf-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .pdf-modal-overlay.visible {
+            display: flex;
+        }
+        .pdf-modal {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 0;
+            width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: scaleIn 0.25s ease;
+        }
+        .pdf-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
+        }
+        .pdf-modal-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .pdf-modal-close:hover {
+            color: #fff;
+            background: #333;
+        }
+        .pdf-modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .pdf-option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .pdf-option-label {
+            font-size: 12px;
+            color: #aaa;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .pdf-option-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .pdf-option-row label {
+            font-size: 12px;
+            color: #bbb;
+            width: 50px;
+            flex-shrink: 0;
+        }
+        .pdf-option-row input,
+        .pdf-option-row select {
+            flex: 1;
+            background: #0d0d1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: #fff;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+        }
+        .pdf-option-row input:focus,
+        .pdf-option-row select:focus {
+            border-color: #ff9900;
+        }
+        .pdf-option-row input[type="number"] {
+            width: 70px;
+            flex: 0 0 70px;
+        }
+        .pdf-page-sizes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pdf-page-size-btn {
+            padding: 8px 14px;
+            background: #0d0d1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #bbb;
+            font-size: 12px;\            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .pdf-page-size-btn:hover {
+            border-color: #666;
+            color: #fff;
+        }
+        .pdf-page-size-btn.active {
+            background: #ff9900;
+            border-color: #ff9900;
+            color: #000;
+            font-weight: bold;
+        }
+        .pdf-modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .pdf-modal-btn {
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            border: 1px solid #333;
+            transition: all 0.15s;
+        }
+        .pdf-modal-btn.cancel {
+            background: #0d0d1a;
+            color: #aaa;
+        }
+        .pdf-modal-btn.cancel:hover {
+            color: #fff;
+            border-color: #666;
+        }
+        .pdf-modal-btn.export {
+            background: #ff9900;
+            color: #000;
+            font-weight: bold;
+            border-color: #ff9900;
+        }
+        .pdf-modal-btn.export:hover {
+            background: #ffb347;
+        }
+        
+        /* PDF Preview Panel */
+        .pdf-preview-panel {
+            background: #0d0d1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .pdf-preview-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'JetBrains Mono', monospace;
+            align-self: flex-start;
+        }
+        .pdf-preview-page {
+            background: white;
+            border: 1px solid #444;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: width 0.3s, height 0.3s;
+        }
+        .pdf-preview-header {
+            background: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 4px 8px;
+            font-size: 7px;
+            color: #666;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            min-height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pdf-preview-header:empty {
+            display: none;
+        }
+        .pdf-preview-content {
+            flex: 1;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+        }
+        .pdf-preview-title {
+            width: 60%;
+            height: 6px;
+            background: #333;
+            border-radius: 2px;
+            margin-bottom: 4px;
+        }
+        .pdf-preview-line {
+            height: 2px;
+            background: #ccc;
+            border-radius: 1px;
+        }
+        .pdf-preview-line.short { width: 70%; }
+        .pdf-preview-line.medium { width: 85%; }
+        .pdf-preview-cards {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .pdf-preview-card {
+            flex: 1;
+            height: 20px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+        }
+        .pdf-preview-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 25px;
+            margin-top: 4px;
+        }
+        .pdf-preview-bar {
+            flex: 1;
+            background: #ff9900;
+            border-radius: 1px 1px 0 0;
+            min-height: 3px;
+        }
+        .pdf-preview-footer {
+            background: #f8f8f8;
+            border-top: 1px solid #ddd;
+            padding: 3px 8px;
+            font-size: 6px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-preview-footer:empty {
+            display: none;
+        }
+        .pdf-preview-margin-guides {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            border: 1px dashed rgba(255,153,0,0.3);
+            transition: all 0.3s;
+        }
+        .pdf-preview-page-info {
+            font-size: 10px;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-preview-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pdf-preview-nav-btn {
+            background: #1a1a2e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #aaa;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-preview-nav-btn:hover {
+            color: #fff;
+            border-color: #666;
+        }
+        .pdf-preview-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+        
+        /* PDF Modal Tabs */
+        .pdf-modal-tabs {
+            display: flex;
+            border-bottom: 1px solid #333;
+            margin: 0 20px;
+        }
+        .pdf-modal-tab {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #888;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .pdf-modal-tab:hover {
+            color: #bbb;
+            background: rgba(255,153,0,0.05);
+        }
+        .pdf-modal-tab.active {
+            color: #ff9900;
+            border-bottom-color: #ff9900;
+        }
+        .pdf-tab-content {
+            display: none;
+        }
+        .pdf-tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        
+        /* Batch Export */
+        .pdf-batch-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #0d0d1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+        }
+        .pdf-batch-header label {
+            font-size: 12px;
+            color: #bbb;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .pdf-batch-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .pdf-batch-action-btn {
+            padding: 4px 10px;
+            background: #1a1a2e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #aaa;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .pdf-batch-action-btn:hover {
+            color: #fff;
+            border-color: #666;
+        }
+        .pdf-batch-action-btn.active {
+            background: #ff9900;
+            border-color: #ff9900;
+            color: #000;
+        }
+        .pdf-slide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        .pdf-slide-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .pdf-slide-grid::-webkit-scrollbar-track {
+            background: #0d0d1a;
+            border-radius: 3px;
+        }
+        .pdf-slide-grid::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+        .pdf-slide-card {
+            position: relative;
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 4px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .pdf-slide-card:hover {
+            border-color: #666;
+        }
+        .pdf-slide-card.selected {
+            border-color: #ff9900;
+            background: rgba(255,153,0,0.1);
+        }
+        .pdf-slide-card .slide-num {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 9px;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+        }
+        .pdf-slide-card.selected .slide-num {
+            color: #ff9900;
+        }
+        .pdf-slide-card .slide-check {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #ff9900;
+        }
+        .pdf-slide-card.selected .slide-check {
+            background: #ff9900;
+            border-color: #ff9900;
+            color: #000;
+        }
+        .pdf-slide-thumb {
+            width: 100%;
+            height: 50px;
+            background: #f5f5f5;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .pdf-slide-thumb-title {
+            width: 60%;
+            height: 4px;
+            background: #333;
+            border-radius: 1px;
+        }
+        .pdf-slide-card-label {
+            font-size: 9px;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        .pdf-batch-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pdf-batch-opt-btn {
+            padding: 8px 14px;
+            background: #0d0d1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #bbb;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .pdf-batch-opt-btn:hover {
+            border-color: #666;
+            color: #fff;
+        }
+        .pdf-batch-opt-btn.active {
+            background: #ff9900;
+            border-color: #ff9900;
+            color: #000;
+            font-weight: bold;
+        }
+        .pdf-batch-progress {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding: 14px;
+            background: #0d0d1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+        }
+        .pdf-batch-progress.active {
+            display: flex;
+        }
+        .pdf-batch-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a2e;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .pdf-batch-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9900, #ffb347);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .pdf-batch-progress-text {
+            font-size: 12px;
+            color: #888;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+        }
+        .pdf-batch-summary {
+            font-size: 11px;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 8px 14px;
+            background: #0d0d1a;
+            border-radius: 6px;
+        }
+        .pdf-batch-summary strong {
+            color: #ff9900;
+        }
+        .timeline { position: relative; padding-left: 30px; }
+        .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #ff9900; }
+        .timeline-item { position: relative; margin-bottom: 24px; padding-left: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -34px; top: 6px; width: 12px; height: 12px; background: #ff9900; border-radius: 50%; }
+        .timeline-item .year { font-size: 14px; color: #ff9900; font-weight: 600; }
+        .timeline-item .event { font-size: 15px; color: #ccc; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #ff9900; font-size: 13px; text-transform: uppercase; }
+        td { font-size: 14px; color: #ccc; }
+        .chart-bar { height: 24px; background: linear-gradient(90deg, #ff9900, #ff6600); border-radius: 4px; margin: 8px 0; display: flex; align-items: center; padding-left: 12px; font-size: 12px; font-weight: 600; }
+        
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-btn:hover { background: #333; border-color: #ff9900; }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .nav-btn:disabled:hover { background: #1a1a1a; border-color: #333; }
+        
+        /* Progress bar */
+        .progress-container {
+            flex: 1;
+            margin: 0 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9900, #ff6600);
+            transition: width 0.3s ease;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Slide indicator dots */
+        .slide-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .slide-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .slide-dot:hover { background: #555; }
+        .slide-dot.active { background: #ff9900; transform: scale(1.2); }
+        
+        /* Keyboard hints */
+        .keyboard-hints {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 11px;
+            color: #666;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .keyboard-hints:hover { opacity: 1; }
+        .keyboard-hints .key {
+            display: inline-block;
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+        
+        /* Fullscreen button */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        .fullscreen-btn:hover { background: #333; color: #fff; }
+        
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 13px;
+            color: #888;
+            z-index: 100;
+        }
+        .slide-counter .current { color: #ff9900; font-weight: 600; }
+        
+        /* Thumbnail strip */
+        .thumbnail-strip {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 20px;
+            overflow-x: auto;
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .thumbnail-strip.visible { opacity: 1; }
+        .thumbnail {
+            width: 120px;
+            height: 68px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #666;
+        }
+        .thumbnail:hover { border-color: #ff9900; }
+        .thumbnail.active { border-color: #ff9900; background: #2a2a2a; }
+    </style>
+</head>
+<body>
+
+<div class="presentation" id="presentation">
+    <!-- Slides will be loaded here -->
+</div>
+
+<!-- Keyboard hints -->
+<div class="keyboard-hints">
+    <span class="key">←</span> <span class="key">→</span> Navigatsiya<br>
+    <span class="key">Space</span> Keyingisi<br>
+    <span class="key">F</span> To'liq ekran<br>
+    <span class="key">P</span> PDF export<br>
+    <span class="key">T</span> Thumbnail strip
+</div>
+
+<!-- PDF Export button -->
+<button class="pdf-btn" id="pdfBtn" onclick="openPdfModal()" title="PDF export (P)">
+    📄 PDF
+</button>
+
+<!-- PDF Options Modal -->
+<div class="pdf-modal-overlay" id="pdfModal">
+    <div class="pdf-modal">
+        <div class="pdf-modal-header">
+            <h3>📄 PDF Export</h3>
+            <button class="pdf-modal-close" onclick="closePdfModal()">&times;</button>
+        </div>
+        <div class="pdf-modal-tabs">
+            <button class="pdf-modal-tab active" onclick="switchPdfTab('single')">📄 Bitta PDF</button>
+            <button class="pdf-modal-tab" onclick="switchPdfTab('batch')">📑 Batch Export</button>
+        </div>
+        <div class="pdf-modal-body">
+            <!-- Single Export Tab -->
+            <div class="pdf-tab-content active" id="pdfTabSingle">
+            <!-- Page Size -->
+            <div class="pdf-option-group">
+                <div class="pdf-option-label">Sahifa o'lchami</div>
+                <div class="pdf-page-sizes">
+                    <button class="pdf-page-size-btn active" data-size="16:9" onclick="selectPageSize(this, '16:9')">16:9 (slayd)</button>
+                    <button class="pdf-page-size-btn" data-size="A4" onclick="selectPageSize(this, 'A4')">A4 (210×297)</button>
+                    <button class="pdf-page-size-btn" data-size="Letter" onclick="selectPageSize(this, 'Letter')">Letter (8.5×11")</button>
+                    <button class="pdf-page-size-btn" data-size="A3" onclick="selectPageSize(this, 'A3')">A3 (297×420)</button>
+                    <button class="pdf-page-size-btn" data-size="Legal" onclick="selectPageSize(this, 'Legal')">Legal (8.5×14")</button>
+                </div>
+            </div>
+            
+            <!-- Margins -->
+            <div class="pdf-option-group">
+                <div class="pdf-option-label">Chegaralar (mm)</div>
+                <div class="pdf-option-row">
+                    <label>Yuqori</label>
+                    <input type="number" id="pdfMarginTop" value="20" min="0" max="100" step="5">
+                    <label>Past</label>
+                    <input type="number" id="pdfMarginBottom" value="20" min="0" max="100" step="5">
+                </div>
+                <div class="pdf-option-row">
+                    <label>Chap</label>
+                    <input type="number" id="pdfMarginLeft" value="30" min="0" max="100" step="5">
+                    <label>O'ng</label>
+                    <input type="number" id="pdfMarginRight" value="30" min="0" max="100" step="5">
+                </div>
+            </div>
+            
+            <!-- Header -->
+            <div class="pdf-option-group">
+                <div class="pdf-option-label">Sarlavha (ixtiyoriy)</div>
+                <div class="pdf-option-row">
+                    <input type="text" id="pdfHeaderText" placeholder="Masalan: Amazon Tahlili — 2026" style="flex:1">
+                </div>
+                <div class="pdf-option-row">
+                    <select id="pdfHeaderAlign" style="flex:1">
+                        <option value="left">Chapga</option>
+                        <option value="center" selected>Markazga</option>
+                        <option value="right">O'ngga</option>
+                    </select>
+                    <input type="number" id="pdfHeaderSize" value="10" min="8" max="16" style="width:60px;flex:0 0 60px" title="Shrift o'lchami (px)">
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="pdf-option-group">
+                <div class="pdf-option-label">Pastki qism (ixtiyoriy)</div>
+                <div class="pdf-option-row">
+                    <input type="text" id="pdfFooterLeft" placeholder="Chap matn" style="flex:1">
+                    <input type="text" id="pdfFooterRight" placeholder="O'ng matn" style="flex:1">
+                </div>
+                <div class="pdf-option-row">
+                    <select id="pdfFooterStyle" style="flex:1">
+                        <option value="number">Sahifa raqami (1 / 15)</option>
+                        <option value="text">Matn + raqam</option>
+                        <option value="custom">Maxsus</option>
+                    </select>
+                    <input type="number" id="pdfFooterSize" value="9" min="7" max="14" style="width:60px;flex:0 0 60px" title="Shrift o'lchami (px)">
+                </div>
+            </div>
+            
+            <!-- Orientation -->
+            <div class="pdf-option-group">
+                <div class="pdf-option-label">Yo'nalish</div>
+                <div class="pdf-page-sizes">
+                    <button class="pdf-page-size-btn active" data-orient="landscape" onclick="selectOrientation(this, 'landscape')">🏔 Yotiq (landscape)</button>
+                    <button class="pdf-page-size-btn" data-orient="portrait" onclick="selectOrientation(this, 'portrait')">🏛 Tik (portrait)</button>
+                </div>
+            </div>
+            
+            <!-- Preview -->
+            <div class="pdf-preview-panel">
+                <div class="pdf-preview-label">Oldindan ko'rish</div>
+                <div class="pdf-preview-page" id="pdfPreviewPage" style="width:280px;height:158px">
+                    <div class="pdf-preview-margin-guides" id="pdfPreviewGuides"></div>
+                    <div class="pdf-preview-header" id="pdfPreviewHeader"></div>
+                    <div class="pdf-preview-content" id="pdfPreviewContent"></div>
+                    <div class="pdf-preview-footer" id="pdfPreviewFooter"></div>
+                </div>
+                <div class="pdf-preview-nav">
+                    <button class="pdf-preview-nav-btn" id="pdfPreviewPrev" onclick="pdfPreviewSlide(-1)">&larr;</button>
+                    <span class="pdf-preview-page-info" id="pdfPreviewInfo">Slayd 1 / 15</span>
+                    <button class="pdf-preview-nav-btn" id="pdfPreviewNext" onclick="pdfPreviewSlide(1)">&rarr;</button>
+                </div>
+            </div>
+            </div>
+            
+            <!-- Batch Export Tab -->
+            <div class="pdf-tab-content" id="pdfTabBatch">
+                <!-- Select All -->
+                <div class="pdf-batch-header">
+                    <label><span id="pdfBatchSelected">0</span> / <span id="pdfBatchTotal">15</span> slayd tanlangan</label>
+                    <div class="pdf-batch-actions">
+                        <button class="pdf-batch-action-btn" onclick="batchSelectAll()">Barchasini tanlash</button>
+                        <button class="pdf-batch-action-btn" onclick="batchSelectNone()">Bekor qilish</button>
+                        <button class="pdf-batch-action-btn" onclick="batchSelectRange()">Range</button>
+                    </div>
+                </div>
+                
+                <!-- Slide Grid -->
+                <div class="pdf-slide-grid" id="pdfSlideGrid"></div>
+                
+                <!-- Export Mode -->
+                <div class="pdf-option-group">
+                    <div class="pdf-option-label">Export usuli</div>
+                    <div class="pdf-batch-options">
+                        <button class="pdf-batch-opt-btn active" data-mode="combined" onclick="selectBatchMode(this, 'combined')">📄 Bitta PDF (barcha slaydlar)</button>
+                        <button class="pdf-batch-opt-btn" data-mode="separate" onclick="selectBatchMode(this, 'separate')">📑 Alohida PDF (har bir slayd)</button>
+                        <button class="pdf-batch-opt-btn" data-mode="images" onclick="selectBatchMode(this, 'images')">🖼 Rasm (PNG)</button>
+                    </div>
+                </div>
+                
+                <!-- Filename -->
+                <div class="pdf-option-group">
+                    <div class="pdf-option-label">Fayl nomi</div>
+                    <div class="pdf-option-row">
+                        <input type="text" id="pdfBatchFilename" value="amazon-presentation" placeholder="Fayl nomi" style="flex:1">
+                    </div>
+                </div>
+                
+                <!-- Progress -->
+                <div class="pdf-batch-progress" id="pdfBatchProgress">
+                    <div class="pdf-batch-progress-bar">
+                        <div class="pdf-batch-progress-fill" id="pdfBatchProgressFill"></div>
+                    </div>
+                    <div class="pdf-batch-progress-text" id="pdfBatchProgressText">Tayyorlanmoqda...</div>
+                </div>
+                
+                <!-- Summary -->
+                <div class="pdf-batch-summary" id="pdfBatchSummary">
+                    Tanlang: <strong>0</strong> slayd · Bitta PDF
+                </div>
+            </div>
+        </div>
+        <div class="pdf-modal-footer">
+            <button class="pdf-modal-btn cancel" onclick="closePdfModal()">Bekor qilish</button>
+            <button class="pdf-modal-btn export" id="pdfExportBtn" onclick="exportPDFWithOptions()">📄 PDF yuklab olish</button>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen button -->
+<button class="fullscreen-btn" onclick="toggleFullscreen()" title="To'liq ekran (F)">
+    ⛶
+</button>
+
+<!-- Slide counter -->
+<div class="slide-counter">
+    <span class="current" id="currentSlide">1</span> / <span id="totalSlides">15</span>
+</div>
+
+<!-- Navigation bar -->
+<div class="nav-bar">
+    <button class="nav-btn" id="prevBtn" onclick="prevSlide()">
+        ← Oldingi
+    </button>
+    
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 6.67%"></div>
+        </div>
+        <div class="progress-info">
+            <span id="slideTitle">Cover</span>
+            <span id="slidePercent">7%</span>
+        </div>
+    </div>
+    
+    <div class="slide-dots" id="slideDots"></div>
+    
+    <button class="nav-btn" id="nextBtn" onclick="nextSlide()">
+        Keyingi →
+    </button>
+</div>
+
+<!-- Thumbnail strip -->
+<div class="thumbnail-strip" id="thumbnailStrip"></div>
+
+<script>
+// Slide data
+const slides = [
+    { id: 1, title: 'Cover', bg: 'bg-amazon', icon: '📦' },
+    { id: 2, title: 'Muqaddima', bg: 'bg-gradient', icon: '📋' },
+    { id: 3, title: 'Tarix', bg: 'bg-gradient', icon: '📅' },
+    { id: 4, title: 'Daromad', bg: 'bg-gradient', icon: '📈' },
+    { id: 5, title: 'Biznes modeli', bg: 'bg-gradient', icon: '🏗️' },
+    { id: 6, title: 'AWS', bg: 'bg-amazon', icon: '☁️' },
+    { id: 7, title: 'Prime', bg: 'bg-gradient', icon: '👑' },
+    { id: 8, title: 'Logistika', bg: 'bg-gradient', icon: '🚛' },
+    { id: 9, title: 'Innovatsiya', bg: 'bg-gradient', icon: '💡' },
+    { id: 10, title: 'Mijozlar', bg: 'bg-amazon', icon: '❤️' },
+    { id: 11, title: 'AI', bg: 'bg-gradient', icon: '🤖' },
+    { id: 12, title: 'Raqobat', bg: 'bg-gradient', icon: '🛡️' },
+    { id: 13, title: 'Global', bg: 'bg-gradient', icon: '🌍' },
+    { id: 14, title: 'Xavflar', bg: 'bg-gradient', icon: '⚠️' },
+    { id: 15, title: 'Kelajak', bg: 'bg-amazon', icon: '🔮' }
+];
+
+let currentSlide = 1;
+const totalSlides = slides.length;
+let thumbnailsVisible = false;
+
+// Initialize
+function init() {
+    loadSlideContent();
+    createDots();
+    createThumbnails();
+    updateUI();
+}
+
+// Load slide content
+function loadSlideContent() {
+    const container = document.getElementById('presentation');
+    container.innerHTML = '';
+    
+    slides.forEach((slide, index) => {
+        const slideEl = document.createElement('div');
+        slideEl.className = `slide ${slide.bg}`;
+        slideEl.id = `slide-${slide.id}`;
+        slideEl.innerHTML = getSlideContent(slide.id);
+        container.appendChild(slideEl);
+    });
+    
+    // Show first slide
+    document.getElementById('slide-1').classList.add('active');
+}
+
+// Get slide content
+function getSlideContent(id) {
+    const contents = {
+        1: `
+            <div class="particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+            <div style="text-align: center; position: relative; z-index: 2;">
+                <div class="animate-icon-bounce" style="font-size: 80px; margin-bottom: 20px;">📦</div>
+                <h1 class="slide-title cover-title animate-fade-in-down" style="font-size: 56px;">AMAZON</h1>
+                <p class="slide-subtitle cover-subtitle animate-fade-in-up delay-2" style="font-size: 28px;">Qanday qilib bu darajaga yetdi?</p>
+                <p class="animate-fade-in-up delay-3" style="color: #666; font-size: 16px; margin-top: 40px;">Dunyoning eng katta texnologiya kompaniyasining to'liq tahlili</p>
+                <div class="animate-slide-in-up delay-4" style="margin-top: 60px; display: flex; gap: 40px; justify-content: center;">
+                    <div class="stat"><div class="number animate-count-up delay-5">$2.0T</div><div class="label">Bozor kapitalizatsiyasi</div></div>
+                    <div class="stat"><div class="number animate-count-up delay-6">1.5M+</div><div class="label">Xodimlar</div></div>
+                    <div class="stat"><div class="number animate-count-up delay-7">300M+</div><div class="label">Foydalanuvchilar</div></div>
+                </div>
+            </div>`,
+        2: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">📋 Muqaddima</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <p class="animate-fade-in-left" style="font-size: 16px; color: #ccc; line-height: 1.8;">
+                            <span class="highlight">Amazon</span> — bu faqat onlayn do'kon emas. Bu <span class="highlight">ekosistema</span>, 
+                            <span class="highlight">texnologiya giganti</span> va <span class="highlight"> innovatsiya mashinasi</span>.
+                        </p>
+                        <p class="animate-fade-in-left delay-2" style="font-size: 16px; color: #ccc; line-height: 1.8; margin-top: 20px;">
+                            Jeff Bezos 1994-yilda kitob sotishdan boshlangan kompaniyani bugungi 
+                            <span class="highlight">$2 trillion</span>lik empirega aylantirdi.
+                        </p>
+                        <div class="animate-fade-in-left delay-3" style="margin-top: 30px;">
+                            <span class="tag">E-Commerce</span>
+                            <span class="tag">Cloud Computing</span>
+                            <span class="tag">AI/ML</span>
+                            <span class="tag">Streaming</span>
+                            <span class="tag">Logistics</span>
+                            <span class="tag">Healthcare</span>
+                        </div>
+                    </div>
+                    <div class="card animate-slide-in-right delay-2">
+                        <h3>🎯 Taqdimot maqsadi</h3>
+                        <p>Amazonning muvaffaqiyat sirlarini tahlil qilish:</p>
+                        <ul style="color: #aaa; font-size: 14px; margin-top: 12px; padding-left: 20px; line-height: 2;">
+                            <li class="animate-item-appear delay-3">Strategik qarorlar</li>
+                            <li class="animate-item-appear delay-4">Innovatsiya modeli</li>
+                            <li class="animate-item-appear delay-5">Mijozga yo'naltirilganlik</li>
+                            <li class="animate-item-appear delay-6">Kengayish strategiyasi</li>
+                            <li class="animate-item-appear delay-7">Kelajak rejalari</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>`,
+        3: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">📅 Tarix: Kitobdo'kondan Empiregacha</h2>
+                <div class="two-col" style="margin-top: 30px;">
+                    <div class="timeline">
+                        <div class="timeline-item"><div class="year">1994</div><div class="event">Jeff Bezos Seattle'da garajda Amazon'ni tashkil etdi</div></div>
+                        <div class="timeline-item"><div class="year">1995</div><div class="event">Birinchi kitob sotildi — "Fluid Concepts and Creative Analogies"</div></div>
+                        <div class="timeline-item"><div class="year">1997</div><div class="event">IPO — $18/share, $438M bozor kapitalizatsiyasi</div></div>
+                        <div class="timeline-item"><div class="year">2000</div><div class="event">Dot-com bubble — aktsiya $107 dan $7 ga tushdi</div></div>
+                        <div class="timeline-item"><div class="year">2005</div><div class="event">Amazon Prime boshlandi — $79/yilga yetkazib berish</div></div>
+                        <div class="timeline-item animate-item-appear delay-6"><div class="year">2006</div><div class="event">AWS (Amazon Web Services) — cloud computing boshlandi</div></div>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item animate-item-appear delay-1"><div class="year">2007</div><div class="event">Kindle e-kitob o'quvchisi chiqarildi</div></div>
+                        <div class="timeline-item animate-item-appear delay-2"><div class="year">2014</div><div class="event">Echo/Alexa — uy aqlli tizimi</div></div>
+                        <div class="timeline-item animate-item-appear delay-3"><div class="year">2017</div><div class="event">Whole Foods — $13.7B ga o'zlashtirildi</div></div>
+                        <div class="timeline-item animate-item-appear delay-4"><div class="year">2021</div><div class="event">Jeff Bezos dan Andy Jassy ga rahbarlik o'tdi</div></div>
+                        <div class="timeline-item animate-item-appear delay-5"><div class="year">2023</div><div class="event">AI investitsiyalari — $4B Anthropic ga</div></div>
+                        <div class="timeline-item animate-item-appear delay-6"><div class="year">2024</div><div class="event">$2T+ bozor kapitalizatsiyasi — TOP 3</div></div>
+                    </div>
+                </div>
+            </div>`,
+        4: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">📈 Daromad o'sishi</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <h3 class="animate-fade-in-down" style="color: #ff9900; margin-bottom: 20px;">Yillik daromad (milliard $)</h3>
+                        <div class="chart-bar animate-bar-grow delay-1" style="width: 30%; --bar-width: 30%;">$74B (2015)</div>
+                        <div class="chart-bar animate-bar-grow delay-2" style="width: 45%; --bar-width: 45%;">$136B (2018)</div>
+                        <div class="chart-bar animate-bar-grow delay-3" style="width: 65%; --bar-width: 65%;">$280B (2019)</div>
+                        <div class="chart-bar animate-bar-grow delay-4" style="width: 80%; --bar-width: 80%;">$386B (2020)</div>
+                        <div class="chart-bar animate-bar-grow delay-5" style="width: 90%; --bar-width: 90%;">$470B (2021)</div>
+                        <div class="chart-bar animate-bar-grow delay-6" style="width: 95%; --bar-width: 95%;">$514B (2022)</div>
+                        <div class="chart-bar animate-bar-grow delay-7" style="width: 100%; --bar-width: 100%;">$575B (2023)</div>
+                        <div class="chart-bar animate-bar-grow delay-8" style="width: 100%; --bar-width: 100%; background: linear-gradient(90deg, #ff6600, #ff9900);">$620B+ (2024 prognoz)</div>
+                    </div>
+                    <div>
+                        <div class="card animate-slide-in-right delay-1" style="margin-bottom: 20px;"><h3>💡 Asosiy omillar</h3><p>Amazonning o'sishi 3 ta asosiy ustunga tayanadi:</p></div>
+                        <div class="card animate-slide-in-right delay-2" style="margin-bottom: 20px;"><h3>🛒 E-Commerce</h3><p>Dunyoning eng katta onlayn do'coni — 40%+ USA e-commerce bozori</p></div>
+                        <div class="card animate-slide-in-right delay-3" style="margin-bottom: 20px;"><h3>☁️ AWS</h3><p>Cloud computing bozorida 31% ulush — eng katta provayder</p></div>
+                        <div class="card animate-slide-in-right delay-4"><h3>📺 Prime</h3><p>200M+ a'zo — yiliga $500+ xarajat qiladi</p></div>
+                    </div>
+                </div>
+            </div>`,
+        5: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">🏗️ Biznes modeli: Flywheel Effect</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <div class="quote">"Mijozlar tajribasini yaxshilash → ko'proq sotuvchilar → ko'proq tanlov → yaxshiroq narx → ko'proq mijozlar"</div>
+                        <div class="quote-author">— Jeff Bezos, Amazon Flywheel konsepsiyasi</div>
+                        <div style="margin-top: 40px; text-align: center;"><div style="font-size: 80px;">🔄</div><p style="color: #888; margin-top: 16px;">Pozitiv feedback loop — har bir element keyingisini kuchaytiradi</p></div>
+                    </div>
+                    <div>
+                        <div class="card" style="margin-bottom: 16px;"><h3>1. Mijoz tajribasi</h3><p>Tez yetkazib berish, keng tanlov, arzon narxlar</p></div>
+                        <div class="card" style="margin-bottom: 16px;"><h3>2. Trafik o'sishi</h3><p>Yaxshi tajriba → ko'proq foydalanuvchilar</p></div>
+                        <div class="card" style="margin-bottom: 16px;"><h3>3. Sotuvchilar o'sishi</h3><p>Ko'proq foydalanuvchi → ko'proq sotuvchilar qo'shiladi</p></div>
+                        <div class="card" style="margin-bottom: 16px;"><h3>4. Tanlov kengayishi</h3><p>Ko'proq sotuvchi → ko'proq mahsulot</p></div>
+                        <div class="card"><h3>5. Narx pasayishi</h3><p>Miqdor iqtisodiyoti → arzonroq narxlar</p></div>
+                    </div>
+                </div>
+            </div>`,
+        6: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">☁️ AWS: Cloud inqilobi</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <p style="font-size: 16px; color: #ccc; line-height: 1.8;"><span class="highlight">Amazon Web Services</span> — Amazonning eng foydali biznesi. 2006-yilda boshlangan xizmat bugungi kunda <span class="highlight">$90B+</span> yillik daromad keltiradi.</p>
+                        <div style="margin-top: 30px;">
+                            <div class="card" style="margin-bottom: 16px;"><h3>💰 Daromad ulushi</h3><p>Amazon umumiy foydaning <span class="highlight">70%+</span> dan ko'pi AWS'dan keladi</p></div>
+                            <div class="card" style="margin-bottom: 16px;"><h3>🌍 Global ma'ruzalar</h3><p>30+ mintaqada 100+ availability zone</p></div>
+                            <div class="card"><h3>🤖 AI/ML xizmatlari</h3><p>SageMaker, Bedrock, Titan — AI bullari</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Cloud bozordagi ulushi</h3>
+                        <div class="card" style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>AWS</span><span class="highlight">31%</span></div><div class="chart-bar" style="width: 31%; height: 20px;">AWS</div></div>
+                        <div class="card" style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Microsoft Azure</span><span style="color: #00a4ef;">25%</span></div><div class="chart-bar" style="width: 25%; height: 20px; background: linear-gradient(90deg, #00a4ef, #0078d4);">Azure</div></div>
+                        <div class="card" style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Google Cloud</span><span style="color: #4285f4;">11%</span></div><div class="chart-bar" style="width: 11%; height: 20px; background: linear-gradient(90deg, #4285f4, #34a853);">GCP</div></div>
+                        <div class="card"><div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Boshqalar</span><span style="color: #888;">33%</span></div><div class="chart-bar" style="width: 33%; height: 20px; background: #444;">Other</div></div>
+                        <p style="font-size: 12px; color: #666; margin-top: 12px;">*2024-yil ma'lumotlari (Synergy Research)</p>
+                    </div>
+                </div>
+            </div>`,
+        7: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">👑 Amazon Prime: Ekosistema</h2>
+                <div class="three-col" style="margin-top: 40px;">
+                    <div class="card"><h3>🚚 Yetkazib berish</h3><p>Bepul 2 kunlik yetkazib berish — 200M+ a'zo</p><div style="margin-top: 16px;"><div class="stat"><div class="number" style="font-size: 32px;">$500+</div><div class="label">O'rtacha yillik xarajat</div></div></div></div>
+                    <div class="card"><h3>📺 Prime Video</h3><p>Original kontent, live sport, 200M+ foydalanuvchi</p><div style="margin-top: 16px;"><div class="stat"><div class="number" style="font-size: 32px;">$7B+</div><div class="label">Kontentga investitsiya</div></div></div></div>
+                    <div class="card"><h3>🎵 Prime Music</h3><p>100M+ qo'shiq, podcast, Audible bilan</p><div style="margin-top: 16px;"><div class="stat"><div class="number" style="font-size: 32px;">100M+</div><div class="label">Musiqa treklari</div></div></div></div>
+                </div>
+                <div class="two-col" style="margin-top: 30px;">
+                    <div class="card"><h3>🎮 Gaming & More</h3><p>Prime Gaming, Twitch, Reading, Photos — barchasi bitta obuna bilan</p></div>
+                    <div class="card"><h3>💡 Strategik ahamiyati</h3><p>Prime a'zolari <span class="highlight">2x ko'proq</span> xarajat qiladi. Obuna modeli — doimiy daromad + mijoz sadoqati</p></div>
+                </div>
+            </div>`,
+        8: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">🚛 Logistika imperiyasi</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <p style="font-size: 16px; color: #ccc; line-height: 1.8;">Amazon o'zining <span class="highlight">logistika tarmog'ini</span> qurdi — UPS/FedEx dan mustaqil. Bu <span class="highlight">vertikal integratsiya</span> strategiyasining eng yorqin namunasi.</p>
+                        <div style="margin-top: 30px;">
+                            <div class="card" style="margin-bottom: 12px;"><h3>✈️ Havo transporti</h3><p>80+ samolyot — Amazon Air</p></div>
+                            <div class="card" style="margin-bottom: 12px;"><h3>🏠 Yetkazib berish</h3><p>150,000+ yetkazib beruvchi — Amazon Flex</p></div>
+                            <div class="card"><h3>🤖 Avtomatlashtirish</h3><p>750,000+ robot — Kiva/Proteus</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Logistika ma'lumotlari</h3>
+                        <table>
+                            <tr><th>Ko'rsatkich</th><th>Qiymat</th></tr>
+                            <tr><td>Fulfillment markazlari</td><td><span class="highlight">1,000+</span></td></tr>
+                            <tr><td>Sortlash markazlari</td><td><span class="highlight">500+</span></td></tr>
+                            <tr><td>Delivery stations</td><td><span class="highlight">4,000+</span></td></tr>
+                            <tr><td>Samolyotlar</td><td><span class="highlight">80+</span></td></tr>
+                            <tr><td>Yuk mashinalari</td><td><span class="highlight">100,000+</span></td></tr>
+                            <tr><td>Robotlar</td><td><span class="highlight">750,000+</span></td></tr>
+                            <tr><td>Same-day delivery</td><td><span class="highlight">120+ shahar</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>`,
+        9: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">💡 Innovatsiya madaniyati</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <div class="card" style="margin-bottom: 20px;"><h3>📝 "Day 1" falsafasi</h3><p>Jeff Bezos: <em>"Har doim 'Day 1' holatida bo'ling — bu har doim yangilik boshlanishi degani"</em></p></div>
+                        <div class="card" style="margin-bottom: 20px;"><h3>🧪 "Two-Pizza Teams"</h3><p>Jamoa 2 ta pizza bilan ovqatlana olishi kerak — kichik, mustaqil, tez harakatlanuvchi</p></div>
+                        <div class="card" style="margin-bottom: 20px;"><h3>📄 "6-Page Memo"</h3><p>PowerPoint o'rniga 6 sahifali hujjat — chuqur fikrlash va tahlil</p></div>
+                        <div class="card"><h3>🎯 "Working Backwards"</h3><p>Mijoz ehtiyojidan boshlab — Press Release, FAQ, Antutanilgan Mult</p></div>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Innovatsiya natijalari</h3>
+                        <div class="stat" style="margin-bottom: 20px;"><div class="number">$83B+</div><div class="label">R&D xarajatlari (2023) — dunyodagi eng ko'p</div></div>
+                        <div class="card" style="margin-bottom: 16px;"><h3>🤖 Alexa</h3><p>500M+ qurilmada — uy aqlli tizimi bozorida #1</p></div>
+                        <div class="card" style="margin-bottom: 16px;"><h3>🚀 Blue Origin</h3><p>Jeff Bezos shaxsiy kosmik kompaniyasi</p></div>
+                        <div class="card"><h3>🏥 One Medical</h3><p>$3.9B — sog'liqni saqlash sohasiga kirish</p></div>
+                    </div>
+                </div>
+            </div>`,
+        10: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">❤️ Mijozga obsesseiya</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <div class="quote">"Biz raqobatga qarab emas, mijozlarga qarab qaror qilamiz. Raqobatchilar uyquda ham o'zlarini o'zgartirmaydi."</div>
+                        <div class="quote-author">— Jeff Bezos</div>
+                        <div style="margin-top: 40px;"><div class="card"><h3>📊 Amazon Leadership Principles</h3><p>Birinchi qoida: <span class="highlight">"Customer Obsession"</span> — boshqalardan oldin</p></div></div>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Mijoz tajribasi yangiliklari</h3>
+                        <div class="card" style="margin-bottom: 12px;"><h3>1-Click Ordering</h3><p>Bir bosishda sotib olish — xarid jarayonini soddalashtirdi</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>Customer Reviews</h3><p>Mijozlar bahosi — ishonch va shaffoflik</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>Recommendations</h3><p>AI asosidagi shaxsiy tavsiyalar — 35% sotuv shundan keladi</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>A-Z Guarantee</h3><p>To'liq qaytarish kafolati — xavfsiz xarid</p></div>
+                        <div class="card"><h3>Same-Day Delivery</h3><p>Bir kun ichida yetkazib berish — tezlik va qulaylik</p></div>
+                    </div>
+                </div>
+            </div>`,
+        11: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">🤖 Sun'iy intellekt strategiyasi</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <p style="font-size: 16px; color: #ccc; line-height: 1.8;">Amazon AI ni <span class="highlight">har bir biznes qismiga</span> integratsiya qildi — tavsiya tizimlaridan avtonom yetkazib berishgacha.</p>
+                        <div style="margin-top: 30px;">
+                            <div class="card" style="margin-bottom: 12px;"><h3>🧠 Amazon Bedrock</h3><p>Fundational modellarni API orqali ishlatish — Anthropic, Meta, AI21</p></div>
+                            <div class="card" style="margin-bottom: 12px;"><h3>🎯 Personalization</h3><p>"Mijozlar shuningdek xarid qilishdi" — AI tavsiya tizimi</p></div>
+                            <div class="card" style="margin-bottom: 12px;"><h3>📦 Supply Chain AI</h3><p>Prognoz qilish, avtomatik buyurtma — 25% xarajat kamayishi</p></div>
+                            <div class="card"><h3>🚗 Autonomous Delivery</h3><p>Scout, Zoox — avtonom yetkazib berish</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">AI investitsiyalari</h3>
+                        <table>
+                            <tr><th>Yil</th><th>Investitsiya</th><th>Maqsad</th></tr>
+                            <tr><td>2023</td><td><span class="highlight">$4B</span></td><td>Anthropic (Claude AI)</td></tr>
+                            <tr><td>2023</td><td><span class="highlight">$1.2B</span></td><td>AI Chip (Trainium)</td></tr>
+                            <tr><td>2024</td><td><span class="highlight">$10B+</span></td><td>AI infrastruktura</td></tr>
+                            <tr><td>2024</td><td><span class="highlight">$4B</span></td><td>Anthropic qo'shimcha</td></tr>
+                        </table>
+                        <div class="card" style="margin-top: 20px;"><h3>💡 AI natijalari</h3><p>Amazon'ning AI tizimlari yiliga <span class="highlight">$12B+</span> tejaydi va <span class="highlight">35%+</span> sotuvni oshiradi</p></div>
+                    </div>
+                </div>
+            </div>`,
+        12: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">🛡️ Raqobat ustunliklari</h2>
+                <div class="three-col" style="margin-top: 40px;">
+                    <div class="card"><h3>🏗️ Moat (Hofuz)</h3><p style="margin-bottom: 16px;">Amazonning raqobatchilar uchun qiyin bo'lgan ustunliklari:</p><ul style="color: #aaa; font-size: 13px; padding-left: 16px; line-height: 2;"><li>Logistika tarmog'i</li><li>Cloud infrastruktura</li><li>Mijoz ma'lumotlari</li><li>Brend ishonchi</li><li>Ekosistema tutilishi</li></ul></div>
+                    <div class="card"><h3>💰 Xarajat ustunligi</h3><p style="margin-bottom: 16px;">Miqdor iqtisodiyoti va avtomatlashtirish:</p><ul style="color: #aaa; font-size: 13px; padding-left: 16px; line-height: 2;"><li>750,000+ robot</li><li>AI prognoz tizimi</li><li>O'z logistikasi</li><li>Vertikal integratsiya</li><li>Mashtab iqtisodiyoti</li></ul></div>
+                    <div class="card"><h3>🔄 Switching Cost</h3><p style="margin-bottom: 16px;">Foydalanuvchilar qanday qilib qoladi:</p><ul style="color: #aaa; font-size: 13px; padding-left: 16px; line-height: 2;"><li>Prime obuna</li><li>Alexa uy tizimi</li><li>Smart Home qurilmalari</li><li>Shaxsiy ma'lumotlar</li><li>Ecosystem lock-in</li></ul></div>
+                </div>
+            </div>`,
+        13: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">🌍 Global kengayish</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Xalqaro bozorlar</h3>
+                        <table>
+                            <tr><th>Mintaqa</th><th>Holat</th><th>Daromad ulushi</th></tr>
+                            <tr><td>🇺🇸 AQSh</td><td><span class="highlight">Asosiy bozor</span></td><td>69%</td></tr>
+                            <tr><td>🇪🇺 Yevropa</td><td>Kengaymoqda</td><td>18%</td></tr>
+                            <tr><td>🇯🇵 Yaponiya</td><td>Mustahkam</td><td>5%</td></tr>
+                            <tr><td>🇩🇪 Germaniya</td><td>Yevropada #1</td><td>3%</td></tr>
+                            <tr><td>🇬🇧 Britaniya</td><td>Rivojlanmoqda</td><td>3%</td></tr>
+                            <tr><td>🇮🇳 Hindiston</td><td>Strategik</td><td>2%</td></tr>
+                        </table>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Strategik sarmoyalar</h3>
+                        <div class="card" style="margin-bottom: 12px;"><h3>🇮🇳 Hindiston</h3><p>Flipkart ($16B), Jio Partners — eng tez o'sayotgan bozor</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>🇧🇷 Braziliya</h3><p>Sulza — MERCADO AMAZON</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>🇲🇽 Meksika</h3><p>Aws Mexico — data center + logistics</p></div>
+                        <div class="card"><h3>🇸🇦 Saudiya Arabiston</h3><p>AWS Middle East — $5B+ investitsiya</p></div>
+                    </div>
+                </div>
+            </div>`,
+        14: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">⚠️ Xavflar va muammolar</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <div class="card" style="margin-bottom: 16px; border-color: #ff4444;"><h3 style="color: #ff4444;">🏛️ Antimonopol nazorat</h3><p>FTC da 5+ ta ish — "monopolistik faoliyat" ayblovlar. Bo'linishi mumkinmi?</p></div>
+                        <div class="card" style="margin-bottom: 16px; border-color: #ff8800;"><h3 style="color: #ff8800;">👥 Xodimlar muammolari</h3><p>Warehouse xodimlari sharoitlari, kasallik, ish haqi — PR muammolari</p></div>
+                        <div class="card" style="margin-bottom: 16px; border-color: #ffaa00;"><h3 style="color: #ffaa00;">🌱 Atrof-muhit ta'siri</h3><p>Karbon izi, qadoqlash chiqindilari — sust taraqqiyot</p></div>
+                        <div class="card" style="border-color: #ff6600;"><h3 style="color: #ff6600;">💰 AWS raqobati</h3><p>Azure va GCP tez o'smoqda — ulush yo'qotish xavfi</p></div>
+                    </div>
+                    <div>
+                        <h3 style="color: #ff9900; margin-bottom: 20px;">Raqobatchilar</h3>
+                        <div class="card" style="margin-bottom: 12px;"><h3>🟢 Walmart</h3><p>E-commerce da tez quvmoqda — 35%+ o'sish (2023)</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>🔵 Microsoft Azure</h3><p>Cloud bozorini qo'lga kiritmoqda — OpenAI bilan hamkorlik</p></div>
+                        <div class="card" style="margin-bottom: 12px;"><h3>🔴 Shopify</h3><p>DTC brendlarni quvvatlamoqda — Amazon ga muqobil</p></div>
+                        <div class="card"><h3>🟡 Temu/Shein</h3><p>Xitoy arzon mahsulotlari — past narx segmentiga tahdid</p></div>
+                    </div>
+                </div>
+            </div>`,
+        15: `
+            <div class="slide-content">
+                <h2 class="slide-title" style="font-size: 36px;">🔮 Kelajak va xulosa</h2>
+                <div class="two-col" style="margin-top: 40px;">
+                    <div>
+                        <div class="card" style="margin-bottom: 20px;"><h3>🚀 Amazon 2025+ rejalari</h3><ul style="color: #aaa; font-size: 14px; padding-left: 16px; line-height: 2;"><li><span class="highlight">AI-first</span> — barcha xizmatlarga AI integratsiya</li><li><span class="highlight">Autonomous delivery</span> — dron va avtomobil</li><li><span class="highlight">Healthcare</span> — $10B+ investitsiya</li><li><span class="highlight">Space</span> — Project Kuiper (internet satellite)</li><li><span class="highlight">Grocery</span> — Whole Foods + Amazon Fresh kengayishi</li><li><span class="highlight">Gaming</span> — Luna, Twitch kengayishi</li></ul></div>
+                        <div class="card"><h3>📊 Prognozlar</h3><p>2025-yilga Amazon daromadi <span class="highlight">$700B+</span> ga yetishi kutilmoqda. AWS 40%+ ulushga ega bo'lishi mumkin.</p></div>
+                    </div>
+                    <div>
+                        <div class="card" style="margin-bottom: 20px; border-color: #ff9900;"><h3 style="color: #ff9900;">🎯 Asosiy xulosa</h3><p style="font-size: 16px; line-height: 1.8;">Amazon muvaffaqiyatining <span class="highlight">5 ta kalit so'zi</span>:</p><ol style="color: #ccc; font-size: 15px; padding-left: 20px; margin-top: 12px; line-height: 2;"><li><strong>Mijozga obsesseiya</strong></li><li><strong>Uzoq muddatli fikrlash</strong></li><li><strong>Innovatsiya madaniyati</strong></li><li><strong>Vertikal integratsiya</strong></li><li><strong>Mashtab iqtisodiyoti</strong></li></ol></div>
+                        <div class="quote" style="font-size: 18px;">"Amazon — bu har doim birinchi kunida qanday ishlaganini unutmagan kompaniya."</div>
+                        <div class="quote-author" style="font-size: 14px;">— Business Analysis 2024</div>
+                    </div>
+                </div>
+            </div>`
+    };
+    return contents[id] || '<p>Slide content not found</p>';
+}
+
+// Create navigation dots
+function createDots() {
+    const dotsContainer = document.getElementById('slideDots');
+    dotsContainer.innerHTML = '';
+    for (let i = 1; i <= totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.className = `slide-dot ${i === 1 ? 'active' : ''}`;
+        dot.onclick = () => goToSlide(i);
+        dot.title = slides[i-1].title;
+        dotsContainer.appendChild(dot);
+    }
+}
+
+// Create thumbnail strip
+function createThumbnails() {
+    const strip = document.getElementById('thumbnailStrip');
+    strip.innerHTML = '';
+    slides.forEach((slide, index) => {
+        const thumb = document.createElement('div');
+        thumb.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+        thumb.onclick = () => goToSlide(slide.id);
+        thumb.innerHTML = `<span>${slide.icon} ${slide.title}</span>`;
+        strip.appendChild(thumb);
+    });
+}
+
+// Navigation functions
+function goToSlide(id) {
+    if (id < 1 || id > totalSlides) return;
+    
+    const currentEl = document.getElementById(`slide-${currentSlide}`);
+    const nextEl = document.getElementById(`slide-${id}`);
+    
+    // Determine direction
+    const direction = id > currentSlide ? 'next' : 'prev';
+    
+    // Remove active from current
+    currentEl.classList.remove('active');
+    currentEl.classList.add(direction === 'next' ? 'prev' : '');
+    
+    // Add active to next
+    nextEl.classList.remove('prev');
+    nextEl.classList.add('active');
+    
+    currentSlide = id;
+    updateUI();
+}
+
+function nextSlide() {
+    if (currentSlide < totalSlides) {
+        goToSlide(currentSlide + 1);
+    }
+}
+
+function prevSlide() {
+    if (currentSlide > 1) {
+        goToSlide(currentSlide - 1);
+    }
+}
+
+// Update UI
+function updateUI() {
+    // Update counter
+    document.getElementById('currentSlide').textContent = currentSlide;
+    
+    // Update progress
+    const progress = (currentSlide / totalSlides) * 100;
+    document.getElementById('progressFill').style.width = `${progress}%`;
+    document.getElementById('slidePercent').textContent = `${Math.round(progress)}%`;
+    document.getElementById('slideTitle').textContent = slides[currentSlide - 1].title;
+    
+    // Update buttons
+    document.getElementById('prevBtn').disabled = currentSlide === 1;
+    document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+    
+    // Update dots
+    document.querySelectorAll('.slide-dot').forEach((dot, index) => {
+        dot.classList.toggle('active', index + 1 === currentSlide);
+    });
+    
+    // Update thumbnails
+    document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+        thumb.classList.toggle('active', index + 1 === currentSlide);
+    });
+    
+    // Scroll thumbnail into view
+    const activeThumb = document.querySelector('.thumbnail.active');
+    if (activeThumb) {
+        activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+}
+
+// Fullscreen
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// PDF Options state
+let pdfOptions = {
+    pageSize: '16:9',
+    marginTop: 20,
+    marginBottom: 20,
+    marginLeft: 30,
+    marginRight: 30,
+    headerText: '',
+    headerAlign: 'center',
+    headerSize: 10,
+    footerLeft: '',
+    footerRight: '',
+    footerStyle: 'number',
+    footerSize: 9,
+    orientation: 'landscape'
+};
+
+const PDF_PAGE_SIZES = {
+    '16:9': { width: '100vw', height: '100vh', print: 'auto' },
+    'A4': { width: '210mm', height: '297mm', print: 'A4' },
+    'Letter': { width: '8.5in', height: '11in', print: 'letter' },
+    'A3': { width: '297mm', height: '420mm', print: 'A3' },
+    'Legal': { width: '8.5in', height: '14in', print: 'legal' }
+};
+
+// PDF Modal functions
+let _pdfPreviewListenersSetup = false;
+
+function openPdfModal() {
+    const modal = document.getElementById('pdfModal');
+    modal.classList.add('visible');
+    
+    // Load saved options
+    const saved = localStorage.getItem('pdfOptions');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            pdfOptions = { ...pdfOptions, ...parsed };
+            updatePdfModalUI();
+        } catch(e) {}
+    }
+    
+    // Setup live preview listeners (once)
+    if (!_pdfPreviewListenersSetup) {
+        setupPdfPreviewListeners();
+        _pdfPreviewListenersSetup = true;
+    }
+    
+    // Render preview
+    pdfPreviewIndex = currentSlide - 1;
+    renderPdfPreview();
+}
+
+function closePdfModal() {
+    document.getElementById('pdfModal').classList.remove('visible');
+}
+
+function selectPageSize(btn, size) {
+    pdfOptions.pageSize = size;
+    document.querySelectorAll('[data-size]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    savePdfOptions();
+    renderPdfPreview();
+}
+
+function selectOrientation(btn, orient) {
+    pdfOptions.orientation = orient;
+    document.querySelectorAll('[data-orient]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    savePdfOptions();
+    renderPdfPreview();
+}
+
+function updatePdfModalUI() {
+    document.getElementById('pdfMarginTop').value = pdfOptions.marginTop;
+    document.getElementById('pdfMarginBottom').value = pdfOptions.marginBottom;
+    document.getElementById('pdfMarginLeft').value = pdfOptions.marginLeft;
+    document.getElementById('pdfMarginRight').value = pdfOptions.marginRight;
+    document.getElementById('pdfHeaderText').value = pdfOptions.headerText;
+    document.getElementById('pdfHeaderAlign').value = pdfOptions.headerAlign;
+    document.getElementById('pdfHeaderSize').value = pdfOptions.headerSize;
+    document.getElementById('pdfFooterLeft').value = pdfOptions.footerLeft;
+    document.getElementById('pdfFooterRight').value = pdfOptions.footerRight;
+    document.getElementById('pdfFooterStyle').value = pdfOptions.footerStyle;
+    document.getElementById('pdfFooterSize').value = pdfOptions.footerSize;
+    
+    // Update page size buttons
+    document.querySelectorAll('[data-size]').forEach(b => {
+        b.classList.toggle('active', b.dataset.size === pdfOptions.pageSize);
+    });
+    document.querySelectorAll('[data-orient]').forEach(b => {
+        b.classList.toggle('active', b.dataset.orient === pdfOptions.orientation);
+    });
+}
+
+function savePdfOptions() {
+    pdfOptions.marginTop = parseInt(document.getElementById('pdfMarginTop').value) || 20;
+    pdfOptions.marginBottom = parseInt(document.getElementById('pdfMarginBottom').value) || 20;
+    pdfOptions.marginLeft = parseInt(document.getElementById('pdfMarginLeft').value) || 30;
+    pdfOptions.marginRight = parseInt(document.getElementById('pdfMarginRight').value) || 30;
+    pdfOptions.headerText = document.getElementById('pdfHeaderText').value;
+    pdfOptions.headerAlign = document.getElementById('pdfHeaderAlign').value;
+    pdfOptions.headerSize = parseInt(document.getElementById('pdfHeaderSize').value) || 10;
+    pdfOptions.footerLeft = document.getElementById('pdfFooterLeft').value;
+    pdfOptions.footerRight = document.getElementById('pdfFooterRight').value;
+    pdfOptions.footerStyle = document.getElementById('pdfFooterStyle').value;
+    pdfOptions.footerSize = parseInt(document.getElementById('pdfFooterSize').value) || 9;
+    localStorage.setItem('pdfOptions', JSON.stringify(pdfOptions));
+}
+
+// PDF Preview
+let pdfPreviewIndex = 0;
+
+const PREVIEW_SLIDE_CONTENTS = [
+    // Slide 1 - Cover
+    () => `<div class="pdf-preview-title" style="width:80%;height:8px;margin:0 auto"></div><div style="width:40%;height:3px;background:#ff9900;margin:4px auto 0;border-radius:1px"></div><div class="pdf-preview-cards" style="justify-content:center;margin-top:8px"><div style="width:20px;height:20px;border-radius:50%;background:#ff9900"></div></div>`,
+    // Slide 2 - Content
+    () => `<div class="pdf-preview-title"></div><div class="pdf-preview-line medium"></div><div class="pdf-preview-line"></div><div class="pdf-preview-line short"></div><div class="pdf-preview-cards"><div class="pdf-preview-card"></div><div class="pdf-preview-card"></div><div class="pdf-preview-card"></div></div>`,
+    // Slide 3 - Timeline
+    () => `<div class="pdf-preview-title"></div><div style="display:flex;gap:3px;margin-top:6px"><div style="width:2px;background:#ff9900;border-radius:1px"></div><div style="flex:1;display:flex;flex-direction:column;gap:4px"><div class="pdf-preview-line"></div><div class="pdf-preview-line medium"></div><div class="pdf-preview-line short"></div><div class="pdf-preview-line"></div></div></div>`,
+    // Slide 4 - Chart
+    () => `<div class="pdf-preview-title"></div><div class="pdf-preview-chart"><div class="pdf-preview-bar" style="height:30%"></div><div class="pdf-preview-bar" style="height:45%"></div><div class="pdf-preview-bar" style="height:55%"></div><div class="pdf-preview-bar" style="height:65%"></div><div class="pdf-preview-bar" style="height:75%"></div><div class="pdf-preview-bar" style="height:85%"></div><div class="pdf-preview-bar" style="height:100%"></div></div>`,
+    // Slide 5+ - Generic content
+    () => `<div class="pdf-preview-title"></div><div class="pdf-preview-line medium"></div><div class="pdf-preview-line"></div><div class="pdf-preview-cards"><div class="pdf-preview-card"></div><div class="pdf-preview-card"></div></div><div class="pdf-preview-line short" style="margin-top:4px"></div>`
+];
+
+function renderPdfPreview() {
+    const page = document.getElementById('pdfPreviewPage');
+    const header = document.getElementById('pdfPreviewHeader');
+    const content = document.getElementById('pdfPreviewContent');
+    const footer = document.getElementById('pdfPreviewFooter');
+    const guides = document.getElementById('pdfPreviewGuides');
+    const info = document.getElementById('pdfPreviewInfo');
+    const prevBtn = document.getElementById('pdfPreviewPrev');
+    const nextBtn = document.getElementById('pdfPreviewNext');
+    
+    // Update page size
+    const isLandscape = pdfOptions.orientation === 'landscape' || pdfOptions.pageSize === '16:9';
+    const ratios = {
+        '16:9': { w: 280, h: 158 },
+        'A4': isLandscape ? { w: 280, h: 198 } : { w: 210, h: 280 },
+        'Letter': isLandscape ? { w: 280, h: 214 } : { w: 210, h: 272 },
+        'A3': isLandscape ? { w: 280, h: 198 } : { w: 210, h: 280 },
+        'Legal': isLandscape ? { w: 280, h: 224 } : { w: 210, h: 280 }
+    };
+    const r = ratios[pdfOptions.pageSize] || ratios['16:9'];
+    page.style.width = r.w + 'px';
+    page.style.height = r.h + 'px';
+    
+    // Update margins guide
+    const mScale = 0.5; // mm to px approx
+    guides.style.top = (pdfOptions.marginTop * mScale) + 'px';
+    guides.style.bottom = (pdfOptions.marginBottom * mScale) + 'px';
+    guides.style.left = (pdfOptions.marginLeft * mScale) + 'px';
+    guides.style.right = (pdfOptions.marginRight * mScale) + 'px';
+    
+    // Update header
+    if (pdfOptions.headerText) {
+        header.textContent = pdfOptions.headerText;
+        header.style.textAlign = pdfOptions.headerAlign;
+        header.style.fontSize = Math.max(6, pdfOptions.headerSize * 0.7) + 'px';
+        header.style.display = 'flex';
+    } else {
+        header.style.display = 'none';
+    }
+    
+    // Update content with slide preview
+    const contentFn = PREVIEW_SLIDE_CONTENTS[Math.min(pdfPreviewIndex, PREVIEW_SLIDE_CONTENTS.length - 1)];
+    content.innerHTML = contentFn();
+    
+    // Update footer
+    let footerText = '';
+    const total = 15;
+    if (pdfOptions.footerStyle === 'number') {
+        footerText = `<span style="flex:1;text-align:center">${pdfPreviewIndex + 1} / ${total}</span>`;
+    } else if (pdfOptions.footerStyle === 'text') {
+        const left = pdfOptions.footerLeft || 'Amazon';
+        const right = pdfOptions.footerRight || `${pdfPreviewIndex + 1} / ${total}`;
+        footerText = `<span>${left}</span><span>${right}</span>`;
+    } else {
+        const left = pdfOptions.footerLeft || '';
+        const right = pdfOptions.footerRight || `${pdfPreviewIndex + 1} / ${total}`;
+        footerText = `<span>${left}</span><span>${right}</span>`;
+    }
+    footer.innerHTML = footerText;
+    footer.style.fontSize = Math.max(5, pdfOptions.footerSize * 0.7) + 'px';
+    footer.style.display = 'flex';
+    
+    // Update nav
+    info.textContent = `Slayd ${pdfPreviewIndex + 1} / ${total}`;
+    prevBtn.disabled = pdfPreviewIndex === 0;
+    nextBtn.disabled = pdfPreviewIndex >= total - 1;
+}
+
+function pdfPreviewSlide(dir) {
+    pdfPreviewIndex = Math.max(0, Math.min(14, pdfPreviewIndex + dir));
+    renderPdfPreview();
+}
+
+// Update preview on input change
+function setupPdfPreviewListeners() {
+    ['pdfMarginTop','pdfMarginBottom','pdfMarginLeft','pdfMarginRight',
+     'pdfHeaderText','pdfHeaderSize','pdfFooterLeft','pdfFooterRight','pdfFooterSize'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => {
+            savePdfOptions();
+            renderPdfPreview();
+        });
+    });
+    ['pdfHeaderAlign','pdfFooterStyle'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => {
+            savePdfOptions();
+            renderPdfPreview();
+        });
+    });
+}
+
+// Batch Export
+let batchSelectedSlides = new Set();
+let batchMode = 'combined'; // combined, separate, images
+let batchExporting = false;
+
+const SLIDE_TITLES = [
+    'Cover', 'Muqaddima', 'Tarix', 'Daromad', 'Biznes modeli',
+    'AWS', 'Prime', 'Logistika', 'Innovatsiya', 'Mijozlar',
+    'AI', 'Raqobat', 'Global', 'Xavflar', 'Kelajak'
+];
+
+function switchPdfTab(tab) {
+    document.querySelectorAll('.pdf-modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pdf-tab-content').forEach(c => c.classList.remove('active'));
+    
+    if (tab === 'single') {
+        document.querySelector('.pdf-modal-tab:first-child').classList.add('active');
+        document.getElementById('pdfTabSingle').classList.add('active');
+        document.getElementById('pdfExportBtn').onclick = exportPDFWithOptions;
+        document.getElementById('pdfExportBtn').textContent = '📄 PDF yuklab olish';
+    } else {
+        document.querySelector('.pdf-modal-tab:last-child').classList.add('active');
+        document.getElementById('pdfTabBatch').classList.add('active');
+        document.getElementById('pdfExportBtn').onclick = batchExport;
+        document.getElementById('pdfExportBtn').textContent = '📑 Batch export';
+        renderBatchGrid();
+    }
+}
+
+function renderBatchGrid() {
+    const grid = document.getElementById('pdfSlideGrid');
+    const total = 15;
+    document.getElementById('pdfBatchTotal').textContent = total;
+    
+    grid.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+        const card = document.createElement('div');
+        card.className = 'pdf-slide-card' + (batchSelectedSlides.has(i) ? ' selected' : '');
+        card.onclick = () => toggleBatchSlide(i);
+        card.innerHTML = `
+            <span class="slide-num">${i + 1}</span>
+            <span class="slide-check">${batchSelectedSlides.has(i) ? '✓' : ''}</span>
+            <div class="pdf-slide-thumb"><div class="pdf-slide-thumb-title"></div></div>
+            <div class="pdf-slide-card-label">${SLIDE_TITLES[i] || 'Slayd ' + (i+1)}</div>
+        `;
+        grid.appendChild(card);
+    }
+    
+    updateBatchSummary();
+}
+
+function toggleBatchSlide(index) {
+    if (batchSelectedSlides.has(index)) {
+        batchSelectedSlides.delete(index);
+    } else {
+        batchSelectedSlides.add(index);
+    }
+    renderBatchGrid();
+}
+
+function batchSelectAll() {
+    for (let i = 0; i < 15; i++) batchSelectedSlides.add(i);
+    renderBatchGrid();
+}
+
+function batchSelectNone() {
+    batchSelectedSlides.clear();
+    renderBatchGrid();
+}
+
+function batchSelectRange() {
+    const range = prompt('Range kiriting (masalan: 1-5):');
+    if (!range) return;
+    const parts = range.split('-').map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        const start = Math.max(1, Math.min(15, parts[0]));
+        const end = Math.max(1, Math.min(15, parts[1]));
+        for (let i = start - 1; i < end; i++) {
+            batchSelectedSlides.add(i);
+        }
+        renderBatchGrid();
+    }
+}
+
+function selectBatchMode(btn, mode) {
+    batchMode = mode;
+    document.querySelectorAll('.pdf-batch-opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updateBatchSummary();
+}
+
+function updateBatchSummary() {
+    const count = batchSelectedSlides.size;
+    const modeLabels = {
+        'combined': 'Bitta PDF',
+        'separate': 'Alohida PDF',
+        'images': 'PNG rasm'
+    };
+    document.getElementById('pdfBatchSelected').textContent = count;
+    document.getElementById('pdfBatchSummary').innerHTML =
+        `Tanlang: <strong>${count}</strong> slayd · ${modeLabels[batchMode]}`;
+}
+
+async function batchExport() {
+    if (batchExporting || batchSelectedSlides.size === 0) return;
+    batchExporting = true;
+    
+    const progress = document.getElementById('pdfBatchProgress');
+    const fill = document.getElementById('pdfBatchProgressFill');
+    const text = document.getElementById('pdfBatchProgressText');
+    const btn = document.getElementById('pdfExportBtn');
+    
+    progress.classList.add('active');
+    btn.disabled = true;
+    btn.textContent = '⏳ Export...';
+    
+    savePdfOptions();
+    const selected = Array.from(batchSelectedSlides).sort((a, b) => a - b);
+    const total = selected.length;
+    const filename = document.getElementById('pdfBatchFilename').value || 'presentation';
+    
+    if (batchMode === 'combined') {
+        // Export all selected slides as one PDF
+        text.textContent = `PDF tayyorlanmoqda... (0/${total})`;
+        fill.style.width = '50%';
+        await new Promise(r => setTimeout(r, 300));
+        
+        // Show only selected slides
+        const allSlides = document.querySelectorAll('.slide');
+        allSlides.forEach((slide, i) => {
+            if (selected.includes(i)) {
+                slide.style.display = 'flex';
+            } else {
+                slide.style.display = 'none';
+            }
+        });
+        
+        text.textContent = `Print dialog ochilmoqda...`;
+        fill.style.width = '100%';
+        await new Promise(r => setTimeout(r, 200));
+        
+        // Use existing exportPDF with selected slides
+        exportPDF(pdfOptions, selected);
+        
+    } else if (batchMode === 'separate') {
+        // Export each selected slide as separate PDF
+        for (let idx = 0; idx < total; idx++) {
+            const slideIdx = selected[idx];
+            text.textContent = `PDF ${idx + 1}/${total} tayyorlanmoqda...`;
+            fill.style.width = ((idx / total) * 100) + '%';
+            
+            const allSlides = document.querySelectorAll('.slide');
+            allSlides.forEach((slide, i) => {
+                if (i === slideIdx) {
+                    slide.style.display = 'flex';
+                    slide.style.opacity = '1';
+                    slide.style.transform = 'none';
+                    slide.style.position = 'relative';
+                    slide.style.minHeight = '100vh';
+                    slide.style.background = 'white';
+                    slide.style.color = '#333';
+                    slide.style.padding = '40px 60px';
+                } else {
+                    slide.style.display = 'none';
+                }
+            });
+            
+            // Hide nav elements
+            document.querySelector('.nav-bar').style.display = 'none';
+            document.querySelector('.keyboard-hints').style.display = 'none';
+            document.querySelector('.fullscreen-btn').style.display = 'none';
+            document.querySelector('.slide-counter').style.display = 'none';
+            document.querySelector('.pdf-btn').style.display = 'none';
+            
+            text.textContent = `PDF ${idx + 1}/${total} — ${SLIDE_TITLES[slideIdx] || 'Slayd ' + (slideIdx+1)}`;
+            
+            await new Promise(r => setTimeout(r, 100));
+            window.print();
+            await new Promise(r => setTimeout(r, 500));
+            
+            // Restore
+            allSlides.forEach((slide, i) => {
+                slide.style.cssText = '';
+                slide.className = 'slide ' + (i + 1 === currentSlide ? 'active' : '');
+            });
+            document.querySelector('.nav-bar').style.display = '';
+            document.querySelector('.keyboard-hints').style.display = '';
+            document.querySelector('.fullscreen-btn').style.display = '';
+            document.querySelector('.slide-counter').style.display = '';
+            document.querySelector('.pdf-btn').style.display = '';
+        }
+        
+    } else if (batchMode === 'images') {
+        // Export as PNG images using html2canvas approach
+        for (let idx = 0; idx < total; idx++) {
+            const slideIdx = selected[idx];
+            text.textContent = `Rasm ${idx + 1}/${total} — ${SLIDE_TITLES[slideIdx] || 'Slayd ' + (slideIdx+1)}`;
+            fill.style.width = ((idx / total) * 100) + '%';
+            
+            // Show only this slide
+            const allSlides = document.querySelectorAll('.slide');
+            allSlides.forEach((slide, i) => {
+                if (i === slideIdx) {
+                    slide.style.opacity = '1';
+                    slide.style.transform = 'none';
+                    slide.style.position = 'relative';
+                    slide.style.display = 'flex';
+                    slide.style.background = 'white';
+                    slide.style.color = '#333';
+                    slide.style.padding = '40px 60px';
+                    slide.style.width = '1920px';
+                    slide.style.height = '1080px';
+                } else {
+                    slide.style.display = 'none';
+                }
+            });
+            
+            document.querySelector('.nav-bar').style.display = 'none';
+            document.querySelector('.keyboard-hints').style.display = 'none';
+            document.querySelector('.fullscreen-btn').style.display = 'none';
+            document.querySelector('.slide-counter').style.display = 'none';
+            
+            await new Promise(r => setTimeout(r, 200));
+            
+            // Capture using canvas
+            try {
+                const activeSlide = allSlides[slideIdx];
+                const canvas = await htmlToCanvas(activeSlide);
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = `${filename}-slide-${slideIdx + 1}-${SLIDE_TITLES[slideIdx] || 'slide'}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+            } catch(e) {
+                console.warn('Canvas export failed, falling back to print', e);
+                window.print();
+            }
+            
+            // Restore
+            allSlides.forEach((slide, i) => {
+                slide.style.cssText = '';
+                slide.className = 'slide ' + (i + 1 === currentSlide ? 'active' : '');
+            });
+            document.querySelector('.nav-bar').style.display = '';
+            document.querySelector('.keyboard-hints').style.display = '';
+            document.querySelector('.fullscreen-btn').style.display = '';
+            document.querySelector('.slide-counter').style.display = '';
+        }
+    }
+    
+    fill.style.width = '100%';
+    text.textContent = `Tayyor! ${total} ta fayl export qilindi.`;
+    await new Promise(r => setTimeout(r, 1500));
+    
+    progress.classList.remove('active');
+    fill.style.width = '0%';
+    btn.disabled = false;
+    btn.textContent = '📑 Batch export';
+    batchExporting = false;
+}
+
+function htmlToCanvas(element) {
+    return new Promise((resolve) => {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const rect = element.getBoundingClientRect();
+            canvas.width = 1920;
+            canvas.height = 1080;
+            
+            // Draw white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw text content
+            ctx.fillStyle = '#333333';
+            ctx.font = '24px Arial';
+            const text = element.innerText || element.textContent || '';
+            const lines = text.split('\n').slice(0, 30);
+            lines.forEach((line, i) => {
+                if (i < 30) {
+                    ctx.fillText(line.substring(0, 80), 60, 80 + i * 30);
+                }
+            });
+            
+            resolve(canvas);
+        } catch(e) {
+            resolve(null);
+        }
+    });
+}
+
+// PDF Export with options
+function exportPDFWithOptions() {
+    savePdfOptions();
+    closePdfModal();
+    exportPDF(pdfOptions);
+}
+
+function exportPDF(opts, selectedSlides) {
+    opts = opts || pdfOptions;
+    const btn = document.getElementById('pdfBtn');
+    btn.classList.add('exporting');
+    btn.innerHTML = '⏳ Yuklanmoqda...';
+    
+    const pageSize = PDF_PAGE_SIZES[opts.pageSize] || PDF_PAGE_SIZES['16:9'];
+    const allSlides = document.querySelectorAll('.slide');
+    const total = allSlides.length;
+    
+    // Filter slides if selectedSlides provided
+    const slidesToShow = selectedSlides ? selectedSlides : Array.from({length: total}, (_, i) => i);
+    
+    // Set page size CSS variable
+    document.documentElement.style.setProperty('--pdf-page-width', pageSize.width);
+    document.documentElement.style.setProperty('--pdf-page-height', pageSize.height);
+    document.documentElement.style.setProperty('--pdf-margin-top', opts.marginTop + 'mm');
+    document.documentElement.style.setProperty('--pdf-margin-bottom', opts.marginBottom + 'mm');
+    document.documentElement.style.setProperty('--pdf-margin-left', opts.marginLeft + 'mm');
+    document.documentElement.style.setProperty('--pdf-margin-right', opts.marginRight + 'mm');
+    document.documentElement.style.setProperty('--pdf-header-size', opts.headerSize + 'px');
+    document.documentElement.style.setProperty('--pdf-footer-size', opts.footerSize + 'px');
+    
+    // Show selected slides for print
+    allSlides.forEach((slide, idx) => {
+        if (slidesToShow.includes(idx)) {
+            slide.style.opacity = '1';
+            slide.style.transform = 'none';
+            slide.style.position = 'relative';
+            slide.style.pageBreakAfter = 'always';
+            slide.style.display = 'flex';
+            slide.style.padding = `${opts.marginTop + 10}px ${opts.marginRight + 20}px ${opts.marginBottom + 10}px ${opts.marginLeft + 20}px`;
+            slide.style.background = 'white';
+            slide.style.color = '#333';
+            if (opts.pageSize !== '16:9') {
+                slide.style.width = pageSize.width;
+                slide.style.minHeight = pageSize.height;
+                slide.style.maxWidth = pageSize.width;
+            } else {
+                slide.style.minHeight = '100vh';
+                slide.style.width = '100vw';
+            }
+        } else {
+            slide.style.display = 'none';
+        }
+    });
+    
+    // Hide navigation elements
+    document.querySelector('.nav-bar').style.display = 'none';
+    document.querySelector('.keyboard-hints').style.display = 'none';
+    document.querySelector('.fullscreen-btn').style.display = 'none';
+    document.querySelector('.slide-counter').style.display = 'none';
+    document.querySelector('.pdf-btn').style.display = 'none';
+    document.querySelector('.thumbnail-strip').style.display = 'none';
+    document.getElementById('pdfModal').style.display = 'none';
+    
+    // Add header and footer to each visible slide
+    let pageCounter = 0;
+    allSlides.forEach((slide, index) => {
+        if (!slidesToShow.includes(index)) return;
+        pageCounter++;
+        
+        // Header
+        if (opts.headerText) {
+            const header = document.createElement('div');
+            header.className = 'pdf-header';
+            header.style.cssText = `position: absolute; top: ${opts.marginTop / 2}px; left: ${opts.marginLeft}px; right: ${opts.marginRight}px; text-align: ${opts.headerAlign}; font-size: ${opts.headerSize}px; color: #999; border-bottom: 1px solid #eee; padding-bottom: 8px; font-family: 'JetBrains Mono', monospace;`;
+            header.textContent = opts.headerText;
+            slide.appendChild(header);
+        }
+        
+        // Footer
+        const footer = document.createElement('div');
+        footer.className = 'pdf-footer';
+        const footerStyle = opts.footerStyle;
+        const exportTotal = slidesToShow.length;
+        let footerContent = '';
+        
+        if (footerStyle === 'number') {
+            footerContent = `<span></span><span style="text-align:center;flex:1">${pageCounter} / ${exportTotal}</span><span></span>`;
+        } else if (footerStyle === 'text') {
+            const left = opts.footerLeft || 'Amazon: Qanday qilib bu darajaga yetdi?';
+            const right = opts.footerRight || `${pageCounter} / ${exportTotal}`;
+            footerContent = `<span>${left}</span><span>${right}</span>`;
+        } else {
+            const left = opts.footerLeft || '';
+            const right = opts.footerRight || `${pageCounter} / ${exportTotal}`;
+            footerContent = `<span>${left}</span><span>${right}</span>`;
+        }
+        
+        footer.style.cssText = `position: absolute; bottom: ${opts.marginBottom / 2}px; left: ${opts.marginLeft}px; right: ${opts.marginRight}px; display: flex; justify-content: space-between; align-items: center; font-size: ${opts.footerSize}px; color: #999; border-top: 1px solid #eee; padding-top: 8px; font-family: 'JetBrains Mono', monospace;`;
+        footer.innerHTML = footerContent;
+        slide.appendChild(footer);
+    });
+    
+    // Inject print-specific styles for page size
+    const printStyle = document.createElement('style');
+    printStyle.id = 'pdf-print-style';
+    printStyle.textContent = `
+        @media print {
+            @page {
+                size: ${opts.pageSize === '16:9' ? 'landscape' : opts.orientation};
+                margin: 0;
+            }
+            .slide {
+                width: ${pageSize.width} !important;
+                min-height: ${pageSize.height} !important;
+                max-height: ${pageSize.height} !important;
+                padding: ${opts.marginTop + 10}px ${opts.marginRight + 20}px ${opts.marginBottom + 10}px ${opts.marginLeft + 20}px !important;
+            }
+        }
+    `;
+    document.head.appendChild(printStyle);
+    
+    // Trigger print
+    setTimeout(() => {
+        window.print();
+        
+        // Restore original state after print
+        setTimeout(() => {
+            // Remove injected print style
+            const injected = document.getElementById('pdf-print-style');
+            if (injected) injected.remove();
+            
+            // Clear CSS variables
+            ['--pdf-page-width','--pdf-page-height','--pdf-margin-top','--pdf-margin-bottom','--pdf-margin-left','--pdf-margin-right','--pdf-header-size','--pdf-footer-size'].forEach(v => {
+                document.documentElement.style.removeProperty(v);
+            });
+            
+            allSlides.forEach((slide, index) => {
+                slide.style.cssText = '';
+                slide.className = 'slide ' + (index + 1 === currentSlide ? 'active' : '');
+                // Remove PDF header/footer
+                const hdr = slide.querySelector('.pdf-header');
+                if (hdr) hdr.remove();
+                const ftr = slide.querySelector('.pdf-footer');
+                if (ftr) ftr.remove();
+            });
+            
+            document.querySelector('.nav-bar').style.display = '';
+            document.querySelector('.keyboard-hints').style.display = '';
+            document.querySelector('.fullscreen-btn').style.display = '';
+            document.querySelector('.slide-counter').style.display = '';
+            document.querySelector('.pdf-btn').style.display = '';
+            document.querySelector('.thumbnail-strip').style.display = '';
+            
+            btn.classList.remove('exporting');
+            btn.innerHTML = '📄 PDF';
+        }, 1000);
+    }, 500);
+}
+
+// Toggle thumbnails
+function toggleThumbnails() {
+    thumbnailsVisible = !thumbnailsVisible;
+    document.getElementById('thumbnailStrip').classList.toggle('visible', thumbnailsVisible);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+        case 'ArrowRight':
+        case ' ':
+            e.preventDefault();
+            nextSlide();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            prevSlide();
+            break;
+        case 'f':
+        case 'F':
+            toggleFullscreen();
+            break;
+        case 'p':
+        case 'P':
+            openPdfModal();
+            break;
+        case 't':
+        case 'T':
+            toggleThumbnails();
+            break;
+        case 'Home':
+            goToSlide(1);
+            break;
+        case 'End':
+            goToSlide(totalSlides);
+            break;
+        case 'Escape':
+            closePdfModal();
+            break;
+    }
+});
+
+// Touch support
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+            nextSlide();
+        } else {
+            prevSlide();
+        }
+    }
+}
+
+// Mouse wheel navigation
+document.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > 30) {
+        if (e.deltaY > 0) {
+            nextSlide();
+        } else {
+            prevSlide();
+        }
+    }
+}, { passive: true });
+
+// PDF modal - click outside to close
+document.getElementById('pdfModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('pdfModal')) {
+        closePdfModal();
+    }
+});
+
+// Initialize
+init();
+</script>
+
+</body>
+</html>

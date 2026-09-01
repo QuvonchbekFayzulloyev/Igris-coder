@@ -1,0 +1,50 @@
+{
+  "task_id": "task_1788266929888",
+  "goal": "Task: Veb tadqiqot\nContext:\nGoal: supabase saytini och\nPlan: main → sub_0_code\n\nComplete this specific sub-task.",
+  "dag": {
+    "main": {
+      "id": "main",
+      "description": "Veb tadqiqot",
+      "need": "web",
+      "predecessors": [],
+      "status": "pending",
+      "result": null,
+      "error": null,
+      "context": {
+        "clarified": "obyekt: Supabase (baza) · vositalar: web_ai_bridge__browser_navigate",
+        "subject": "Supabase (baza)",
+        "loop_shape": "react_iterative",
+        "max_iter": 8,
+        "max_repair": 0
+      },
+      "tool_calls": [],
+      "files_changed": [],
+      "iterations_used": 0,
+      "repairs_used": 0
+    },
+    "sub_0_code": {
+      "id": "sub_0_code",
+      "description": "Kod vazifasi",
+      "need": "code",
+      "predecessors": [
+        "main"
+      ],
+      "status": "pending",
+      "result": null,
+      "error": null,
+      "context": {
+        "loop_shape": "build_verify",
+        "max_iter": 8,
+        "max_repair": 3
+      },
+      "tool_calls": [],
+      "files_changed": [],
+      "iterations_used": 0,
+      "repairs_used": 0
+    }
+  },
+  "total_iterations_used": 0,
+  "total_repairs_used": 0,
+  "budget_remaining": 40,
+  "timestamp": 1788266929.8883297
+}

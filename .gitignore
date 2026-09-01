@@ -1,0 +1,42 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+node_modules/
+dist-web/
+src-tauri/target/
+*.log
+.DS_Store
+*.7z
+*.tmp
+*.bak
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Binary
+*.7z
+*.docx
+
+# Runtime
+*.log
+*.tmp
+*.bak
+logs/
+Igris_Interface/node_modules/
+Igris_Interface/dist-web/
+Igris_Interface/src-tauri/target/
+Igris_Interface/src-tauri/gen/
+web-ai-bridge/.data/
+Igris_Interface/web/agent_workspace/
+Igris_brain/agent_workspace/
+Igris_brain/e2e_shots/
+Igris_brain/reports/
+Igris_brain/benchmarks/
+__pycache__/
+.pytest_cache/
+*.pyc
+Igris_brain/.env

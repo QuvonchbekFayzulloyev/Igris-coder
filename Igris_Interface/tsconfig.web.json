@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // 2nd_brain/frontend fayllari Igris_Interface tashqarisida — node_modules
+    // yuqoriga qarab topilmaydi, shuning uchun bare import'lar shu yerga
+    // yo'naltiriladi (web/shared fayllari uchun ham xuddi shu manbaga tushadi).
+    "baseUrl": ".",
+    "paths": {
+      "react": ["node_modules/@types/react"],
+      "react/*": ["node_modules/@types/react/*"],
+      "zustand": ["node_modules/zustand"]
+    }
+  },
+  "include": ["web/**/*.ts", "web/**/*.tsx", "shared/**/*.ts", "shared/**/*.tsx", "../2nd_brain/frontend/**/*.ts", "../2nd_brain/frontend/**/*.tsx"],
+  "exclude": ["node_modules", "dist-web", "dist-cli", "dist-desktop", "cli", "desktop"]
+}

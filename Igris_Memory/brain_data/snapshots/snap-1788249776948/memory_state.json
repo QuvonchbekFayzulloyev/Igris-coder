@@ -1,0 +1,117 @@
+{
+  "runtime": {
+    "session": [
+      {
+        "id": "session-bridge",
+        "type": "session",
+        "status": "active",
+        "started_at": "2026-09-01T08:02:56.940213+00:00",
+        "updated_at": "2026-09-01T08:02:56.940213+00:00",
+        "total_turns": 0,
+        "total_tool_calls": 0,
+        "total_tokens_used": 0,
+        "files_read": [],
+        "files_modified": [],
+        "errors_encountered": [],
+        "summary": "Session bridge started",
+        "timestamp": "2026-09-01T08:02:56.940298+00:00"
+      }
+    ]
+  },
+  "persistent": {
+    "experience": [
+      {
+        "id": "from-agent-short-turn-1785823388",
+        "type": "experience",
+        "source": "l1:short-turn",
+        "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+        "data": {
+          "content": "def find_max_min(numbers):\n    if not numbers:\n        return None, None\n    max_number = max(numbers)\n    min_number = min(numbers)\n    return max_number, min_number\n\n# Masalan:\nnumbers = [10, 20, 30, 40, 50]\nmax_num, min_num = find_max_min(numbers)\nprint(f\"Eng katta son: {max_num}, Eng kichik son: {min_num}\")",
+          "type": "short-turn",
+          "tags": [
+            "turn"
+          ],
+          "metadata": {},
+          "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+          "remembered_at": "2026-08-04T06:03:08.014772+00:00",
+          "id": "agent-short-turn-1785823388",
+          "timestamp": "2026-08-04T06:03:08.014816+00:00"
+        },
+        "consolidated_at": "2026-08-04T06:11:38.700691+00:00",
+        "updated_at": "2026-08-04T06:11:38.700729+00:00"
+      },
+      {
+        "id": "exp-session-exec-test",
+        "type": "experience",
+        "sessions": [
+          {
+            "date": "2026-08-04",
+            "task": "done",
+            "outcome": "successful",
+            "key_learnings": [],
+            "tags": []
+          }
+        ],
+        "summary": "done",
+        "updated_at": "2026-08-04T06:11:38.702092+00:00"
+      },
+      {
+        "content": "TASK: tetris o'yinini yasab ber\nSTATUS: ok\nSTEPS: 0 TOOLS: 2 FIXES: 0",
+        "type": "experience",
+        "tags": [
+          "agent-task",
+          "ok"
+        ],
+        "metadata": {},
+        "summary": "ok | 2 tools | 0 fixes",
+        "remembered_at": "2026-08-25T15:25:58.353642+00:00",
+        "id": "agent-experience-1787671558",
+        "updated_at": "2026-08-25T15:25:58.353654+00:00"
+      }
+    ],
+    "solution-memory": [
+      {
+        "content": "Q: tetris o'yinini o'ynab bo'ladigan mvp holatiga keltirib java dasturlash tilida yasab ber\nA: Tetris o'yinining **MVP (Minimal Viable Product)** holatini Java dasturlash tilida yaratamiz. Bu o'yin **konsolega asoslangan**, **tetromino harakatlari**, **qator tozalash** va **o'yin tugallash** mexanikalarini o'z ichiga oladi. Shu bilan birga, kod **yengil**, **tushunadigan** va **test qilinadigan** shaklda yozilgan.\n\n---\n\n### 🧩 Tetris MVP (Java) Kodini Yozish\n\n```java\nimport java.util.Scanner;\n\npublic class TetrisMVP {\n    // O'yin maydoni (20 x 10)\n    static final int ROWS = 20;\n    static final int COLS = 10;\n    static final char EMPTY = ' ';\n    static final char BLOCK = '■';\n\n    // Tetromino shakllari (I, O, T, S, Z, L, J)\n    static final int[][][] TETROMINOS = {\n        // I-shakl (4 x 1)\n        {\n            {0, 0, 0, 0},\n            {1, 1, 1, 1},\n            {0, 0, 0, 0},\n            {0, 0, 0, 0}\n        },\n        // O-shakl (2 x 2)\n        {\n            {0, 0, 0, 0},\n            {0, 1, 1, 0},\n            {0, 1, 1, 0},\n            {0, 0, 0, 0}\n        },\n        // T-shakl (3 x 2)\n        {\n            {0, 0, 0, 0},\n            {0, 1, 1, 1},\n            {0, 0, 1, 0},\n            {0, 0, 0, 0}\n        },\n        // S-shakl (3 x 2)\n        {\n            {0, 0, 0, 0},\n            {0, 1, 1, 0},\n            {1, 1, 0, 0},\n            {0, 0, 0, 0}\n        },\n        // Z-shakl (3 x 2)\n        {\n            {0, 0, 0, 0},\n            {1, 1, 0, 0},\n            {0, 1, 1, 0},\n            {0, 0, 0, 0}\n        },\n        // L-shakl (3 x 2)\n        {\n            {0, 0, 0, 0},\n            {0, 0, 1, 0},\n            {1, 1, 1, 0},\n            {0, 0, 0, 0}\n        },\n        // J-shakl (3 x 2)\n        {\n            {0, 0, 0, 0},\n            {1, 0, 0, 0},\n            {1, 1, 1, 0},\n            {0, 0, 0, 0}\n        }\n    };\n\n    // O'yin maydoni\n    static char[][] grid = new char[ROWS][COLS];\n\n    // Hozirgi tetromino\n    static int[][] currentPiece;\n    static int pieceX = 3;\n",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "tetris o'yinini o'ynab bo'ladigan mvp holatiga keltirib java dasturlash tilida yasab ber",
+        "remembered_at": "2026-08-25T17:54:39.741851+00:00",
+        "id": "agent-solution-memory-1787680479",
+        "updated_at": "2026-08-25T17:54:39.741881+00:00"
+      },
+      {
+        "content": "Q: tetris o'yinini o'ynab bo'ladigan mvp holatiga keltirib java dasturlash tilida yasab ber\nA: Tetris o'yinini Java dasturlash tilida console-based yoki GUI (JavaFX/Swing) yordamida yaratish uchun quyidagi minimal kodi yozilgan. Bu kod **MVP (Minimal Viable Product)** holatida: tetromino harakatlari, qator tozalash, o'yin tugashi mexanikalarini o'z ichiga oladi.\n\n---\n\n### 🧩 **Tetris Java Kodini Yozish (Console-based)**\n```java\nimport java.util.Scanner;\n\npublic class Tetris {\n    static final int BOARD_WIDTH = 10;\n    static final int BOARD_HEIGHT = 20;\n    static int[][] board = new int[BOARD_HEIGHT][BOARD_WIDTH];\n    static Piece currentPiece;\n    static int score = 0;\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        initBoard();\n        currentPiece = new Piece();\n        boolean gameOver = false;\n\n        while (!gameOver) {\n            printBoard();\n            System.out.print(\"Harakat (W/A/S/D): \");\n            char input = scanner.next().charAt(0);\n\n            switch (input) {\n                case 'a': currentPiece.moveLeft(); break;\n                case 'd': currentPiece.moveRight(); break;\n                case 's': currentPiece.moveDown(); break;\n                case 'w': currentPiece.rotate(); break;\n            }\n\n            if (!currentPiece.moveDown()) {\n                lockPiece();\n                clearLines();\n                currentPiece = new Piece();\n                if (!canPlacePiece()) {\n                    gameOver = true;\n                }\n            }\n        }\n        System.out.println(\"O'yin tugadi! Skor: \" + score);\n    }\n\n    static void initBoard() {\n        for (int i = 0; i < BOARD_HEIGHT; i++) {\n            for (int j = 0; j < BOARD_WIDTH; j++) {\n                board[i][j] = 0;\n            }\n        }\n    }\n\n    static void printBoard() {\n        for (int i = 0; i < BOARD_HEIGHT; i++) {\n            for (int j = 0; j < BOARD_WIDTH; j++) {\n                if (board[i][j] == 1) S",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "tetris o'yinini o'ynab bo'ladigan mvp holatiga keltirib java dasturlash tilida yasab ber",
+        "remembered_at": "2026-08-25T17:56:06.816591+00:00",
+        "id": "agent-solution-memory-1787680566",
+        "updated_at": "2026-08-25T17:56:06.816603+00:00"
+      },
+      {
+        "content": "Q: matritsa yaratish kodini yoz\nA: write(np.array)",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "deterministic",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "matritsa yaratish kodini yoz",
+        "remembered_at": "2026-08-25T18:19:00.454506+00:00",
+        "id": "agent-solution-memory-1787681940",
+        "updated_at": "2026-08-25T18:19:00.454522+00:00"
+      }
+    ]
+  }
+}

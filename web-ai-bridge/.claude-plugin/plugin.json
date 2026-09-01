@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "web-ai-bridge",
+  "displayName": "Web AI Bridge",
+  "version": "0.8.0",
+  "description": "Drive your real, already-installed Chrome (not a bot-flagged bundled Chromium) the way a human would -- click, type, scroll, tabs, file upload, link checking, async deep-research polling -- with a confirmation gate on payment/purchase/deletion actions, and route prompts to web AI chat sessions (ChatGPT, Gemini, Claude.ai, DeepSeek) as tools Claude Code can call directly.",
+  "author": {
+    "name": "Ghostmaster"
+  },
+  "license": "MIT",
+  "keywords": ["browser", "automation", "playwright", "mcp", "web-ai", "windows"],
+  "defaultEnabled": false,
+  "userConfig": {
+    "browser_channel": {
+      "type": "string",
+      "title": "Which browser to automate",
+      "description": "\"chrome\" (default, recommended) or \"msedge\" use your real, already-installed browser -- normal logins, far fewer CAPTCHAs. \"chromium\" uses Playwright's own bundled Chromium instead (needs a separate one-time download, gets flagged as automated much more often). Falls back to bundled Chromium automatically if the chosen real browser isn't installed.",
+      "default": "chrome"
+    },
+    "headless": {
+      "type": "boolean",
+      "title": "Run browser headless",
+      "description": "Off by default so you can complete logins manually on first run. Turn on once sessions are saved.",
+      "default": false
+    },
+    "profile_dir": {
+      "type": "directory",
+      "title": "Browser profile directory",
+      "description": "Where persistent login sessions (cookies) are stored between runs (legacy mode only). Defaults to the plugin data directory if left blank. This is a dedicated automation profile, separate from your everyday Chrome profile -- log in here once."
+    },
+    "cdp_enabled": {
+      "type": "boolean",
+      "title": "Use your real Chrome profile via CDP",
+      "description": "Attach to a real Google Chrome that runs with --remote-debugging-port and uses your everyday profile (e.g. mr.wtin) -- all your logins are already there. The bridge never kills Chrome; it only connects/disconnects.",
+      "default": false
+    },
+    "cdp_url": {
+      "type": "string",
+      "title": "CDP endpoint",
+      "description": "Where Chrome's debugging port listens. Default http://127.0.0.1:9222",
+      "default": "http://127.0.0.1:9222"
+    },
+    "cdp_port": {
+      "type": "string",
+      "title": "CDP launch port",
+      "description": "Port used when the bridge launches Chrome itself (when chrome_user_data is set and no endpoint is listening).",
+      "default": "9222"
+    },
+    "chrome_user_data": {
+      "type": "directory",
+      "title": "Chrome User Data dir",
+      "description": "Your real Chrome 'User Data' folder (e.g. C:\\Users\\<you>\\AppData\\Local\\Google\\Chrome\\User Data). When set, the bridge auto-launches real Chrome with --remote-debugging-port if no endpoint is already listening."
+    },
+    "chrome_profile": {
+      "type": "string",
+      "title": "Chrome profile directory name",
+      "description": "Which Chrome profile to use inside User Data, e.g. 'Profile 1' (mr.wtin) or 'Default'. Leave empty for the default profile.",
+      "default": "Profile 1"
+    },
+    "chrome_executable": {
+      "type": "string",
+      "title": "Chrome executable path",
+      "description": "Full path to chrome.exe. Auto-detected from standard install locations if left blank."
+    }
+  },
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/"
+}

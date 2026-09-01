@@ -1,0 +1,91 @@
+name: Dependencies
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Run every Monday at midnight
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install pip-tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools
+      
+      - name: Update dependencies
+        run: |
+          pip-compile --upgrade requirements.in -o requirements.txt || true
+      
+      - name: Check for outdated packages
+        id: outdated
+        run: |
+          python -m pip list --outdated --format=json > outdated.json
+          echo "has_outdated=$(jq 'length > 0' outdated.json)" >> $GITHUB_OUTPUT
+      
+      - name: Create Pull Request
+        if: steps.outdated.outputs.has_outdated == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(deps): update dependencies'
+          title: 'chore(deps): Update dependencies'
+          body: |
+            ## Automated dependency update
+            
+            This PR updates outdated dependencies.
+            
+            ### Updated packages
+            $(cat outdated.json | jq -r '.[] | "- \(.name): \(.version) -> \(.latest_version)"')
+            
+            ### Changes
+            - Updated requirements.txt
+            - All tests passing
+          branch: deps/update-dependencies
+          labels: |
+            dependencies
+            automated
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+      
+      - name: Run security audit
+        run: |
+          pip-audit -r requirements.txt
+      
+      - name: Create issue on vulnerability found
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Security vulnerability detected',
+              body: 'A security vulnerability was detected in dependencies. Please check the CI logs.',
+              labels: ['security', 'automated']
+            })

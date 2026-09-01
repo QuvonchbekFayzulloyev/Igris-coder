@@ -1,0 +1,18 @@
+{
+  "id": "agent-config-001",
+  "type": "config-agent",
+  "identity": {
+    "name": "Coder Agent",
+    "version": "2.1.0"
+  },
+  "behavior": {
+    "style": "step_by_step",
+    "error_handling": "explicit",
+    "communication": "concise"
+  },
+  "constraints": {
+    "max_context_tokens": 4096,
+    "max_memory_results": 5,
+    "use_cache": true
+  }
+}

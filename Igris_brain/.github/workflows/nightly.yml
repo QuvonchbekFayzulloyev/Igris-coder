@@ -1,0 +1,79 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run at 2 AM UTC daily
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      
+      - name: Run tests
+        run: |
+          pytest test_*.py -v --tb=short
+      
+      - name: Generate nightly version
+        id: version
+        run: |
+          python -c "
+          from datetime import datetime
+          from version_bumper import get_current_version
+          v = get_current_version()
+          nightly = f'{v.major}.{v.minor}.{v.patch}-nightly.{datetime.now().strftime(\"%Y%m%d\")}'
+          print(nightly)
+          " | tee /tmp/nightly_version.txt
+          echo "version=$(cat /tmp/nightly_version.txt)" >> $GITHUB_OUTPUT
+      
+      - name: Create nightly tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.version }}" -m "Nightly build"
+          git push origin "${{ steps.version.outputs.version }}"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Nightly ${{ steps.version.outputs.version }}"
+          body: |
+            ## Nightly Build
+            
+            This is an automated nightly build from the `develop` branch.
+            
+            **Warning:** This build may be unstable.
+            
+            ### Changes since last nightly
+            $(git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD)
+          tag_name: ${{ steps.version.outputs.version }}
+          prerelease: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-${{ steps.version.outputs.version }}
+          path: |
+            *.py
+            requirements.txt
+            config.yaml
+            README.md

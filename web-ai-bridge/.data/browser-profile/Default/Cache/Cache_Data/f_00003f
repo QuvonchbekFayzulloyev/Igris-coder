@@ -1,0 +1,379 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/web/components/SettingsModal.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=47e2c03a"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+let prevRefreshReg;
+let prevRefreshSig;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+var _s = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=47e2c03a"; const useState = __vite__cjsImport3_react["useState"];
+import { useAgentConsoleStore } from "/shared/store.ts?t=1785842063158";
+import { PROVIDERS } from "/shared/constants.ts";
+export function SettingsModal({ open, onClose }) {
+  _s();
+  const [tab, setTab] = useState("model");
+  const [model, setModel] = useState("qwen3:8b");
+  const [ctx, setCtx] = useState(60);
+  const [trim, setTrim] = useState(true);
+  const backendUrl = useAgentConsoleStore((s) => s.backendUrl);
+  const setBackendUrl = useAgentConsoleStore((s) => s.setBackendUrl);
+  const [backendDraft, setBackendDraft] = useState(backendUrl);
+  if (!open) return null;
+  return /* @__PURE__ */ jsxDEV("div", { className: "fixed inset-0 z-40 flex items-center justify-center", onClick: onClose, children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "absolute inset-0 bg-black bg-opacity-60" }, void 0, false, {
+      fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+      lineNumber: 42,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV(
+      "div",
+      {
+        onClick: (e) => e.stopPropagation(),
+        className: "relative w-full max-w-md mx-4 bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl",
+        children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "flex items-center justify-between px-4 py-3 border-b border-zinc-800", children: [
+            /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-ui font-medium text-zinc-200", children: "Settings" }, void 0, false, {
+              fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+              lineNumber: 49,
+              columnNumber: 11
+            }, this),
+            /* @__PURE__ */ jsxDEV("button", { onClick: onClose, className: "text-zinc-500 hover:text-zinc-200 transition-colors", children: "✕" }, void 0, false, {
+              fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+              lineNumber: 50,
+              columnNumber: 11
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+            lineNumber: 48,
+            columnNumber: 9
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "flex border-b border-zinc-800 px-4", children: ["model", "backend", "providers"].map(
+            (t) => /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                onClick: () => setTab(t),
+                className: `px-3 py-2 text-xs font-ui capitalize border-b-2 -mb-px ${tab === t ? "text-amber-300 border-amber-400" : "text-zinc-500 border-transparent hover:text-zinc-300"}`,
+                children: t
+              },
+              t,
+              false,
+              {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 58,
+                columnNumber: 11
+              },
+              this
+            )
+          ) }, void 0, false, {
+            fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+            lineNumber: 56,
+            columnNumber: 9
+          }, this),
+          tab === "model" ? /* @__PURE__ */ jsxDEV("div", { className: "p-4 space-y-5", children: [
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-ui text-zinc-500 block mb-1.5", children: "Local model" }, void 0, false, {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 74,
+                columnNumber: 15
+              }, this),
+              /* @__PURE__ */ jsxDEV(
+                "select",
+                {
+                  value: model,
+                  onChange: (e) => setModel(e.target.value),
+                  className: "w-full bg-zinc-950 border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-200 font-mono outline-none",
+                  children: [
+                    /* @__PURE__ */ jsxDEV("option", { children: "qwen3:8b" }, void 0, false, {
+                      fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                      lineNumber: 80,
+                      columnNumber: 17
+                    }, this),
+                    /* @__PURE__ */ jsxDEV("option", { children: "qwen2.5-coder:7b" }, void 0, false, {
+                      fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                      lineNumber: 81,
+                      columnNumber: 17
+                    }, this),
+                    /* @__PURE__ */ jsxDEV("option", { children: "gemma2:9b" }, void 0, false, {
+                      fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                      lineNumber: 82,
+                      columnNumber: 17
+                    }, this)
+                  ]
+                },
+                void 0,
+                true,
+                {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 75,
+                  columnNumber: 15
+                },
+                this
+              ),
+              model.startsWith("gemma") && /* @__PURE__ */ jsxDEV("div", { className: "flex items-start gap-1.5 mt-1.5 text-xs text-amber-400 font-ui", children: [
+                /* @__PURE__ */ jsxDEV("span", { className: "shrink-0 mt-0.5", children: "⚠" }, void 0, false, {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 86,
+                  columnNumber: 19
+                }, this),
+                "gemma-family models are unreliable with native tool-calling — expect more fallback parsing."
+              ] }, void 0, true, {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 85,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+              lineNumber: 73,
+              columnNumber: 13
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "flex items-center justify-between mb-1.5", children: [
+                /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-ui text-zinc-500", children: "Context window" }, void 0, false, {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 93,
+                  columnNumber: 17
+                }, this),
+                /* @__PURE__ */ jsxDEV("span", { className: "text-xs font-mono text-zinc-400", children: [
+                  ctx,
+                  "%"
+                ] }, void 0, true, {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 94,
+                  columnNumber: 17
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 92,
+                columnNumber: 15
+              }, this),
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  type: "range",
+                  min: "10",
+                  max: "100",
+                  value: ctx,
+                  onChange: (e) => setCtx(Number(e.target.value)),
+                  className: "w-full accent-amber-400"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 96,
+                  columnNumber: 15
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+              lineNumber: 91,
+              columnNumber: 13
+            }, this),
+            /* @__PURE__ */ jsxDEV("label", { className: "flex items-center justify-between cursor-pointer", children: [
+              /* @__PURE__ */ jsxDEV("span", { className: "text-xs font-ui text-zinc-500", children: "RAM-safe history trimming" }, void 0, false, {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 106,
+                columnNumber: 15
+              }, this),
+              /* @__PURE__ */ jsxDEV(
+                "span",
+                {
+                  onClick: () => setTrim((t) => !t),
+                  className: `w-9 h-5 rounded-full relative transition-colors ${trim ? "bg-amber-500" : "bg-zinc-700"}`,
+                  children: /* @__PURE__ */ jsxDEV(
+                    "span",
+                    {
+                      className: "absolute top-0.5 w-4 h-4 rounded-full bg-zinc-950 transition-all",
+                      style: { left: trim ? "18px" : "2px" }
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                      lineNumber: 113,
+                      columnNumber: 17
+                    },
+                    this
+                  )
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 107,
+                  columnNumber: 15
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+              lineNumber: 105,
+              columnNumber: 13
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+            lineNumber: 72,
+            columnNumber: 9
+          }, this) : tab === "backend" ? /* @__PURE__ */ jsxDEV("div", { className: "p-4 space-y-4", children: [
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-ui text-zinc-500 block mb-1.5", children: "Igris brain bridge URL" }, void 0, false, {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 123,
+                columnNumber: 15
+              }, this),
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  value: backendDraft,
+                  onChange: (e) => setBackendDraft(e.target.value),
+                  placeholder: "http://127.0.0.1:8765",
+                  className: "w-full bg-zinc-950 border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-200 font-mono outline-none focus:border-amber-500"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 126,
+                  columnNumber: 15
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV("p", { className: "text-[11px] font-ui text-zinc-600 mt-1.5", children: [
+                "Run ",
+                /* @__PURE__ */ jsxDEV("code", { className: "font-mono text-zinc-500", children: "python server.py" }, void 0, false, {
+                  fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                  lineNumber: 133,
+                  columnNumber: 21
+                }, this),
+                " in Igris_brain to start the bridge."
+              ] }, void 0, true, {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 132,
+                columnNumber: 15
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+              lineNumber: 122,
+              columnNumber: 13
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                onClick: () => setBackendUrl(backendDraft),
+                className: "w-full rounded-md bg-amber-400 hover:bg-amber-300 text-zinc-950 text-sm font-ui font-medium py-1.5 transition-colors",
+                children: "Save backend URL"
+              },
+              void 0,
+              false,
+              {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 136,
+                columnNumber: 13
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+            lineNumber: 121,
+            columnNumber: 9
+          }, this) : /* @__PURE__ */ jsxDEV("div", { className: "p-4 space-y-2", children: PROVIDERS.map(
+            (p) => /* @__PURE__ */ jsxDEV(
+              "div",
+              {
+                className: "flex items-center justify-between border border-zinc-800 rounded-md px-3 py-2",
+                children: [
+                  /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2", children: [
+                    /* @__PURE__ */ jsxDEV(
+                      "span",
+                      {
+                        className: `w-1.5 h-1.5 rounded-full ${p.status === "connected" ? "bg-teal-400" : "bg-zinc-600"}`
+                      },
+                      void 0,
+                      false,
+                      {
+                        fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                        lineNumber: 151,
+                        columnNumber: 19
+                      },
+                      this
+                    ),
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-ui text-zinc-200", children: p.name }, void 0, false, {
+                      fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                      lineNumber: 156,
+                      columnNumber: 19
+                    }, this)
+                  ] }, void 0, true, {
+                    fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                    lineNumber: 150,
+                    columnNumber: 17
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("button", { className: "text-xs font-ui text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded px-2 py-1 transition-colors", children: p.status === "connected" ? "Manage" : "Connect" }, void 0, false, {
+                    fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                    lineNumber: 158,
+                    columnNumber: 17
+                  }, this)
+                ]
+              },
+              p.name,
+              true,
+              {
+                fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+                lineNumber: 146,
+                columnNumber: 11
+              },
+              this
+            )
+          ) }, void 0, false, {
+            fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+            lineNumber: 144,
+            columnNumber: 9
+          }, this)
+        ]
+      },
+      void 0,
+      true,
+      {
+        fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+        lineNumber: 43,
+        columnNumber: 7
+      },
+      this
+    )
+  ] }, void 0, true, {
+    fileName: "C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx",
+    lineNumber: 41,
+    columnNumber: 5
+  }, this);
+}
+_s(SettingsModal, "gv6KOula/DPaNdiEPqzRSjxs550=", false, function() {
+  return [useAgentConsoleStore, useAgentConsoleStore];
+});
+_c = SettingsModal;
+var _c;
+$RefreshReg$(_c, "SettingsModal");
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/user/Desktop/IGRIS_Coder/Igris_Interface/web/components/SettingsModal.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUFVLGlCQUNaaEIsb0JBQVVvQjtBQUFBQSxZQUFJLENBQUNPLE1BQ2Q7QUFBQSxjQUFDO0FBQUE7QUFBQSxnQkFFQyxXQUFVO0FBQUEsZ0JBRVY7QUFBQSx5Q0FBQyxTQUFJLFdBQVUsMkJBQ2I7QUFBQTtBQUFBLHNCQUFDO0FBQUE7QUFBQSx3QkFDQyxXQUFXLDRCQUNUQSxFQUFFQyxXQUFXLGNBQWMsZ0JBQWdCLGFBQWE7QUFBQTtBQUFBLHNCQUY1RDtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsb0JBR0s7QUFBQSxvQkFFTCx1QkFBQyxVQUFLLFdBQVUsaUNBQWlDRCxZQUFFRSxRQUFuRDtBQUFBO0FBQUE7QUFBQTtBQUFBLDJCQUF3RDtBQUFBLHVCQU4xRDtBQUFBO0FBQUE7QUFBQTtBQUFBLHlCQU9BO0FBQUEsa0JBQ0EsdUJBQUMsWUFBTyxXQUFVLGdIQUNmRixZQUFFQyxXQUFXLGNBQWMsV0FBVyxhQUR6QztBQUFBO0FBQUE7QUFBQTtBQUFBLHlCQUVBO0FBQUE7QUFBQTtBQUFBLGNBYktELEVBQUVFO0FBQUFBLGNBRFQ7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxZQWVBO0FBQUEsVUFDRCxLQWxCSDtBQUFBO0FBQUE7QUFBQTtBQUFBLGlCQW1CQTtBQUFBO0FBQUE7QUFBQSxNQXhISjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsSUEwSEE7QUFBQSxPQTVIRjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBNkhBO0FBRUo7QUFBQ3pCLEdBM0llSCxlQUFhO0FBQUEsVUFLUkYsc0JBQ0dBLG9CQUFvQjtBQUFBO0FBQUEsS0FONUJFO0FBQWEsSUFBQTZCO0FBQUEsYUFBQUEsSUFBQSIsIm5hbWVzIjpbInVzZVN0YXRlIiwidXNlQWdlbnRDb25zb2xlU3RvcmUiLCJQUk9WSURFUlMiLCJTZXR0aW5nc01vZGFsIiwib3BlbiIsIm9uQ2xvc2UiLCJfcyIsInRhYiIsInNldFRhYiIsIm1vZGVsIiwic2V0TW9kZWwiLCJjdHgiLCJzZXRDdHgiLCJ0cmltIiwic2V0VHJpbSIsImJhY2tlbmRVcmwiLCJzIiwic2V0QmFja2VuZFVybCIsImJhY2tlbmREcmFmdCIsInNldEJhY2tlbmREcmFmdCIsImUiLCJzdG9wUHJvcGFnYXRpb24iLCJtYXAiLCJ0IiwidGFyZ2V0IiwidmFsdWUiLCJzdGFydHNXaXRoIiwiTnVtYmVyIiwibGVmdCIsInAiLCJzdGF0dXMiLCJuYW1lIiwiX2MiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiU2V0dGluZ3NNb2RhbC50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsgdXNlQWdlbnRDb25zb2xlU3RvcmUgfSBmcm9tICcuLi8uLi9zaGFyZWQvc3RvcmUnO1xuaW1wb3J0IHsgUFJPVklERVJTIH0gZnJvbSAnLi4vLi4vc2hhcmVkL2NvbnN0YW50cyc7XG5cbmludGVyZmFjZSBTZXR0aW5nc01vZGFsUHJvcHMge1xuICBvcGVuOiBib29sZWFuO1xuICBvbkNsb3NlOiAoKSA9PiB2b2lkO1xufVxuXG5leHBvcnQgZnVuY3Rpb24gU2V0dGluZ3NNb2RhbCh7IG9wZW4sIG9uQ2xvc2UgfTogU2V0dGluZ3NNb2RhbFByb3BzKSB7XG4gIGNvbnN0IFt0YWIsIHNldFRhYl0gPSB1c2VTdGF0ZTwnbW9kZWwnIHwgJ2JhY2tlbmQnIHwgJ3Byb3ZpZGVycyc+KCdtb2RlbCcpO1xuICBjb25zdCBbbW9kZWwsIHNldE1vZGVsXSA9IHVzZVN0YXRlKCdxd2VuMzo4YicpO1xuICBjb25zdCBbY3R4LCBzZXRDdHhdID0gdXNlU3RhdGUoNjApO1xuICBjb25zdCBbdHJpbSwgc2V0VHJpbV0gPSB1c2VTdGF0ZSh0cnVlKTtcbiAgY29uc3QgYmFja2VuZFVybCA9IHVzZUFnZW50Q29uc29sZVN0b3JlKChzKSA9PiBzLmJhY2tlbmRVcmwpO1xuICBjb25zdCBzZXRCYWNrZW5kVXJsID0gdXNlQWdlbnRDb25zb2xlU3RvcmUoKHMpID0+IHMuc2V0QmFja2VuZFVybCk7XG4gIGNvbnN0IFtiYWNrZW5kRHJhZnQsIHNldEJhY2tlbmREcmFmdF0gPSB1c2VTdGF0ZShiYWNrZW5kVXJsKTtcblxuICBpZiAoIW9wZW4pIHJldHVybiBudWxsO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9XCJmaXhlZCBpbnNldC0wIHotNDAgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXJcIiBvbkNsaWNrPXtvbkNsb3NlfT5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgaW5zZXQtMCBiZy1ibGFjayBiZy1vcGFjaXR5LTYwXCIgLz5cbiAgICAgIDxkaXZcbiAgICAgICAgb25DbGljaz17KGUpID0+IGUuc3RvcFByb3BhZ2F0aW9uKCl9XG4gICAgICAgIGNsYXNzTmFtZT1cInJlbGF0aXZlIHctZnVsbCBtYXgtdy1tZCBteC00IGJnLXppbmMtOTAwIGJvcmRlciBib3JkZXItemluYy03MDAgcm91bmRlZC1sZyBzaGFkb3ctMnhsXCJcbiAgICAgID5cbiAgICAgICAgey8qIEhlYWRlciAqL31cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtNCBweS0zIGJvcmRlci1iIGJvcmRlci16aW5jLTgwMFwiPlxuICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gZm9udC11aSBmb250LW1lZGl1bSB0ZXh0LXppbmMtMjAwXCI+U2V0dGluZ3M8L3NwYW4+XG4gICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkNsb3NlfSBjbGFzc05hbWU9XCJ0ZXh0LXppbmMtNTAwIGhvdmVyOnRleHQtemluYy0yMDAgdHJhbnNpdGlvbi1jb2xvcnNcIj5cbiAgICAgICAgICAgIOKclVxuICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICA8L2Rpdj5cblxuICAgICAgICB7LyogVGFicyAqL31cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGJvcmRlci1iIGJvcmRlci16aW5jLTgwMCBweC00XCI+XG4gICAgICAgICAgeyhbJ21vZGVsJywgJ2JhY2tlbmQnLCAncHJvdmlkZXJzJ10gYXMgY29uc3QpLm1hcCgodCkgPT4gKFxuICAgICAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgICBrZXk9e3R9XG4gICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFRhYih0KX1cbiAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgcHgtMyBweS0yIHRleHQteHMgZm9udC11aSBjYXBpdGFsaXplIGJvcmRlci1iLTIgLW1iLXB4ICR7XG4gICAgICAgICAgICAgICAgdGFiID09PSB0ID8gJ3RleHQtYW1iZXItMzAwIGJvcmRlci1hbWJlci00MDAnIDogJ3RleHQtemluYy01MDAgYm9yZGVyLXRyYW5zcGFyZW50IGhvdmVyOnRleHQtemluYy0zMDAnXG4gICAgICAgICAgICAgIH1gfVxuICAgICAgICAgICAgPlxuICAgICAgICAgICAgICB7dH1cbiAgICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICAgICkpfVxuICAgICAgICA8L2Rpdj5cblxuICAgICAgICB7LyogQ29udGVudCAqL31cbiAgICAgICAge3RhYiA9PT0gJ21vZGVsJyA/IChcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInAtNCBzcGFjZS15LTVcIj5cbiAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJ0ZXh0LXhzIGZvbnQtdWkgdGV4dC16aW5jLTUwMCBibG9jayBtYi0xLjVcIj5Mb2NhbCBtb2RlbDwvbGFiZWw+XG4gICAgICAgICAgICAgIDxzZWxlY3RcbiAgICAgICAgICAgICAgICB2YWx1ZT17bW9kZWx9XG4gICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRNb2RlbChlLnRhcmdldC52YWx1ZSl9XG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy1mdWxsIGJnLXppbmMtOTUwIGJvcmRlciBib3JkZXItemluYy03MDAgcm91bmRlZCBweC0yLjUgcHktMS41IHRleHQtc20gdGV4dC16aW5jLTIwMCBmb250LW1vbm8gb3V0bGluZS1ub25lXCJcbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIDxvcHRpb24+cXdlbjM6OGI8L29wdGlvbj5cbiAgICAgICAgICAgICAgICA8b3B0aW9uPnF3ZW4yLjUtY29kZXI6N2I8L29wdGlvbj5cbiAgICAgICAgICAgICAgICA8b3B0aW9uPmdlbW1hMjo5Yjwvb3B0aW9uPlxuICAgICAgICAgICAgICA8L3NlbGVjdD5cbiAgICAgICAgICAgICAge21vZGVsLnN0YXJ0c1dpdGgoJ2dlbW1hJykgJiYgKFxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1zdGFydCBnYXAtMS41IG10LTEuNSB0ZXh0LXhzIHRleHQtYW1iZXItNDAwIGZvbnQtdWlcIj5cbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInNocmluay0wIG10LTAuNVwiPuKaoDwvc3Bhbj5cbiAgICAgICAgICAgICAgICAgIGdlbW1hLWZhbWlseSBtb2RlbHMgYXJlIHVucmVsaWFibGUgd2l0aCBuYXRpdmUgdG9vbC1jYWxsaW5nIOKAlCBleHBlY3QgbW9yZSBmYWxsYmFjayBwYXJzaW5nLlxuICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBtYi0xLjVcIj5cbiAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwidGV4dC14cyBmb250LXVpIHRleHQtemluYy01MDBcIj5Db250ZXh0IHdpbmRvdzwvbGFiZWw+XG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC14cyBmb250LW1vbm8gdGV4dC16aW5jLTQwMFwiPntjdHh9JTwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgIHR5cGU9XCJyYW5nZVwiXG4gICAgICAgICAgICAgICAgbWluPVwiMTBcIlxuICAgICAgICAgICAgICAgIG1heD1cIjEwMFwiXG4gICAgICAgICAgICAgICAgdmFsdWU9e2N0eH1cbiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEN0eChOdW1iZXIoZS50YXJnZXQudmFsdWUpKX1cbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ3LWZ1bGwgYWNjZW50LWFtYmVyLTQwMFwiXG4gICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gY3Vyc29yLXBvaW50ZXJcIj5cbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC14cyBmb250LXVpIHRleHQtemluYy01MDBcIj5SQU0tc2FmZSBoaXN0b3J5IHRyaW1taW5nPC9zcGFuPlxuICAgICAgICAgICAgICA8c3BhblxuICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFRyaW0oKHQpID0+ICF0KX1cbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2B3LTkgaC01IHJvdW5kZWQtZnVsbCByZWxhdGl2ZSB0cmFuc2l0aW9uLWNvbG9ycyAke1xuICAgICAgICAgICAgICAgICAgdHJpbSA/ICdiZy1hbWJlci01MDAnIDogJ2JnLXppbmMtNzAwJ1xuICAgICAgICAgICAgICAgIH1gfVxuICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgPHNwYW5cbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cImFic29sdXRlIHRvcC0wLjUgdy00IGgtNCByb3VuZGVkLWZ1bGwgYmctemluYy05NTAgdHJhbnNpdGlvbi1hbGxcIlxuICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgbGVmdDogdHJpbSA/ICcxOHB4JyA6ICcycHgnIH19XG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgKSA6IHRhYiA9PT0gJ2JhY2tlbmQnID8gKFxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicC00IHNwYWNlLXktNFwiPlxuICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cInRleHQteHMgZm9udC11aSB0ZXh0LXppbmMtNTAwIGJsb2NrIG1iLTEuNVwiPlxuICAgICAgICAgICAgICAgIElncmlzIGJyYWluIGJyaWRnZSBVUkxcbiAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgPGlucHV0XG4gICAgICAgICAgICAgICAgdmFsdWU9e2JhY2tlbmREcmFmdH1cbiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEJhY2tlbmREcmFmdChlLnRhcmdldC52YWx1ZSl9XG4gICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9XCJodHRwOi8vMTI3LjAuMC4xOjg3NjVcIlxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbCBiZy16aW5jLTk1MCBib3JkZXIgYm9yZGVyLXppbmMtNzAwIHJvdW5kZWQgcHgtMi41IHB5LTEuNSB0ZXh0LXNtIHRleHQtemluYy0yMDAgZm9udC1tb25vIG91dGxpbmUtbm9uZSBmb2N1czpib3JkZXItYW1iZXItNTAwXCJcbiAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1bMTFweF0gZm9udC11aSB0ZXh0LXppbmMtNjAwIG10LTEuNVwiPlxuICAgICAgICAgICAgICAgIFJ1biA8Y29kZSBjbGFzc05hbWU9XCJmb250LW1vbm8gdGV4dC16aW5jLTUwMFwiPnB5dGhvbiBzZXJ2ZXIucHk8L2NvZGU+IGluIElncmlzX2JyYWluIHRvIHN0YXJ0IHRoZSBicmlkZ2UuXG4gICAgICAgICAgICAgIDwvcD5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRCYWNrZW5kVXJsKGJhY2tlbmREcmFmdCl9XG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbCByb3VuZGVkLW1kIGJnLWFtYmVyLTQwMCBob3ZlcjpiZy1hbWJlci0zMDAgdGV4dC16aW5jLTk1MCB0ZXh0LXNtIGZvbnQtdWkgZm9udC1tZWRpdW0gcHktMS41IHRyYW5zaXRpb24tY29sb3JzXCJcbiAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgU2F2ZSBiYWNrZW5kIFVSTFxuICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgICkgOiAoXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTQgc3BhY2UteS0yXCI+XG4gICAgICAgICAgICB7UFJPVklERVJTLm1hcCgocCkgPT4gKFxuICAgICAgICAgICAgICA8ZGl2XG4gICAgICAgICAgICAgICAga2V5PXtwLm5hbWV9XG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGJvcmRlciBib3JkZXItemluYy04MDAgcm91bmRlZC1tZCBweC0zIHB5LTJcIlxuICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiPlxuICAgICAgICAgICAgICAgICAgPHNwYW5cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgdy0xLjUgaC0xLjUgcm91bmRlZC1mdWxsICR7XG4gICAgICAgICAgICAgICAgICAgICAgcC5zdGF0dXMgPT09ICdjb25uZWN0ZWQnID8gJ2JnLXRlYWwtNDAwJyA6ICdiZy16aW5jLTYwMCdcbiAgICAgICAgICAgICAgICAgICAgfWB9XG4gICAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSBmb250LXVpIHRleHQtemluYy0yMDBcIj57cC5uYW1lfTwvc3Bhbj5cbiAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICA8YnV0dG9uIGNsYXNzTmFtZT1cInRleHQteHMgZm9udC11aSB0ZXh0LXppbmMtNDAwIGhvdmVyOnRleHQtemluYy0yMDAgYm9yZGVyIGJvcmRlci16aW5jLTgwMCByb3VuZGVkIHB4LTIgcHktMSB0cmFuc2l0aW9uLWNvbG9yc1wiPlxuICAgICAgICAgICAgICAgICAge3Auc3RhdHVzID09PSAnY29ubmVjdGVkJyA/ICdNYW5hZ2UnIDogJ0Nvbm5lY3QnfVxuICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICkpfVxuICAgICAgICAgIDwvZGl2PlxuICAgICAgICApfVxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gICk7XG59XG4iXSwiZmlsZSI6IkM6L1VzZXJzL3VzZXIvRGVza3RvcC9JR1JJU19Db2Rlci9JZ3Jpc19JbnRlcmZhY2Uvd2ViL2NvbXBvbmVudHMvU2V0dGluZ3NNb2RhbC50c3gifQ==

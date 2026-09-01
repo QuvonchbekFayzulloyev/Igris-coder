@@ -1,0 +1,44 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": true,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:L1",
+      "color": {
+        "a": 1,
+        "rgb": 8440448
+      }
+    },
+    {
+      "query": "path:L2",
+      "color": {
+        "a": 1,
+        "rgb": 8203520
+      }
+    },
+    {
+      "query": "tag:architecture",
+      "color": {
+        "a": 1,
+        "rgb": 16744448
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1.2,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": false,
+  "centerStrength": 0.5,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 200,
+  "scale": 1,
+  "close": false
+}

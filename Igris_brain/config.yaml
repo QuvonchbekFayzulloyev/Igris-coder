@@ -1,0 +1,70 @@
+# IGRIS CODER AGENT — configuration
+# Hybrid: deterministic bricks + optional local LLM (Ollama)
+
+agent:
+  name: "Igris Coder Agent"
+  version: "1.2.0"
+  min_confidence: 0.7          # below this -> LLM fallback (if available)
+  language: "uz/en"            # query languages supported
+  # Agentic configuration
+  agentic:
+    max_iterations: 8          # max ReAct loop iterations
+    max_tool_calls: 30         # max total tool calls per task
+    max_retries: 2             # max retries per failed step
+    plan_first: true           # require plan before tool execution
+    self_correction: true      # enable automatic error recovery
+
+# Deterministic engine
+bricks:
+  vector_dim: 128
+  seed: 42
+  max_bricks: 2000
+
+knowledge:
+  domains:
+    - engineering
+    - data-analytics
+    - windows-os
+    - linux-os
+    - examples-usage
+    - problem-classification
+
+resolver:
+  healing_min_similarity: 0.3
+  max_rules_per_pass: 50
+
+# Hybrid LLM (Ollama)
+# QAYSI MODEL?  (sifat va aniqlik bo'yicha tartib)
+#   qwen3:8b        — ENG YAXSHI. Haqiqiy fikrlash (thinking) + ishonchli
+#                     tool-calling. Tavsiya: >=8 GB bo'sh RAM.
+#   qwen2.5-coder:7b— kodga ixtisoslashgan, lekin qwen3 dagidek kuchli
+#                     thinking/tool-calling YO'Q. O'rtacha tanlov.
+#   qwen3:4b        — qwen3 fikrlashi, lekin kichik. RAM kam bo'lsa (4-6 GB).
+#   qwen2.5:1.5b / qwen2.5-coder:1.5b — faqat JUDA zaif apparatda; sifat
+#                     sezilarli pasayadi, tool-calling ishonchsiz.
+# Qoida: 1.5B agent vazifalarida (reja + tool'lar) aniq ishlamaydi — iloji
+# bo'lsa 7B/8B dan pastga tushmang. So'ralgan model o'rnatilmagan bo'lsa,
+# server mavjud modellardan eng yaxshisini AVTOMATIK tanlaydi (qwen3:8b ->
+# qwen2.5-coder:7b -> qwen3:4b -> ...). O'rnatish: `ollama pull qwen3:8b`
+llm:
+  enabled: true
+  model: qwen3:8b
+  base_url: "http://localhost:11434"
+  temperature: 0.2
+  max_tokens: 8192            # thinking + yakuniy javob uchun yetarli
+  num_ctx: 32768              # qwen3 ning NATIV konteksti (32K). RAM kam bo'lsa
+                              # 16384 ga tushiring yoki qwen3:4b dan foydalaning.
+  think: true                 # qwen3 reasoning/thinking rejimi (haqiqiy fikrlash)
+  keep_alive: "30m"           # model RAM'da qoladi — har so'rovda sovuq start yo'q
+  retries: 2                  # vaqtinchalik aloqa xatolarida qayta urinish
+  timeout_seconds: 300
+  # Ixtiyoriy logprob re-so'ruvi (self-eval ishonch signali): native /api/chat
+  # logprob QAYTARMAYDI, shuning uchun OpenAI-mos /v1/chat/completions orqali
+  # ALOHIDA (2-so'rov) o'lchov yuboriladi — 2x inference narxi bor. Default
+  # O'CHIQ; server `--logprobs` flagi yoki `IGRIS_LOGPROBS=1` bilan yoqiladi.
+  logprobs: false
+
+# Integration with Igris_Memory (optional)
+memory:
+  enabled: true
+  path: "../Igris_Memory/brain_data"

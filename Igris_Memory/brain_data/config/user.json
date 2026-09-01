@@ -1,0 +1,18 @@
+{
+  "id": "user-config-001",
+  "type": "config-user",
+  "profile": {
+    "name": "user",
+    "role": "developer",
+    "experience_years": 5
+  },
+  "settings": {
+    "theme": "dark",
+    "verbose_level": 2,
+    "temperature": 0.2
+  },
+  "limits": {
+    "max_files_per_session": 50,
+    "max_tool_calls_per_task": 100
+  }
+}

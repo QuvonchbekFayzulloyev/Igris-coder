@@ -1,0 +1,17 @@
+# IGRIS CODER AGENT — dependencies
+# Deterministic core is stdlib-only except numpy.
+numpy>=1.24
+
+# MCP server support
+mcp>=0.1.0
+
+# Optional: hybrid LLM client (uses stdlib urllib — no extra dep needed)
+# Optional: memory integration (Igris_Memory)
+# Optional: semantic search (Igris_Memory L4)
+sentence-transformers>=2.2 ; extra == "memory"
+faiss-cpu ; extra == "memory"
+
+# Optional: enhanced tools
+# For search_code with ripgrep: install ripgrep separately
+# For git_command: git must be installed
+# For filesystem MCP: no extra deps needed

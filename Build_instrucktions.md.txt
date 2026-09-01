@@ -1,0 +1,189 @@
+# IGRIS CODER — BUILD INSTRUCTIONS (QURISH BO'YICHA KO'RSATMALAR)
+
+Loyiha: **IGRIS_Coder** — lokal coder-agent + agent konsol + 2nd Brain + real-browser bridge.
+Ushbu fayl avval `[FILE_DOES_NOT_EXIST]` holatida (soxta shablon) edi — endi haqiqiy, amalda tekshirilgan qurish ko'rsatmalari.
+
+---
+
+## 1. Talablar (Prerequisites)
+
+| Komponent | Versiya | Izoh |
+|---|---|---|
+| Python | 3.11+ | Igris_brain uchun |
+| Node.js | 18+ | Igris_Interface (Vite) va web-ai-bridge (Playwright) uchun |
+| Rust toolchain | stable | Tauri desktop oynasi uchun (ixtiyoriy) |
+| Ollama | istalgan | Lokal LLM (qwen3:8b default, thinking rejimi) |
+| Google Chrome | istalgan | Real brauzer (mr.wtin profili bilan CDP) |
+
+---
+
+## 2. Igris_brain (backend, FastAPI)
+
+```bash
+cd Igris_brain
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+# MCP server'lari (FastMCP) va server uchun qo'shimcha:
+pip install fastapi uvicorn mcp fastmcp
+# ixtiyoriy xotira (RAG/BM25/FAISS):
+pip install ".[memory]"        # yoki: pip install sentence-transformers faiss-cpu
+
+# Ishga tushirish:
+python server.py --port 8765
+#   --no-llm    -> Ollama'siz ishlaydi (fallback rejim)
+#   --no-memory -> xotira o'chirilgan
+#   --model <nomi> -> boshqa Ollama modeli (masalan qwen3:4b)
+# Modelni o'rnatish: ollama pull qwen3:8b   (qwen3 = haqiqiy fikrlash/thinking)
+```
+
+Status tekshirish:
+```bash
+curl http://127.0.0.1:8765/api/status
+```
+
+---
+
+## 3. Igris_Interface (agent konsol — web / Tauri desktop)
+
+```bash
+cd Igris_Interface
+npm install
+
+# Web rejim (port 1420):
+npm run dev
+#   brauzerda: http://localhost:1420
+
+# Tauri desktop (native oyna):
+npm run tauri dev
+#   Birinchi ishga tushirishda Rust kompilyatsiyasi 1-5 daqiqa davom etadi.
+```
+
+Production build:
+```bash
+npm run build            # vite build -> dist-web/
+npm run build:tauri      # Tauri installer
+```
+
+---
+
+## 4. web-ai-bridge (real Chrome + mr.wtin profili, CDP)
+
+Bridge — Playwright orqali **haqiqiy Google Chrome**'ga ulanadi (chromium
+yoki maxsus bo'sh profil emas). Ishlatiladigan profil: **mr.wtin** =
+Chrome'dagi `Profile 1` (`twinm6142@gmail.com`).
+
+### 4.1 Dependencies
+
+```bash
+cd web-ai-bridge/server
+npm install
+```
+
+### 4.2 Sozlash — Igris_brain/mcp_servers.json -> "web_ai_bridge"
+
+```json
+"env": {
+  "WAB_HEADLESS": "false",
+  "WAB_BROWSER_CHANNEL": "chrome",
+  "WAB_CDP_ENABLED": "true",
+  "WAB_CDP_URL": "http://127.0.0.1:9222",
+  "WAB_CDP_PORT": "9222",
+  "WAB_CHROME_USER_DATA": "C:/Users/user/AppData/Local/Google/Chrome/User Data",
+  "WAB_CHROME_PROFILE": "Profile 1"
+}
+```
+
+### 4.3 Qanday ishlaydi (CDP rejim)
+
+1. Bridge ishga tushganda avval `http://127.0.0.1:9222` da Chrome bor-yo'qligini
+   tekshiradi.
+2. Agar yo'q bo'lsa va `WAB_CHROME_USER_DATA` ko'rsatilgan bo'lsa — **real Chrome'ni**
+   o'zi ishga tushiradi:
+   `chrome.exe --remote-debugging-port=9222 --user-data-dir="...\Chrome\User Data" --profile-directory="Profile 1"`
+   (mr.wtin profili — barcha loginlar/cookie'lar allaqachon bor).
+3. **Chrome 136+ cheklovi**: `--remote-debugging-port` faqat *standart bo'lmagan*
+   data-dir'da ochiladi. Shuning uchun bridge real `User Data` papkasiga
+   **junction (katalog bog'lanishi)** yaratadi: `...\Google\Chrome-IGRIS-CDP` →
+   real `User Data`. Chrome shu yo'l orqali ishga tushadi — debug port ochiladi,
+   va real profil (mr.wtin) ostida jonli ishlaydi (cookie'lar/yozuvlar link orqali
+   o'tadi).
+4. Endpoint paydo bo'lgach `connectOverCDP` bilan ulanadi.
+5. Bridge hech qachon Chromeni o'ldirmaydi — faqat ulanishni yopadi (`browser_close`
+   dan keyin ham Chrome ochiq qolaveradi).
+
+> **Muhim**: Chrome profili bir vaqtda faqat BIRTA instance'da ochiq bo'la oladi.
+> Agar Chrome mr.wtin profili bilan allaqachon ochiq bo'lsa — uning BARCHA oynalarini
+> yoping, keyin bridge'ni qayta ishga tushiring (yoki Chrome'ni o'zi
+> `--remote-debugging-port=9222` bilan oching).
+
+### 4.4 Tekshirish
+
+```bash
+cd web-ai-bridge/server
+node e2e-driver.mjs          # E2E smoki (headless tarzda ishlaydi)
+```
+
+Agent/browser_info orqali:
+```
+Browser: chrome (CDP)
+Mode: visible window
+Connection: real Chrome via CDP (http://127.0.0.1:9222)
+Chrome profile: "Profile 1" in C:\Users\user\AppData\Local\Google\Chrome\User Data
+Data dir used by Chrome: C:\Users\user\AppData\Local\Google\Chrome-IGRIS-CDP (link to your real profile if the default dir was configured)
+```
+
+Qo'lda tekshirish (bridge'ni CDP rejimda sinash):
+```bash
+cd web-ai-bridge/server
+WAB_CDP_ENABLED=true WAB_CHROME_USER_DATA="C:/Users/user/AppData/Local/Google/Chrome/User Data" \
+WAB_CHROME_PROFILE="Profile 1" node -e "(await import('./src/browser.js')).getPage().then(p => { console.log('CDP ulandi:', p.url()); process.exit(0); })"
+```
+
+---
+
+## 5. Igris_Memory (2nd Brain — ixtiyoriy)
+
+Igris_Memory — Obsidian-style xotira (L1 runtime + L2 persistent + RAG).
+Igris_brain server'i `memory=True` bilan ishlasa avtomatik yuklanadi.
+
+```bash
+cd Igris_Memory
+pip install -r requirements.txt   # sentence-transformers, faiss-cpu (ixtiyoriy)
+```
+
+---
+
+## 6. Testlar
+
+```bash
+cd Igris_brain
+python -m pytest test_brain.py test_executor.py \
+    test_rag_cag_mag_hooks.py test_assessment.py -q
+
+# 2nd Brain testlari alohida papkada (2nd_brain/backend)
+cd ../2nd_brain/backend
+python -m pytest test_brain_graph.py -q
+```
+
+---
+
+## 7. To'liq ishga tushirish (tezkor ro'yxat)
+
+```bash
+# 1) Backend
+cd Igris_brain && python server.py --port 8765
+
+# 2) Interface (ixtiyoriy — web yoki desktop)
+cd Igris_Interface && npm run dev            # yoki: npm run tauri dev
+
+# 3) Bridge avtomatik: server mcp_servers.json orqali uni ishga tushiradi.
+#    Real Chrome (mr.wtin) CDP orqali avtomatik ochiladi.
+```
+
+Muammo bo'lsa: `curl http://127.0.0.1:8765/api/status` va
+`curl http://127.0.0.1:8765/api/agent/mcp` — qaysi qism ulanganini ko'rsatadi.

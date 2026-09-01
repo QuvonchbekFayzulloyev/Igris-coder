@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon: Qanday qilib bu darajaga yetdi?</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0a; color: #fff; }
+        .slide { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px 80px; position: relative; page-break-after: always; }
+        .slide-number { position: absolute; bottom: 30px; right: 40px; font-size: 14px; color: #666; }
+        .slide-title { font-size: 42px; font-weight: 700; margin-bottom: 30px; text-align: center; }
+        .slide-subtitle { font-size: 20px; color: #999; margin-bottom: 40px; text-align: center; }
+        .content { max-width: 1100px; width: 100%; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
+        .card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 24px; }
+        .card h3 { font-size: 18px; margin-bottom: 12px; color: #ff9900; }
+        .card p { font-size: 14px; color: #aaa; line-height: 1.6; }
+        .stat { text-align: center; padding: 20px; }
+        .stat .number { font-size: 48px; font-weight: 700; color: #ff9900; }
+        .stat .label { font-size: 14px; color: #888; margin-top: 8px; }
+        .timeline { position: relative; padding-left: 30px; }
+        .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #ff9900; }
+        .timeline-item { position: relative; margin-bottom: 24px; padding-left: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -34px; top: 6px; width: 12px; height: 12px; background: #ff9900; border-radius: 50%; }
+        .timeline-item .year { font-size: 14px; color: #ff9900; font-weight: 600; }
+        .timeline-item .event { font-size: 15px; color: #ccc; margin-top: 4px; }
+        .highlight { color: #ff9900; }
+        .tag { display: inline-block; background: #ff990020; color: #ff9900; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #ff9900; font-size: 13px; text-transform: uppercase; }
+        td { font-size: 14px; color: #ccc; }
+        .chart-bar { height: 24px; background: linear-gradient(90deg, #ff9900, #ff6600); border-radius: 4px; margin: 8px 0; display: flex; align-items: center; padding-left: 12px; font-size: 12px; font-weight: 600; }
+        .quote { font-size: 22px; font-style: italic; color: #ccc; text-align: center; max-width: 800px; line-height: 1.6; }
+        .quote-author { font-size: 14px; color: #ff9900; margin-top: 16px; text-align: center; }
+        .bg-gradient { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); }
+        .bg-amazon { background: linear-gradient(135deg, #0a0a0a 0%, #232f3e 100%); }
+    </style>
+</head>
+<body>
+
+<!-- SLIDE 1: Cover -->
+<div class="slide bg-amazon">
+    <div style="text-align: center;">
+        <div style="font-size: 80px; margin-bottom: 20px;">📦</div>
+        <h1 class="slide-title" style="font-size: 56px;">AMAZON</h1>
+        <p class="slide-subtitle" style="font-size: 28px; color: #ff9900;">Qanday qilib bu darajaga yetdi?</p>
+        <p style="color: #666; font-size: 16px; margin-top: 40px;">Dunyoning eng katta texnologiya kompaniyasining to'liq tahlili</p>
+        <div style="margin-top: 60px; display: flex; gap: 40px; justify-content: center;">
+            <div class="stat"><div class="number">$2.0T</div><div class="label">Bozor kapitalizatsiyasi</div></div>
+            <div class="stat"><div class="number">1.5M+</div><div class="label">Xodimlar</div></div>
+            <div class="stat"><div class="number">300M+</div><div class="label">Foydalanuvchilar</div></div>
+        </div>
+    </div>
+    <div class="slide-number">1 / 15</div>
+</div>
+
+<!-- SLIDE 2: Executive Summary -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">📋 Muqaddima</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <p style="font-size: 16px; color: #ccc; line-height: 1.8;">
+                    <span class="highlight">Amazon</span> — bu faqat onlayn do'kon emas. Bu <span class="highlight">ekosistema</span>, 
+                    <span class="highlight">texnologiya giganti</span> va <span class="highlight"> innovatsiya mashinasi</span>.
+                </p>
+                <p style="font-size: 16px; color: #ccc; line-height: 1.8; margin-top: 20px;">
+                    Jeff Bezos 1994-yilda kitob sotishdan boshlangan kompaniyani bugungi 
+                    <span class="highlight">$2 trillion</span>lik empirega aylantirdi.
+                </p>
+                <div style="margin-top: 30px;">
+                    <span class="tag">E-Commerce</span>
+                    <span class="tag">Cloud Computing</span>
+                    <span class="tag">AI/ML</span>
+                    <span class="tag">Streaming</span>
+                    <span class="tag">Logistics</span>
+                    <span class="tag">Healthcare</span>
+                </div>
+            </div>
+            <div class="card">
+                <h3>🎯 Taqdimot maqsadi</h3>
+                <p>Amazonning muvaffaqiyat sirlarini tahlil qilish:</p>
+                <ul style="color: #aaa; font-size: 14px; margin-top: 12px; padding-left: 20px; line-height: 2;">
+                    <li>Strategik qarorlar</li>
+                    <li>Innovatsiya modeli</li>
+                    <li>Mijozga yo'naltirilganlik</li>
+                    <li>Kengayish strategiyasi</li>
+                    <li>Kelajak rejalari</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">2 / 15</div>
+</div>
+
+<!-- SLIDE 3: History Timeline -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">📅 Tarix: Kitobdo'kondan Empiregacha</h2>
+        <div class="two-col" style="margin-top: 30px;">
+            <div class="timeline">
+                <div class="timeline-item"><div class="year">1994</div><div class="event">Jeff Bezos Seattle'da garajda Amazon'ni tashkil etdi</div></div>
+                <div class="timeline-item"><div class="year">1995</div><div class="event">Birinchi kitob sotildi — "Fluid Concepts and Creative Analogies"</div></div>
+                <div class="timeline-item"><div class="year">1997</div><div class="event">IPO — $18/share, $438M bozor kapitalizatsiyasi</div></div>
+                <div class="timeline-item"><div class="year">2000</div><div class="event">Dot-com bubble — aktsiya $107 dan $7 ga tushdi</div></div>
+                <div class="timeline-item"><div class="year">2005</div><div class="event">Amazon Prime boshlandi — $79/yilga yetkazib berish</div></div>
+                <div class="timeline-item"><div class="year">2006</div><div class="event">AWS (Amazon Web Services) — cloud computing boshlandi</div></div>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item"><div class="year">2007</div><div class="event">Kindle e-kitob o'quvchisi chiqarildi</div></div>
+                <div class="timeline-item"><div class="year">2014</div><div class="event">Echo/Alexa — uy aqlli tizimi</div></div>
+                <div class="timeline-item"><div class="year">2017</div><div class="event">Whole Foods — $13.7B ga o'zlashtirildi</div></div>
+                <div class="timeline-item"><div class="year">2021</div><div class="event">Jeff Bezos dan Andy Jassy ga rahbarlik o'tdi</div></div>
+                <div class="timeline-item"><div class="year">2023</div><div class="event">AI investitsiyalari — $4B Anthropic ga</div></div>
+                <div class="timeline-item"><div class="year">2024</div><div class="event">$2T+ bozor kapitalizatsiyasi — TOP 3</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">3 / 15</div>
+</div>
+
+<!-- SLIDE 4: Revenue Growth -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">📈 Daromad o'sishi</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Yillik daromad (milliard $)</h3>
+                <div class="chart-bar" style="width: 30%;">$74B (2015)</div>
+                <div class="chart-bar" style="width: 45%;">$136B (2018)</div>
+                <div class="chart-bar" style="width: 65%;">$280B (2019)</div>
+                <div class="chart-bar" style="width: 80%;">$386B (2020)</div>
+                <div class="chart-bar" style="width: 90%;">$470B (2021)</div>
+                <div class="chart-bar" style="width: 95%;">$514B (2022)</div>
+                <div class="chart-bar" style="width: 100%;">$575B (2023)</div>
+                <div class="chart-bar" style="width: 100%; background: linear-gradient(90deg, #ff6600, #ff9900);">$620B+ (2024 prognoz)</div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>💡 Asosiy omillar</h3>
+                    <p>Amazonning o'sishi 3 ta asosiy ustunga tayanadi:</p>
+                </div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>🛒 E-Commerce</h3>
+                    <p>Dunyoning eng katta onlayn do'coni — 40%+ USA e-commerce bozori</p>
+                </div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>☁️ AWS</h3>
+                    <p>Cloud computing bozorida 31% ulush — eng katta provayder</p>
+                </div>
+                <div class="card">
+                    <h3>📺 Prime</h3>
+                    <p>200M+ a'zo — yiliga $500+ xarajat qiladi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">4 / 15</div>
+</div>
+
+<!-- SLIDE 5: Business Model -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">🏗️ Biznes modeli: Flywheel Effect</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <div class="quote">
+                    "Mijozlar tajribasini yaxshilash → ko'proq sotuvchilar → ko'proq tanlov → yaxshiroq narx → ko'proq mijozlar"
+                </div>
+                <div class="quote-author">— Jeff Bezos, Amazon Flywheel konsepsiyasi</div>
+                <div style="margin-top: 40px; text-align: center;">
+                    <div style="font-size: 80px;">🔄</div>
+                    <p style="color: #888; margin-top: 16px;">Pozitiv feedback loop — har bir element keyingisini kuchaytiradi</p>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3>1. Mijoz tajribasi</h3>
+                    <p>Tez yetkazib berish, keng tanlov, arzon narxlar</p>
+                </div>
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3>2. Trafik o'sishi</h3>
+                    <p>Yaxshi tajriba → ko'proq foydalanuvchilar</p>
+                </div>
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3>3. Sotuvchilar o'sishi</h3>
+                    <p>Ko'proq foydalanuvchi → ko'proq sotuvchilar qo'shiladi</p>
+                </div>
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3>4. Tanlov kengayishi</h3>
+                    <p>Ko'proq sotuvchi → ko'proq mahsulot</p>
+                </div>
+                <div class="card">
+                    <h3>5. Narx pasayishi</h3>
+                    <p>Miqdor iqtisodiyoti → arzonroq narxlar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">5 / 15</div>
+</div>
+
+<!-- SLIDE 6: AWS Revolution -->
+<div class="slide bg-amazon">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">☁️ AWS: Cloud inqilobi</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <p style="font-size: 16px; color: #ccc; line-height: 1.8;">
+                    <span class="highlight">Amazon Web Services</span> — Amazonning eng foydali biznesi. 
+                    2006-yilda boshlangan xizmat bugungi kunda <span class="highlight">$90B+</span> yillik daromad keltiradi.
+                </p>
+                <div style="margin-top: 30px;">
+                    <div class="card" style="margin-bottom: 16px;">
+                        <h3>💰 Daromad ulushi</h3>
+                        <p>Amazon umumiy foydaning <span class="highlight">70%+</span> dan ko'pi AWS'dan keladi</p>
+                    </div>
+                    <div class="card" style="margin-bottom: 16px;">
+                        <h3>🌍 Global ma'ruzalar</h3>
+                        <p>30+ mintaqada 100+ availability zone</p>
+                    </div>
+                    <div class="card">
+                        <h3>🤖 AI/ML xizmatlari</h3>
+                        <p>SageMaker, Bedrock, Titan — AI bullari</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Cloud bozordagi ulushi</h3>
+                <div class="card" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>AWS</span><span class="highlight">31%</span>
+                    </div>
+                    <div class="chart-bar" style="width: 31%; height: 20px;">AWS</div>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Microsoft Azure</span><span style="color: #00a4ef;">25%</span>
+                    </div>
+                    <div class="chart-bar" style="width: 25%; height: 20px; background: linear-gradient(90deg, #00a4ef, #0078d4);">Azure</div>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Google Cloud</span><span style="color: #4285f4;">11%</span>
+                    </div>
+                    <div class="chart-bar" style="width: 11%; height: 20px; background: linear-gradient(90deg, #4285f4, #34a853);">GCP</div>
+                </div>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Boshqalar</span><span style="color: #888;">33%</span>
+                    </div>
+                    <div class="chart-bar" style="width: 33%; height: 20px; background: #444;">Other</div>
+                </div>
+                <p style="font-size: 12px; color: #666; margin-top: 12px;">*2024-yil ma'lumotlari (Synergy Research)</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">6 / 15</div>
+</div>
+
+<!-- SLIDE 7: Prime Ecosystem -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">👑 Amazon Prime: Ekosistema</h2>
+        <div class="three-col" style="margin-top: 40px;">
+            <div class="card">
+                <h3>🚚 Yetkazib berish</h3>
+                <p>Bepul 2 kunlik yetkazib berish — 200M+ a'zo</p>
+                <div style="margin-top: 16px;">
+                    <div class="stat"><div class="number" style="font-size: 32px;">$500+</div><div class="label">O'rtacha yillik xarajat</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>📺 Prime Video</h3>
+                <p>Original kontent, live sport, 200M+ foydalanuvchi</p>
+                <div style="margin-top: 16px;">
+                    <div class="stat"><div class="number" style="font-size: 32px;">$7B+</div><div class="label">Kontentga investitsiya</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>🎵 Prime Music</h3>
+                <p>100M+ qo'shiq, podcast, Audible bilan</p>
+                <div style="margin-top: 16px;">
+                    <div class="stat"><div class="number" style="font-size: 32px;">100M+</div><div class="label">Musiqa treklari</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="two-col" style="margin-top: 30px;">
+            <div class="card">
+                <h3>🎮 Gaming & More</h3>
+                <p>Prime Gaming, Twitch, Reading, Photos — barchasi bitta obuna bilan</p>
+            </div>
+            <div class="card">
+                <h3>💡 Strategik ahamiyati</h3>
+                <p>Prime a'zolari <span class="highlight">2x ko'proq</span> xarajat qiladi. Obuna modeli — doimiy daromad + mijoz sadoqati</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">7 / 15</div>
+</div>
+
+<!-- SLIDE 8: Logistics Empire -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">🚛 Logistika imperiyasi</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <p style="font-size: 16px; color: #ccc; line-height: 1.8;">
+                    Amazon o'zining <span class="highlight">logistika tarmog'ini</span> qurdi — UPS/FedEx dan mustaqil. 
+                    Bu <span class="highlight">vertikal integratsiya</span> strategiyasining eng yorqin namunasi.
+                </p>
+                <div style="margin-top: 30px;">
+                    <div class="card" style="margin-bottom: 12px;">
+                        <h3>✈️ Havo transporti</h3>
+                        <p>80+ samolyot — Amazon Air</p>
+                    </div>
+                    <div class="card" style="margin-bottom: 12px;">
+                        <h3>🏠 Yetkazib berish</h3>
+                        <p>150,000+ yetkazib beruvchi — Amazon Flex</p>
+                    </div>
+                    <div class="card">
+                        <h3>🤖 Avtomatlashtirish</h3>
+                        <p>750,000+ robot — Kiva/Proteus</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Logistika ma'lumotlari</h3>
+                <table>
+                    <tr><th>Ko'rsatkich</th><th>Qiymat</th></tr>
+                    <tr><td>Fulfillment markazlari</td><td><span class="highlight">1,000+</span></td></tr>
+                    <tr><td>Sortlash markazlari</td><td><span class="highlight">500+</span></td></tr>
+                    <tr><td>Delivery stations</td><td><span class="highlight">4,000+</span></td></tr>
+                    <tr><td>Samolyotlar</td><td><span class="highlight">80+</span></td></tr>
+                    <tr><td>Yuk mashinalari</td><td><span class="highlight">100,000+</span></td></tr>
+                    <tr><td>Robotlar</td><td><span class="highlight">750,000+</span></td></tr>
+                    <tr><td>Same-day delivery</td><td><span class="highlight">120+ shahar</span></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">8 / 15</div>
+</div>
+
+<!-- SLIDE 9: Innovation Culture -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">💡 Innovatsiya madaniyati</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>📝 "Day 1" falsafasi</h3>
+                    <p>Jeff Bezos: <em>"Har doim 'Day 1' holatida bo'ling — bu har doim yangilik boshlanishi degani"</em></p>
+                </div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>🧪 "Two-Pizza Teams"</h3>
+                    <p>Jamoa 2 ta pizza bilan ovqatlana olishi kerak — kichik, mustaqil, tez harakatlanuvchi</p>
+                </div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>📄 "6-Page Memo"</h3>
+                    <p>PowerPoint o'rniga 6 sahifali hujjat — chuqur fikrlash va tahlil</p>
+                </div>
+                <div class="card">
+                    <h3>🎯 "Working Backwards"</h3>
+                    <p>Mijoz ehtiyojidan boshlab — Press Release, FAQ, Antutanilgan Mult</p>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Innovatsiya natijalari</h3>
+                <div class="stat" style="margin-bottom: 20px;">
+                    <div class="number">$83B+</div>
+                    <div class="label">R&D xarajatlari (2023) — dunyodagi eng ko'p</div>
+                </div>
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3>🤖 Alexa</h3>
+                    <p>500M+ qurilmada — uy aqlli tizimi bozorida #1</p>
+                </div>
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3>🚀 Blue Origin</h3>
+                    <p>Jeff Bezos shaxsiy kosmik kompaniyasi</p>
+                </div>
+                <div class="card">
+                    <h3>🏥 One Medical</h3>
+                    <p>$3.9B — sog'liqni saqlash sohasiga kirish</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">9 / 15</div>
+</div>
+
+<!-- SLIDE 10: Customer Obsession -->
+<div class="slide bg-amazon">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">❤️ Mijozga obsesseiya</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <div class="quote">
+                    "Biz raqobatga qarab emas, mijozlarga qarab qaror qilamiz. Raqobatchilar uyquda ham o'zlarini o'zgartirmaydi."
+                </div>
+                <div class="quote-author">— Jeff Bezos</div>
+                <div style="margin-top: 40px;">
+                    <div class="card">
+                        <h3>📊 Amazon Leadership Principles</h3>
+                        <p>Birinchi qoida: <span class="highlight">"Customer Obsession"</span> — boshqalardan oldin</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Mijoz tajribasi yangiliklari</h3>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>1-Click Ordering</h3>
+                    <p>Bir bosishda sotib olish — xarid jarayonini soddalashtirdi</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>Customer Reviews</h3>
+                    <p>Mijozlar bahosi — ishonch va shaffoflik</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>Recommendations</h3>
+                    <p>AI asosidagi shaxsiy tavsiyalar — 35% sotuv shundan keladi</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>A-Z Guarantee</h3>
+                    <p>To'liq qaytarish kafolati — xavfsiz xarid</p>
+                </div>
+                <div class="card">
+                    <h3>Same-Day Delivery</h3>
+                    <p>Bir kun ichida yetkazib berish — tezlik va qulaylik</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">10 / 15</div>
+</div>
+
+<!-- SLIDE 11: AI & Machine Learning -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">🤖 Sun'iy intellekt strategiyasi</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <p style="font-size: 16px; color: #ccc; line-height: 1.8;">
+                    Amazon AI ni <span class="highlight">har bir biznes qismiga</span> integratsiya qildi — 
+                    tavsiya tizimlaridan avtonom yetkazib berishgacha.
+                </p>
+                <div style="margin-top: 30px;">
+                    <div class="card" style="margin-bottom: 12px;">
+                        <h3>🧠 Amazon Bedrock</h3>
+                        <p>Fundational modellarni API orqali ishlatish — Anthropic, Meta, AI21</p>
+                    </div>
+                    <div class="card" style="margin-bottom: 12px;">
+                        <h3>🎯 Personalization</h3>
+                        <p>"Mijozlar shuningdek xarid qilishdi" — AI tavsiya tizimi</p>
+                    </div>
+                    <div class="card" style="margin-bottom: 12px;">
+                        <h3>📦 Supply Chain AI</h3>
+                        <p>Prognoz qilish, avtomatik buyurtma — 25% xarajat kamayishi</p>
+                    </div>
+                    <div class="card">
+                        <h3>🚗 Autonomous Delivery</h3>
+                        <p>Scout, Zoox — avtonom yetkazib berish</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">AI investitsiyalari</h3>
+                <table>
+                    <tr><th>Yil</th><th>Investitsiya</th><th>Maqsad</th></tr>
+                    <tr><td>2023</td><td><span class="highlight">$4B</span></td><td>Anthropic (Claude AI)</td></tr>
+                    <tr><td>2023</td><td><span class="highlight">$1.2B</span></td><td>AI Chip (Trainium)</td></tr>
+                    <tr><td>2024</td><td><span class="highlight">$10B+</span></td><td>AI infrastruktura</td></tr>
+                    <tr><td>2024</td><td><span class="highlight">$4B</span></td><td>Anthropic qo'shimcha</td></tr>
+                </table>
+                <div class="card" style="margin-top: 20px;">
+                    <h3>💡 AI natijalari</h3>
+                    <p>Amazon'ning AI tizimlari yiliga <span class="highlight">$12B+</span> tejaydi va <span class="highlight">35%+</span> sotuvni oshiradi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">11 / 15</div>
+</div>
+
+<!-- SLIDE 12: Competitive Advantages -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">🛡️ Raqobat ustunliklari</h2>
+        <div class="three-col" style="margin-top: 40px;">
+            <div class="card">
+                <h3>🏗️ Moat (Hofuz)</h3>
+                <p style="margin-bottom: 16px;">Amazonning raqobatchilar uchun qiyin bo'lgan ustunliklari:</p>
+                <ul style="color: #aaa; font-size: 13px; padding-left: 16px; line-height: 2;">
+                    <li>Logistika tarmog'i</li>
+                    <li>Cloud infrastruktura</li>
+                    <li>Mijoz ma'lumotlari</li>
+                    <li>Brend ishonchi</li>
+                    <li>Ekosistema tutilishi</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>💰 Xarajat ustunligi</h3>
+                <p style="margin-bottom: 16px;">Miqdor iqtisodiyoti va avtomatlashtirish:</p>
+                <ul style="color: #aaa; font-size: 13px; padding-left: 16px; line-height: 2;">
+                    <li>750,000+ robot</li>
+                    <li>AI prognoz tizimi</li>
+                    <li>O'z logistikasi</li>
+                    <li>Vertikal integratsiya</li>
+                    <li>Mashtab iqtisodiyoti</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🔄 Switching Cost</h3>
+                <p style="margin-bottom: 16px;">Foydalanuvchilar qanday qilib qoladi:</p>
+                <ul style="color: #aaa; font-size: 13px; padding-left: 16px; line-height: 2;">
+                    <li>Prime obuna</li>
+                    <li>Alexa uy tizimi</li>
+                    <li>Smart Home qurilmalari</li>
+                    <li>Shaxsiy ma'lumotlar</li>
+                    <li>Ecosystem lock-in</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">12 / 15</div>
+</div>
+
+<!-- SLIDE 13: Global Expansion -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">🌍 Global kengayish</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Xalqaro bozorlar</h3>
+                <table>
+                    <tr><th>Mintaqa</th><th>Holat</th><th>Daromad ulushi</th></tr>
+                    <tr><td>🇺🇸 AQSh</td><td><span class="highlight">Asosiy bozor</span></td><td>69%</td></tr>
+                    <tr><td>🇪🇺 Yevropa</td><td>Kengaymoqda</td><td>18%</td></tr>
+                    <tr><td>🇯🇵 Yaponiya</td><td>Mustahkam</td><td>5%</td></tr>
+                    <tr><td>🇩🇪 Germaniya</td><td>Yevropada #1</td><td>3%</td></tr>
+                    <tr><td>🇬🇧 Britaniya</td><td>Rivojlanmoqda</td><td>3%</td></tr>
+                    <tr><td>🇮🇳 Hindiston</td><td>Strategik</td><td>2%</td></tr>
+                    <tr><td>Boshqalar</td><td>—</td><td>—</td></tr>
+                </table>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Strategik sarmoyalar</h3>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>🇮🇳 Hindiston</h3>
+                    <p>Flipkart ($16B), Jio Partners — eng tez o'sayotgan bozor</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>🇧🇷 Braziliya</h3>
+                    <p>Sulza — MERCADO AMAZON</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>🇲🇽 Meksika</h3>
+                    <p>Aws Mexico — data center + logistics</p>
+                </div>
+                <div class="card">
+                    <h3>🇸🇦 Saudiya Arabiston</h3>
+                    <p>AWS Middle East — $5B+ investitsiya</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">13 / 15</div>
+</div>
+
+<!-- SLIDE 14: Challenges & Risks -->
+<div class="slide bg-gradient">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">⚠️ Xavflar va muammolar</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <div class="card" style="margin-bottom: 16px; border-color: #ff4444;">
+                    <h3 style="color: #ff4444;">🏛️ Antimonopol nazorat</h3>
+                    <p>FTC da 5+ ta ish — "monopolistik faoliyat" ayblovlar. Bo'linishi mumkinmi?</p>
+                </div>
+                <div class="card" style="margin-bottom: 16px; border-color: #ff8800;">
+                    <h3 style="color: #ff8800;">👥 Xodimlar muammolari</h3>
+                    <p>Warehouse xodimlari sharoitlari, kasallik, ish haqi — PR muammolari</p>
+                </div>
+                <div class="card" style="margin-bottom: 16px; border-color: #ffaa00;">
+                    <h3 style="color: #ffaa00;">🌱 Atrof-muhit ta'siri</h3>
+                    <p>Karbon izi, qadoqlash chiqindilari — sust taraqqiyot</p>
+                </div>
+                <div class="card" style="border-color: #ff6600;">
+                    <h3 style="color: #ff6600;">💰 AWS raqobati</h3>
+                    <p>Azure va GCP tez o'smoqda — ulush yo'qotish xavfi</p>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #ff9900; margin-bottom: 20px;">Raqobatchilar</h3>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>🟢 Walmart</h3>
+                    <p>E-commerce da tez quvmoqda — 35%+ o'sish (2023)</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>🔵 Microsoft Azure</h3>
+                    <p>Cloud bozorini qo'lga kiritmoqda — OpenAI bilan hamkorlik</p>
+                </div>
+                <div class="card" style="margin-bottom: 12px;">
+                    <h3>🔴 Shopify</h3>
+                    <p>DTC brendlarni quvvatlamoqda — Amazon ga muqobil</p>
+                </div>
+                <div class="card">
+                    <h3>🟡 Temu/Shein</h3>
+                    <p>Xitoy arzon mahsulotlari — past narx segmentiga tahdid</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">14 / 15</div>
+</div>
+
+<!-- SLIDE 15: Conclusion & Future -->
+<div class="slide bg-amazon">
+    <div class="content">
+        <h2 class="slide-title" style="font-size: 36px;">🔮 Kelajak va xulosa</h2>
+        <div class="two-col" style="margin-top: 40px;">
+            <div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>🚀 Amazon 2025+ rejalari</h3>
+                    <ul style="color: #aaa; font-size: 14px; padding-left: 16px; line-height: 2;">
+                        <li><span class="highlight">AI-first</span> — barcha xizmatlarga AI integratsiya</li>
+                        <li><span class="highlight">Autonomous delivery</span> — dron va avtomobil</li>
+                        <li><span class="highlight">Healthcare</span> — $10B+ investitsiya</li>
+                        <li><span class="highlight">Space</span> — Project Kuiper (internet satellite)</li>
+                        <li><span class="highlight">Grocery</span> — Whole Foods + Amazon Fresh kengayishi</li>
+                        <li><span class="highlight">Gaming</span> — Luna, Twitch kengayishi</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>📊 Prognozlar</h3>
+                    <p>2025-yilga Amazon daromadi <span class="highlight">$700B+</span> ga yetishi kutilmoqda. 
+                    AWS 40%+ ulushga ega bo'lishi mumkin.</p>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 20px; border-color: #ff9900;">
+                    <h3 style="color: #ff9900;">🎯 Asosiy xulosa</h3>
+                    <p style="font-size: 16px; line-height: 1.8;">
+                        Amazon muvaffaqiyatining <span class="highlight">5 ta kalit so'zi</span>:
+                    </p>
+                    <ol style="color: #ccc; font-size: 15px; padding-left: 20px; margin-top: 12px; line-height: 2;">
+                        <li><strong>Mijozga obsesseiya</strong></li>
+                        <li><strong>Uzoq muddatli fikrlash</strong></li>
+                        <li><strong>Innovatsiya madaniyati</strong></li>
+                        <li><strong>Vertikal integratsiya</strong></li>
+                        <li><strong>Mashtab iqtisodiyoti</strong></li>
+                    </ol>
+                </div>
+                <div class="quote" style="font-size: 18px;">
+                    "Amazon — bu har doim birinchi kunida qanday ishlaganini unutmagan kompaniya."
+                </div>
+                <div class="quote-author" style="font-size: 14px;">— Business Analysis 2024</div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">15 / 15</div>
+</div>
+
+</body>
+</html>

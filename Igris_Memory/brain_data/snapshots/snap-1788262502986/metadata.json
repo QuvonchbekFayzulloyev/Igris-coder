@@ -1,0 +1,12 @@
+{
+  "id": "snap-1788262502986",
+  "name": "auto-session_start",
+  "trigger": "session_start",
+  "description": "Auto snapshot on session_start",
+  "created_at": "2026-09-01T11:35:02.987378+00:00",
+  "size_bytes": 8319,
+  "layers": [
+    "runtime",
+    "persistent"
+  ]
+}

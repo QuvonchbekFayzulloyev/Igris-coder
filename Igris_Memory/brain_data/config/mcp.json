@@ -1,0 +1,32 @@
+{
+  "id": "mcp-config-001",
+  "type": "config-mcp",
+  "servers": {
+    "filesystem": {
+      "command": "node",
+      "args": [
+        "mcp-servers/filesystem.js"
+      ],
+      "read_only": false
+    }
+  },
+  "tools": {
+    "read": {
+      "server": "filesystem",
+      "timeout_ms": 5000
+    },
+    "write": {
+      "server": "filesystem",
+      "timeout_ms": 5000,
+      "confirm": true
+    },
+    "bash": {
+      "server": "filesystem",
+      "timeout_ms": 30000,
+      "deny_patterns": [
+        "rm -rf",
+        "sudo"
+      ]
+    }
+  }
+}

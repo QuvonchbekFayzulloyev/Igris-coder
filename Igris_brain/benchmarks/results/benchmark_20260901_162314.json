@@ -1,0 +1,267 @@
+{
+  "timestamp": "2026-09-01T16:23:14.835424",
+  "suites": [
+    {
+      "name": "Tool Benchmarks",
+      "timestamp": "2026-09-01T16:23:14.835448",
+      "benchmarks": [
+        {
+          "name": "read_file",
+          "iterations": 1000,
+          "avg_ms": 0.153,
+          "min_ms": 0.136,
+          "max_ms": 0.457,
+          "p50_ms": 0.15,
+          "p95_ms": 0.174,
+          "p99_ms": 0.246,
+          "std_dev_ms": 0.021,
+          "total_ms": 153.357,
+          "iterations_per_sec": 6520.75,
+          "metadata": {}
+        },
+        {
+          "name": "write_file",
+          "iterations": 500,
+          "avg_ms": 0.396,
+          "min_ms": 0.35,
+          "max_ms": 1.108,
+          "p50_ms": 0.384,
+          "p95_ms": 0.469,
+          "p99_ms": 0.651,
+          "std_dev_ms": 0.053,
+          "total_ms": 198.22,
+          "iterations_per_sec": 2522.45,
+          "metadata": {}
+        },
+        {
+          "name": "list_files",
+          "iterations": 500,
+          "avg_ms": 0.402,
+          "min_ms": 0.366,
+          "max_ms": 1.059,
+          "p50_ms": 0.385,
+          "p95_ms": 0.5,
+          "p99_ms": 0.724,
+          "std_dev_ms": 0.061,
+          "total_ms": 201.041,
+          "iterations_per_sec": 2487.06,
+          "metadata": {}
+        },
+        {
+          "name": "python_exec",
+          "iterations": 200,
+          "avg_ms": 34.135,
+          "min_ms": 32.031,
+          "max_ms": 38.443,
+          "p50_ms": 34.145,
+          "p95_ms": 35.885,
+          "p99_ms": 36.669,
+          "std_dev_ms": 1.001,
+          "total_ms": 6826.966,
+          "iterations_per_sec": 29.3,
+          "metadata": {}
+        }
+      ],
+      "summary": {
+        "total_benchmarks": 4,
+        "avg_time_ms": 8.772,
+        "fastest": "read_file",
+        "slowest": "python_exec"
+      }
+    },
+    {
+      "name": "Memory Benchmarks",
+      "timestamp": "2026-09-01T16:23:14.836030",
+      "benchmarks": [
+        {
+          "name": "ToolRegistry init",
+          "iterations": 10,
+          "avg_ms": 0.687,
+          "min_ms": 0.687,
+          "max_ms": 0.687,
+          "p50_ms": 0.687,
+          "p95_ms": 0.687,
+          "p99_ms": 0.687,
+          "std_dev_ms": 0.0,
+          "total_ms": 6.866,
+          "iterations_per_sec": 1456.36,
+          "metadata": {
+            "current_mb": 0.0006866455078125,
+            "peak_mb": 0.000885009765625
+          }
+        },
+        {
+          "name": "Workspace init",
+          "iterations": 10,
+          "avg_ms": 0.57,
+          "min_ms": 0.57,
+          "max_ms": 0.57,
+          "p50_ms": 0.57,
+          "p95_ms": 0.57,
+          "p99_ms": 0.57,
+          "std_dev_ms": 0.0,
+          "total_ms": 5.703,
+          "iterations_per_sec": 1753.47,
+          "metadata": {
+            "current_mb": 0.0005702972412109375,
+            "peak_mb": 0.0016870498657226562
+          }
+        }
+      ],
+      "summary": {
+        "total_benchmarks": 2,
+        "avg_time_ms": 0.628,
+        "fastest": "Workspace init",
+        "slowest": "ToolRegistry init"
+      }
+    },
+    {
+      "name": "Skill Benchmarks",
+      "timestamp": "2026-09-01T16:23:14.836046",
+      "benchmarks": [
+        {
+          "name": "SkillManager init",
+          "iterations": 100,
+          "avg_ms": 1.247,
+          "min_ms": 1.147,
+          "max_ms": 2.179,
+          "p50_ms": 1.226,
+          "p95_ms": 1.406,
+          "p99_ms": 2.179,
+          "std_dev_ms": 0.116,
+          "total_ms": 124.681,
+          "iterations_per_sec": 802.05,
+          "metadata": {}
+        },
+        {
+          "name": "Skill load (svg-artist)",
+          "iterations": 100,
+          "avg_ms": 0.0,
+          "min_ms": 0.0,
+          "max_ms": 0.001,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "p99_ms": 0.001,
+          "std_dev_ms": 0.0,
+          "total_ms": 0.015,
+          "iterations_per_sec": 6711384.51,
+          "metadata": {}
+        },
+        {
+          "name": "Skill load (pvc)",
+          "iterations": 100,
+          "avg_ms": 0.0,
+          "min_ms": 0.0,
+          "max_ms": 0.0,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "p99_ms": 0.0,
+          "std_dev_ms": 0.0,
+          "total_ms": 0.015,
+          "iterations_per_sec": 6802750.1,
+          "metadata": {}
+        }
+      ],
+      "summary": {
+        "total_benchmarks": 3,
+        "avg_time_ms": 0.416,
+        "fastest": "Skill load (pvc)",
+        "slowest": "SkillManager init"
+      }
+    },
+    {
+      "name": "Hook Benchmarks",
+      "timestamp": "2026-09-01T16:23:14.836121",
+      "benchmarks": [
+        {
+          "name": "HookBus init",
+          "iterations": 100,
+          "avg_ms": 0.004,
+          "min_ms": 0.003,
+          "max_ms": 0.013,
+          "p50_ms": 0.004,
+          "p95_ms": 0.004,
+          "p99_ms": 0.013,
+          "std_dev_ms": 0.001,
+          "total_ms": 0.37,
+          "iterations_per_sec": 270051.38,
+          "metadata": {}
+        },
+        {
+          "name": "Hook fire (on_step_start)",
+          "iterations": 1000,
+          "avg_ms": 0.002,
+          "min_ms": 0.002,
+          "max_ms": 0.148,
+          "p50_ms": 0.002,
+          "p95_ms": 0.003,
+          "p99_ms": 0.004,
+          "std_dev_ms": 0.005,
+          "total_ms": 2.482,
+          "iterations_per_sec": 402917.14,
+          "metadata": {}
+        },
+        {
+          "name": "Hook fire (on_tool_call)",
+          "iterations": 1000,
+          "avg_ms": 0.002,
+          "min_ms": 0.002,
+          "max_ms": 0.004,
+          "p50_ms": 0.002,
+          "p95_ms": 0.002,
+          "p99_ms": 0.003,
+          "std_dev_ms": 0.0,
+          "total_ms": 1.905,
+          "iterations_per_sec": 525017.12,
+          "metadata": {}
+        }
+      ],
+      "summary": {
+        "total_benchmarks": 3,
+        "avg_time_ms": 0.003,
+        "fastest": "Hook fire (on_tool_call)",
+        "slowest": "HookBus init"
+      }
+    },
+    {
+      "name": "Parser Benchmarks",
+      "timestamp": "2026-09-01T16:23:14.836600",
+      "benchmarks": [
+        {
+          "name": "Version.parse",
+          "iterations": 10000,
+          "avg_ms": 0.001,
+          "min_ms": 0.0,
+          "max_ms": 0.007,
+          "p50_ms": 0.001,
+          "p95_ms": 0.001,
+          "p99_ms": 0.001,
+          "std_dev_ms": 0.0,
+          "total_ms": 5.664,
+          "iterations_per_sec": 1765567.88,
+          "metadata": {}
+        },
+        {
+          "name": "parse_commit",
+          "iterations": 10000,
+          "avg_ms": 0.002,
+          "min_ms": 0.002,
+          "max_ms": 0.173,
+          "p50_ms": 0.002,
+          "p95_ms": 0.003,
+          "p99_ms": 0.003,
+          "std_dev_ms": 0.002,
+          "total_ms": 23.85,
+          "iterations_per_sec": 419283.72,
+          "metadata": {}
+        }
+      ],
+      "summary": {
+        "total_benchmarks": 2,
+        "avg_time_ms": 0.001,
+        "fastest": "Version.parse",
+        "slowest": "parse_commit"
+      }
+    }
+  ]
+}

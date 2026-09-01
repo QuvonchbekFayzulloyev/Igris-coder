@@ -1,0 +1,117 @@
+{
+  "runtime": {
+    "session": [
+      {
+        "id": "session-bridge",
+        "type": "session",
+        "status": "active",
+        "started_at": "2026-09-01T12:27:43.967028+00:00",
+        "updated_at": "2026-09-01T12:27:43.967028+00:00",
+        "total_turns": 0,
+        "total_tool_calls": 0,
+        "total_tokens_used": 0,
+        "files_read": [],
+        "files_modified": [],
+        "errors_encountered": [],
+        "summary": "Session bridge started",
+        "timestamp": "2026-09-01T12:27:43.967161+00:00"
+      }
+    ]
+  },
+  "persistent": {
+    "experience": [
+      {
+        "id": "from-agent-short-turn-1785823388",
+        "type": "experience",
+        "source": "l1:short-turn",
+        "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+        "data": {
+          "content": "def find_max_min(numbers):\n    if not numbers:\n        return None, None\n    max_number = max(numbers)\n    min_number = min(numbers)\n    return max_number, min_number\n\n# Masalan:\nnumbers = [10, 20, 30, 40, 50]\nmax_num, min_num = find_max_min(numbers)\nprint(f\"Eng katta son: {max_num}, Eng kichik son: {min_num}\")",
+          "type": "short-turn",
+          "tags": [
+            "turn"
+          ],
+          "metadata": {},
+          "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+          "remembered_at": "2026-08-04T06:03:08.014772+00:00",
+          "id": "agent-short-turn-1785823388",
+          "timestamp": "2026-08-04T06:03:08.014816+00:00"
+        },
+        "consolidated_at": "2026-08-04T06:11:38.700691+00:00",
+        "updated_at": "2026-08-04T06:11:38.700729+00:00"
+      },
+      {
+        "id": "exp-session-exec-test",
+        "type": "experience",
+        "sessions": [
+          {
+            "date": "2026-08-04",
+            "task": "done",
+            "outcome": "successful",
+            "key_learnings": [],
+            "tags": []
+          }
+        ],
+        "summary": "done",
+        "updated_at": "2026-08-04T06:11:38.702092+00:00"
+      },
+      {
+        "content": "TASK: tetris o'yinini yasab ber\nSTATUS: ok\nSTEPS: 0 TOOLS: 2 FIXES: 0",
+        "type": "experience",
+        "tags": [
+          "agent-task",
+          "ok"
+        ],
+        "metadata": {},
+        "summary": "ok | 2 tools | 0 fixes",
+        "remembered_at": "2026-08-25T15:25:58.353642+00:00",
+        "id": "agent-experience-1787671558",
+        "updated_at": "2026-08-25T15:25:58.353654+00:00"
+      }
+    ],
+    "solution-memory": [
+      {
+        "content": "Q: ommaviy axborot vositalari mavzusida pptx tayyorlab ber harbir listda 30 % yozuv va 70% visual tasvir va grafiklardan iborat infografiya bo'lsin\nA: Men ommaviy axborot vositalari mavzusida infografiya shaklida PPTX tayyorlash uchun quyidagi tizimli yozuvlar va vizual elementlarni taklif qilaman:\n\n**1. Davrliy tizim (Slide 1)**\n- Yozuv: \"Ommaviy axborot vositalari: 30% yozuv, 70% vizual\"\n- Vizual: Kengaytirilgan infografiya (yozuv va vizualning 30/70 nisbatini tasvirlash)\n\n**2. Tavsif (Slide 2)**\n- Yozuv: \"Ommaviy axborot vositalari - jahon xalqini ma'lumotga kirishga yordam beruvchi vositalar\"\n- Vizual: Dunyoning har qanday qismidan axborot vositalari (televizor, internet, gazeta, radio) rasmi\n\n**3. Turlari (Slide 3)**\n- Yozuv: \"1. Print vositalari (gazeta, jurnal) | 2. Broadcast vositalari (televizor, radio) | 3. Digital vositalari (internet, so'rovlar)\"\n- Vizual: 3 ta kategoriyani tasvirlash uchun 3 ta kengaytirilgan infografiya (har birida 30% yozuv, 70% vizual)\n\n**4. Tashkilot (Slide 4)**\n- Yozuv: \"Tashkilot: 1. Xalqaro (UNESCO, BBC) | 2. Milliy (O'zbekiston Radiosiyasi) | 3. Tashkiloti (Xabarlar agentlari)\"\n- Vizual: 3 ta tashkilotni tasvirlash uchun 3 ta kengaytirilgan infografiya (har birida 30% yozuv, 70% vizual)\n\n**5. Impact (Slide 5)**\n- Yozuv: \"Impact: 1. Xalqaro (UNESCO) | 2. Milliy (O'zbekiston) | 3. Tashkiloti (Xabarlar agentlari)\"\n- Vizual: 3 ta impactni tasvirlash uchun 3 ta kengaytirilgan infografiya (har birida 30% yozuv, 70% vizual)\n\n**6. Qiyinliklar (Slide 6)**\n- Yozuv: \"Qiyinliklar: 1. Xalqaro (UNESCO) | 2. Milliy (O'zbekiston) | 3. Tashkiloti (Xabarlar agentlari)\"\n- Vizual: 3 ta qiyinlikni tasvirlash uchun 3 ta kengaytirilgan infografiya (har birida 30% yozuv, 70% vizual)\n\n**7. Yechimlar (Slide 7)**\n- Yozuv: \"Yechimlar: 1. Xalqaro (UNESCO) | 2. Milliy (O'zbekiston) | 3. Tashkiloti (Xabarlar agentlari)\"\n- Vizual: 3 ta yechimni tasvirlash uchun 3 ta kengaytirilgan infografiya (har birida 30% yozuv, 70% vizual)\n\n**8. Xulosalar (Slide 8)**\n- Yoz",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "ommaviy axborot vositalari mavzusida pptx tayyorlab ber harbir listda 30 % yozuv va 70% visual tasvir va grafiklardan ib",
+        "remembered_at": "2026-09-01T11:37:45.405159+00:00",
+        "id": "agent-solution-memory-1788262665",
+        "updated_at": "2026-09-01T11:37:45.405172+00:00"
+      },
+      {
+        "content": "Q: PPTX QAYERDA SAQLANDI\nA: PPTX fayli hali saqlanmagan. Faylni yaratish uchun avval infografiyani yaratishingiz kerak (yozuv va vizual elementlarini kiritishingiz kerak). Agar yordam kerak bo'lsa, men sizga kodi ham yozishim mumkin. Faylni saqlash uchun qanday joylarni tanlaysiz? (masalan, \"Documents\" yoki \"Downloads\")",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "PPTX QAYERDA SAQLANDI",
+        "remembered_at": "2026-09-01T11:38:34.601767+00:00",
+        "id": "agent-solution-memory-1788262714",
+        "updated_at": "2026-09-01T11:38:34.601783+00:00"
+      },
+      {
+        "content": "Q: UNDA BOSHLA\nA: PPTX faylini yaratish uchun quyidagi komandani bajaring:\n\n```python\nart__draw_infographic_pptx(\n    output=\"ommaviy_axborot_vositalari.pptx\",\n    slides=8,\n    style=\"infographic\",\n    text_ratio=0.3,\n    visual_ratio=0.7\n)\n```\n\nFayl hozirgi jurnali (current directory)da saqlanadi. Har bir slide:\n1. Davrliy tizim (infografiya)\n2. Tavsif (dunyoning axborot vositalari rasmi)\n3. Turlari (3 kategoriyali infografiya)\n4. Tashkilot (3 tashkilotli infografiya)\n5. Impact (3 impactli infografiya)\n6. Qiyinliklar (3 qiyinlikli infografiya)\n7. Yechimlar (3 yechimli infografiya)\n8. Xulosalar (dunyoning axborot vositalari rasmi)\n\nHar bir slide 30% yozuv (mazkur yozuv) va 70% vizual (infografiya) nisbatida tuzilgan.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "UNDA BOSHLA",
+        "remembered_at": "2026-09-01T11:39:35.351036+00:00",
+        "id": "agent-solution-memory-1788262775",
+        "updated_at": "2026-09-01T11:39:35.351047+00:00"
+      }
+    ]
+  }
+}
