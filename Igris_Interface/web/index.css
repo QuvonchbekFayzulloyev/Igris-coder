@@ -64,6 +64,20 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Custom context menu — paydo bo'lish animatsiyasi (150ms, yumshoq)  */
+/* ------------------------------------------------------------------ */
+
+.ctx-menu-pop {
+  animation: ctx-menu-pop 0.15s ease-out;
+  transform-origin: top left;
+}
+
+@keyframes ctx-menu-pop {
+  0% { opacity: 0; transform: scale(0.96) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ------------------------------------------------------------------ */
 /* 2nd Brain — yangi node'larni belgilovchi oltin halqa animatsiyasi   */
 /* ------------------------------------------------------------------ */
 
@@ -110,4 +124,132 @@
   0% { transform: scale(0.5); opacity: 0.4; }
   55% { transform: scale(1.35); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* ================================================================== */
+/* Claude-uslubidagi chat (ClaudeChat / ClaudeChatMessage)             */
+/* ================================================================== */
+
+/* Har bir xabar qatori — biroz yoqilganda yumshoq fade-in */
+.claude-row {
+  animation: claude-row-in 0.18s ease-out;
+}
+
+@keyframes claude-row-in {
+  0% { opacity: 0; transform: translateY(3px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Composer — katta yumshoq burchakli maydon, focus'da haloka halqa */
+.claude-composer {
+  border: 1px solid rgb(0 0 0 / 0.1);
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.claude-composer:focus-within {
+  border-color: rgb(245 158 11 / 0.55);
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 0.12), 0 1px 3px rgb(0 0 0 / 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .claude-composer {
+    border-color: rgb(255 255 255 / 0.12);
+    background: rgb(39 39 42); /* zinc-800 */
+  }
+  .claude-composer:focus-within {
+    border-color: rgb(245 158 11 / 0.5);
+    box-shadow: 0 0 0 3px rgb(245 158 11 / 0.1);
+  }
+}
+
+.claude-composer-input {
+  width: 100%;
+  background: transparent;
+  outline: none;
+  resize: none;
+  border: none;
+  padding: 0.875rem 1rem 0.25rem;
+  font-size: 15px;
+  line-height: 1.55;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #18181b; /* zinc-900 */
+}
+
+.claude-composer-input::placeholder {
+  color: #a1a1aa; /* zinc-400 */
+}
+
+@media (prefers-color-scheme: dark) {
+  .claude-composer-input { color: #f4f4f5; }
+  .claude-composer-input::placeholder { color: #71717a; /* zinc-500 */ }
+}
+
+/* Agent javob matni — hujjat uslubidagi tipografiya (Claude prose) */
+.claude-prose {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #27272a; /* zinc-800 */
+  font-family: 'IBM Plex Sans', sans-serif;
+  word-break: break-word;
+}
+
+.claude-prose p + p { margin-top: 0.7em; }
+.claude-prose h3 { font-size: 16px; font-weight: 600; margin: 0.9em 0 0.35em; color: #18181b; }
+.claude-prose h4 { font-size: 15px; font-weight: 600; margin: 0.8em 0 0.3em; color: #27272a; }
+
+.claude-prose ul,
+.claude-prose ol {
+  margin: 0.45em 0;
+  padding-left: 1.35em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+.claude-prose ul { list-style: disc; }
+.claude-prose ol { list-style: decimal; }
+
+.claude-prose strong { font-weight: 600; color: #18181b; }
+.claude-prose em { font-style: italic; }
+
+.claude-inline-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.86em;
+  background: rgb(0 0 0 / 0.05);
+  border: 1px solid rgb(0 0 0 / 0.07);
+  border-radius: 5px;
+  padding: 0.08em 0.38em;
+  color: #18181b;
+}
+
+.claude-codeblock {
+  margin: 0.6em 0;
+  padding: 0.8rem 1rem;
+  background: #fafafa;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #3f3f46;
+}
+
+@media (prefers-color-scheme: dark) {
+  .claude-prose { color: #d4d4d8; }
+  .claude-prose h3 { color: #fafafa; }
+  .claude-prose h4 { color: #e4e4e7; }
+  .claude-prose strong { color: #fafafa; }
+  .claude-inline-code {
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.1);
+    color: #f4f4f5;
+  }
+  .claude-codeblock {
+    background: rgb(9 9 11); /* zinc-950 */
+    border-color: rgb(255 255 255 / 0.08);
+    color: #d4d4d8;
+  }
 }

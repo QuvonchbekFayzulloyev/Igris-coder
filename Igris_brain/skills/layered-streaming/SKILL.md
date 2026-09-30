@@ -94,6 +94,11 @@ User sends: "rasm chiz menga"
 
 ### `layered_agent.py` — Core Orchestrator
 
+> **Holat (yangilangan):** LayeredAgent endi server chat oqimini boshqarmaydi —
+> kanonik yo'l `IgrisAgent.chat_stream()` (review loop + resync bilan, §8.1).
+> LayeredAgent compatibility API + clarification pause/resume infrastrukturasi
+> sifatida saqlangan (testlari bilan: `tests/test_layered_agent.py`).
+
 ```python
 from layered_agent import LayeredAgent, create_layered_agent
 
@@ -130,7 +135,8 @@ Each event is a JSON object with `type` field. Updated to match the agentic arch
 |---|---|---|
 | `layer_start` | `layer`: str | One **pipeline stage** begins (plan/read/edit/test/review) — not a loop boundary |
 | `layer_done` | `layer`, `status`, `summary` | Pipeline stage completed |
-| `loop_iteration` | `iteration`: int, `max_iter`: int, `shape`: str | One repetition of a ReAct/build-verify/reflexion loop cycle — frontend shows "attempt 2 of 8" |
+| `loop_iteration` | `iteration`: int, `max_iter`: int, `shape`: str | One repetition of a ReAct/build-verify/reflexion loop cycle — frontend shows "attempt 2 of 8". `max_iter` = max(default, PIPELINE_SPECS `max_iter`) — halol budget (§8.1) |
+| `done` | `content`, `review`?, `completion`, `structure_check`?, `self_eval` | Canonical chat_stream terminator. `review` = halol repair audit izi (quyida). `completion` transcript record (`completion.review`, `completion.supervisor` bilan) |
 | `tool_start` | `tool`, `layer`, `description` | Tool execution began |
 | `tool_done` | `tool`, `layer`, `result` | Tool completed |
 | `mcp_start` | `mcp`, `layer`, `description` | MCP server call began |
@@ -158,6 +164,59 @@ Supported shapes and their exit conditions:
 - `plan_then_execute` — plan once, execute stages sequentially
 - `build_verify` — edit → review against deterministic check → repair, up to `max_repair`
 - `reflexion_critique` — generate → self-critique → retry, up to `max_repair`
+
+**Halol budget (§8.1):** `max_rounds = max(default_rounds, PIPELINE_SPECS max_iter)` —
+spec kam budget bergan ham bajaruvchi loop'ni to'xtatmaydi, katta budget oshiriladi.
+`_enforce_action_evidence` nudge retry ichidagi redraw ham xuddi shu
+`max_rounds`/`loop_shape` ni oladi — evidence loop dekorativ emas.
+
+## Review Loop Events (§8.1 halol kontrati)
+
+Review repair loop'i ENDI HAQIQIY: content FAQAT mustaqil `review_fn` qayta
+tekshiruvi tasdiqlasa almashtiriladi. Soxta "repaired" imkonsiz. Eventlar:
+
+### `done.review` — halol repair audit izi
+
+```json
+{"type": "done",
+ "content": "...final javob...",
+ "review": {"ok": true, "repaired": true, "attempts": 2, "method": "build_verify"},
+ "completion": {"review": {"ok": true, "repaired": true, "attempts": 2, "method": "build_verify"}}}
+```
+
+| Field | Ma'no |
+|---|---|
+| `ok` + `repaired` | review_fn tasdiqlagan haqiqiy yutuq — content ALMASHTIRILGAN |
+| `ok: false`, `attempts > 0` | retry urinildi, tasdiqlanmadi — ORIGINAL content saqlangan |
+| `note: "verifier unavailable"` | verifier yo'q — "repaired" e'lon qilinmagan |
+| `attempts: 0`, maydon yo'q | retry UMUMAN boshlanmagan (max_repair=0, LLM yo'q, muammo yo'q) |
+
+Frontend tavsiyasi: `review.repaired == true` → "tuzatish tasdiqlandi (N urinish)";
+`attempts > 0 && !repaired` → "tuzatib bo'lmadi — original javob saqlandi" (ishonch
+psti ko'rsatkichi `self_eval.confidence` bilan mos).
+
+### `completion.supervisor` — DAG audit izi
+
+```json
+"completion": {"supervisor": {"status": "partial", "iterations_used": 5,
+                              "nodes_count": 2, "failed_nodes": ["sub_0_code"]}}
+```
+
+chat_history.jsonl'ga yoziladi — keyingi audit uchun qaysi node yiqilgani yo'qolmaydi.
+
+### Cache/RAG resync garant (ko'rinmas, lekin kafolatlangan)
+
+Review content'ni almashtirsa `_review_resync` CAG/RAG yozuvini YANGI matn bilan
+yangilaydi (`_finalize` va stream `_done()` ichida). Aks holda keyingi bir xil
+so'rov CAG'dan eskirgan (tasdiqlanmagan) javobni qayta-qayta olardi. Frontend
+buni ko'rmaydi — faqat natija: keshda HECH QACHON tasdiqlanmagan matn yashamaydi.
+
+### `validation_error` — deterministik check rad etishi
+
+`_domain_verify` soxta pozitivlardan himoyalangan (`x > 5`, `placeholder="Email"`,
+JS/prose — LEGIT). `validation_error` ko'rinsa — bu HAQIQIY muammo (sintaksis
+xatosi, markup balanssizligi, TODO placeholder) yoki uning LLM retry'ining
+natijasi.
 
 ## Example SSE Stream
 
@@ -207,26 +266,36 @@ data: {"type": "end"}
 
 ## Integration with server.py
 
-The `/api/chat/stream` endpoint uses `LayeredAgent.run_layered()`:
+**Holat (yangilangan):** `/api/chat/stream` endi KANONIK `IgrisAgent.chat_stream()`
+oqimidan foydalanadi — u klassifikatsiya, xavfsizlik, verification, memory va
+completion'ni o'z ichida oladi (review loop + resync shu yo'lda). LayeredAgent
+faqat **compatibility API** sifatida qoldi: server undan faqat
+`CLARIFICATION_MANAGER` (pause/resume gate) uchun foydalanadi.
 
 ```python
 @app.post("/api/chat/stream")
 def api_chat_stream(req: ChatRequest):
     from fastapi.responses import StreamingResponse
     agent = get_agent()
-    layered = create_layered_agent(agent)
+    sid = req.session_id or f"conv-{uuid.uuid4().hex[:12]}"
 
     def generate():
-        for ev in layered.run_layered(
+        CHAT_HISTORY.add_message(sid, "user", req.message)
+        yield sse({"type": "meta", "session_id": sid})
+        for ev in agent.chat_stream(
             req.message,
             history=req.history,
             use_memory=req.use_memory,
         ):
-            yield sse(ev)
+            yield sse(ev)  # stage/loop_iteration/tool_*/done — §8.1 kontrat bilan
         yield sse({"type": "end"})
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 ```
+
+**Terminatsiya kontrati:** oqim `done` event'siz tugasa — frontend uni xato
+sifatida qabul qiladi ("stream finished without done"). Clarify holatida ham
+terminal `done` yuboriladi (matn = savol).
 
 ## Key Design Decisions
 

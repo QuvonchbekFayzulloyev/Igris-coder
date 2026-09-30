@@ -57,6 +57,13 @@ DEFAULT_COLOR = {
     "cat": (230, 190, 130), "mushuk": (230, 190, 130),
     "star": (240, 200, 30), "yulduz": (240, 200, 30),
     "heart": (220, 40, 70), "yurak": (220, 40, 70),
+    # Kengaytirilgan kutubxona (art_svg SCENE_OBJECTS bilan sinxron)
+    "camel": (198, 155, 93), "tuya": (198, 155, 93),
+    "dog": (196, 148, 90), "it": (196, 148, 90), "kuchuk": (196, 148, 90),
+    "owl": (150, 108, 74), "mifqush": (150, 108, 74), "oqqush": (150, 108, 74),
+    "duck": (240, 200, 30), "o'rdak": (240, 200, 30), "ordak": (240, 200, 30),
+    "robot": (140, 150, 165),
+    "plane": (90, 130, 200), "samolyot": (90, 130, 200), "airplane": (90, 130, 200),
 }
 
 
@@ -280,15 +287,6 @@ def draw_object_png(subject: str, output: str = "art.png", color: str = "red") -
                 break
     if body is None:
         body = DEFAULT_COLOR.get(subj) or COLOR_MAP["red"]
-
-    # SMART DEFAULT: model `output` bermagan bo'lsa ("art.png" default qoladi) —
-    # subject'dan aniq nom yaratamiz. Aks holda fayl workspace'ga emas, server
-    # cwd'siga yozilib, frontend topa olmay qoladi (image kartasi ko'rinmaydi).
-    import re as _re
-    _out = str(output or "").strip()
-    if not _out or os.path.basename(_out).lower() in ("art.png", "output.png"):
-        _slug = _re.sub(r"[^a-z0-9]+", "_", subj).strip("_") or "art"
-        output = _slug + ".png"
 
     # SMART DEFAULT: model `output` bermagan bo'lsa ("art.png" default qoladi) —
     # subject'dan aniq nom yaratamiz. Aks holda fayl workspace'ga emas, server

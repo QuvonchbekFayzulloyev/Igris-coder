@@ -5,7 +5,16 @@ import {
   MainView,
   SidebarMode,
   SidebarChatItem,
+  AgentState,
+  AgentTask,
+  AgentTaskStep,
+  AgentCapability,
+  AgentStateType,
 } from './constants';
+import { relativeTime, newChatId, activeStreamCtrl, setActiveStreamCtrl } from './time-helpers';
+import { loadBrainLogs, appendBrainLog, removeBrainLogs } from './brain-logs';
+import { DRAWING_EXT, drawingPathsFromRun, drawingMessages } from './drawing-helpers';
+import { buildTree } from './tree-helpers';
 
 // Tauri API detection
 let tauriInvoke: ((cmd: string, args?: any) => Promise<any>) | null = null;
@@ -16,91 +25,17 @@ if (typeof window !== 'undefined' && (window as any).__TAURI__) {
 import { chat as bridgeChat, getBackendUrl, StreamError } from '../web/backend';
 import type { AgentRunResult } from '../web/backend';
 
-/** Real chat suhbat id — har bir New Chat'da yangilanadi, backend'ga yuboriladi. */
-function newChatId(): string {
-  return `conv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-/** Faol SSE chat stream'ining AbortController'i — yangi xabar eski oqimni to'xtatadi. */
-let activeStreamCtrl: AbortController | null = null;
-
-/** Epoch soniya -> nisbiy vaqt ('just now', '5m', '3h', 'Yesterday', '2d'). */
-function relativeTime(ts: number): string {
-  if (!ts) return '';
-  const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  if (s < 172800) return 'Yesterday';
-  return `${Math.floor(s / 86400)}d`;
-}
-
-// ------------------------------------------------------------------ //
-// 2nd Brain chat loglari — localStorage'da SESSIYA bo'yicha doimiy saqlanadi
-// (sahifa qayta yuklanganda / suhbatga qaytilganda tiklanadi). Backend
-// history'ga YOZILMAYDI — transcript va LLM konteksti toza qoladi.
-// ------------------------------------------------------------------ //
-
-const BRAIN_LOG_KEY = 'igris:brain:chatlogs';
-/** Bitta suhbat uchun saqlanadigan loglar soni chegarasi. */
-const BRAIN_LOG_CAP = 50;
-
-interface BrainLogEntry {
-  text: string;
-  /** Epoch soniya — qachon yozilgan (kelajakda vaqt ko'rsatish uchun). */
-  ts: number;
-}
-
-function readBrainLogs(): Record<string, BrainLogEntry[]> {
-  try {
-    const raw = localStorage.getItem(BRAIN_LOG_KEY);
-    if (!raw) return {};
-    // Korrupsiyalangan/boshqa formatdagi qiymatlar ("null", massiv, primitiv)
-    // bo'lsa ham crash bo'lmaydi — bo'sh xarita qaytariladi.
-    const parsed = JSON.parse(raw) as unknown;
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as Record<string, BrainLogEntry[]>)
-      : {};
-  } catch {
-    return {};
-  }
-}
-
-function loadBrainLogs(sessionId: string): BrainLogEntry[] {
-  const list = readBrainLogs()[sessionId];
-  // Kalit ostida massiv bo'lmagan qiymat bo'lsa (buzilgan storage) — bo'sh.
-  return Array.isArray(list) ? list : [];
-}
-
-function appendBrainLog(sessionId: string, text: string): void {
-  if (!sessionId) return;
-  const map = readBrainLogs();
-  // Kalit ostida massiv bo'lmagan qiymat bo'lsa (buzilgan storage) — bo'sh
-  // ro'yxatdan boshlaymiz (push crash qilmaydi).
-  const list = Array.isArray(map[sessionId]) ? map[sessionId] : [];
-  // Xuddi shu sabab eng oxirgi saqlangan log bo'lsa — takror yozmaymiz
-  // (cooldown davomida bir xil sabab localStorage'ga to'planib qolmaydi).
-  if (list.length && list[list.length - 1].text === text) return;
-  list.push({ text, ts: Math.floor(Date.now() / 1000) });
-  map[sessionId] = list.slice(-BRAIN_LOG_CAP);
-  try {
-    localStorage.setItem(BRAIN_LOG_KEY, JSON.stringify(map));
-  } catch {
-    /* localStorage to'la / yaroqsiz — log faqat xotirada qoladi */
-  }
-}
-
-function removeBrainLogs(sessionId: string): void {
-  try {
-    const map = readBrainLogs();
-    if (map[sessionId]) {
-      delete map[sessionId];
-      localStorage.setItem(BRAIN_LOG_KEY, JSON.stringify(map));
-    }
-  } catch {
-    /* ignore */
-  }
-}
+// ── Default agent capabilities ─────────────────────────────────────
+const DEFAULT_CAPABILITIES: AgentCapability[] = [
+  { name: 'code_write', icon: '💻', description: 'Kod yozish va tahrirlash', enabled: true, tools: ['write_file', 'edit_file', 'create_file'] },
+  { name: 'code_read', icon: '📖', description: "Fayllarni o'qish va tahlil qilish", enabled: true, tools: ['read_file', 'list_files', 'search_code'] },
+  { name: 'file_management', icon: '📁', description: 'Fayl tizimini boshqarish', enabled: true, tools: ['read_file', 'write_file', 'list_files', 'run_command'] },
+  { name: 'web_research', icon: '🌐', description: 'Webdan malumot olish', enabled: true, tools: ['web_search', 'web_browse', 'fetch_url'] },
+  { name: 'draw', icon: '🎨', description: 'SVG rasm chizish', enabled: true, tools: ['use_skill'] },
+  { name: 'shell', icon: '⚡', description: 'Buyruq satri amallari', enabled: true, tools: ['run_command'] },
+  { name: 'data_analysis', icon: '📊', description: "Ma'lumotlarni tahlil qilish", enabled: true, tools: ['run_command'] },
+  { name: 'skill_use', icon: '🧩', description: "Maxsus ko'nikmalardan foydalanish", enabled: true, tools: ['use_skill'] },
+];
 
 interface AgentConsoleState {
   sidebarOpen: boolean;
@@ -109,7 +44,7 @@ interface AgentConsoleState {
   recents: SidebarChatItem[];
   chatSessionId: string;
   /** Real backend status (model, LLM, RAG memory, 12 intellekt) — /api/status'dan. */
-  agentInfo: { model: string; llmAvailable: boolean; memoryEnabled: boolean; intelligenceEnabled: boolean; circuit?: { state: string; failure_count: number; last_failure: number; last_success: number; open_since: number | null }; llmDegraded?: boolean; llmFailureCount?: number } | null;
+  agentInfo: { model: string; llmAvailable: boolean; memoryEnabled: boolean; intelligenceEnabled: boolean; circuit?: { state: string; failure_count: number; last_failure: number; last_success: number; open_since: number | null }; llmDegraded?: boolean; llmFailureCount?: number; omniroute?: { connected: boolean; url: string; default_model: string; models_count: number; providers: string[] }; lsp?: { servers: Record<string, { running: boolean; initialized: boolean }>; languages: string[] } } | null;
   terminalOpen: boolean;
   mainView: MainView;
   paletteOpen: boolean;
@@ -139,6 +74,27 @@ interface AgentConsoleState {
   pendingHuman: { runId: string; question: string } | null;
   /** Layered agent clarification — userdan qo'shimcha ma'lumot so'ralmoqda. */
   pendingClarification: { sessionId: string; question: string; turn?: number; maxTurns?: number } | null;
+  /** Right sidebar tab — qaysi panel ochiq. */
+  rightSidebarTab: 'agent' | 'activity' | 'inspector' | 'memory' | 'task' | 'systems';
+  setRightSidebarTab: (tab: 'agent' | 'activity' | 'inspector' | 'memory' | 'task' | 'systems') => void;
+  rightSidebarOpen: boolean;
+  setRightSidebarOpen: (open: boolean) => void;
+  toggleRightSidebar: () => void;
+  // ── Agent state ─────────────────────────────────────────────────
+  agentState: AgentStateType;
+  agentCapabilities: AgentCapability[];
+  agentTaskQueue: AgentTask[];
+  agentCompletedToday: number;
+  agentAutoMode: boolean;
+  agentStartTime: number;
+  setAgentState: (state: AgentStateType) => void;
+  toggleAutoMode: () => void;
+  addTaskToQueue: (task: Omit<AgentTask, 'id' | 'created_at' | 'steps' | 'tools_used'>) => string;
+  removeTaskFromQueue: (id: string) => void;
+  pauseTask: (id: string) => void;
+  resumeTask: (id: string) => void;
+  updateTaskStep: (taskId: string, stepId: number, update: Partial<AgentTaskStep>) => void;
+  loadAgentState: () => Promise<void>;
   setBackendOnline: (online: boolean) => void;
   setBackendUrl: (url: string) => void;
   setSidebarOpen: (open: boolean) => void;
@@ -182,6 +138,9 @@ interface AgentConsoleState {
   setStage: (stage: number) => void;
   setStageDetail: (detail: string) => void;
   setTaskRunning: (running: boolean) => void;
+  /** Jonli agent stream'ni to'xtatish (Claude'dagi Stop tugmasi) —
+   * abort qilinadi, qisman javob chatda qoladi. */
+  stopStream: () => void;
   setMessages: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
   setInput: (input: string) => void;
   handleSend: () => void;
@@ -194,6 +153,8 @@ interface AgentConsoleState {
   /** 2nd Brain yangilanish sababini chatga LOG qatori sifatida qo'shadi
    *  (badge vaqtinchalik — chat logi doimiy yozuv bo'lib qoladi). */
   pushBrainLog: (reason: string) => void;
+  pushAgentState: (state: string, detail?: string) => void;
+  pushTaskResult: (text: string, opts?: { name?: string; status?: string; duration_ms?: number; engine?: string; diff?: string[]; completion?: any }) => void;
 }
 
 /** Backend stage nomi -> STAGES indeksi (REAL pipeline progress). */
@@ -206,86 +167,8 @@ const STAGE_INDEX: Record<string, number> = {
 };
 
 // ------------------------------------------------------------------ //
-// Live-build drawing detection — agent write/apply_patch'larida chizilgan
-// SVG/PNG fayllarini topib, chat'ga inline preview kartasi qo'shadi.
+// Asosiy store — AgentConsole holati va amallari.
 // ------------------------------------------------------------------ //
-
-// Chizma/UI spec karta sifatida ko'rsatiladigan fayllar: SVG/PNG rasm + uibuild spec
-const DRAWING_EXT = /\.(svg|png|jpe?g|gif|webp|bmp|ico|uibuild\.json)$/i;
-
-function drawingPathsFromRun(r: {
-  tool_calls?: { tool?: string; args?: unknown; result?: { ok?: boolean } | null; output_preview?: string }[];
-} | null | undefined): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  const add = (path: string) => {
-    if (typeof path === 'string' && DRAWING_EXT.test(path) && !seen.has(path)) {
-      seen.add(path);
-      out.push(path);
-    }
-  };
-  for (const tc of r?.tool_calls || []) {
-    if (!tc.result || !tc.result.ok) continue;
-    // 1) Fayl YOZUVCHI tool'lar (write_file/apply_patch) — path arg'idan
-    // 2) mcp_call (art__ui_build_spec, art__draw_object_png) — output_preview'dan
-    //    "image saved to X" / "saved X" satri aniqlanadi (chala ulanish tuzatildi)
-    const args = tc.args;
-    const path =
-      args && typeof args === 'object' && !Array.isArray(args)
-        ? (args as Record<string, unknown>).path
-        : undefined;
-    if (typeof path === 'string') add(path);
-    // mcp_call: {tool: 'art__ui_build_spec', args: {output: 'x.uibuild.json'}}
-    if (args && typeof args === 'object' && !Array.isArray(args)) {
-      const a = args as Record<string, unknown>;
-      const inner = a.args as Record<string, unknown> | undefined;
-      if (inner && typeof inner.output === 'string') add(inner.output);
-      if (inner && typeof inner.path === 'string') add(inner.path);
-    }
-    // output_preview ichidan "saved ..." / "image saved to ..."
-    const preview = tc.output_preview || '';
-    const m = preview.match(/(?:image\s+saved\s+to|saved)\s+([^\s\n]+(?:\.(?:svg|png|jpe?g|gif|webp|bmp|ico|uibuild\.json)))/i);
-    if (m) add(m[1].replace(/['"`.,;]$/g, ''));
-  }
-  return out;
-}
-
-function drawingMessages(r: {
-  tool_calls?: { tool?: string; args?: unknown; result?: { ok?: boolean } | null }[];
-} | null | undefined): ChatMessage[] {
-  return drawingPathsFromRun(r).map((path) => ({
-    kind: 'drawing' as const,
-    path,
-    caption: 'agent bu chizmani yaratdi — ▶ qurilishni tomosha qilish, ⏸ pauza qilib o\'zgartirish kiritish mumkin',
-  }));
-}
-
-/** Flat backend listing -> nested TreeNode tree used by the sidebar. */
-function buildTree(entries: { path: string; type: 'dir' | 'file' }[]): TreeNode[] {
-  const root: TreeNode = { type: 'folder', name: '', children: [] };
-  for (const e of entries || []) {
-    const parts = e.path.split('/').filter(Boolean);
-    let node = root;
-    parts.forEach((part, i) => {
-      if (!node.children) node.children = [];
-      const existing = node.children.find((c) => c.name === part);
-      const isLast = i === parts.length - 1;
-      if (!existing) {
-        const child: TreeNode = {
-          type: isLast ? (e.type === 'dir' ? 'folder' : 'file') : 'folder',
-          name: part,
-        };
-        node.children.push(child);
-        node = child;
-      } else {
-        node = existing;
-      }
-    });
-  }
-  return root.children || [];
-}
-
-
 export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
   sidebarOpen: true,
   sidebarMode: 'chats',
@@ -316,6 +199,65 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
   backendUrl: getBackendUrl(),
   pendingHuman: null,
   pendingClarification: null,
+  rightSidebarTab: 'agent',
+  rightSidebarOpen: false,
+  setRightSidebarTab: (tab) => set({ rightSidebarTab: tab, rightSidebarOpen: true }),
+  setRightSidebarOpen: (open) => set({ rightSidebarOpen: open }),
+  toggleRightSidebar: () => set((state) => ({ rightSidebarOpen: !state.rightSidebarOpen })),
+  // Agent state
+  agentState: 'idle' as AgentStateType,
+  agentCapabilities: DEFAULT_CAPABILITIES,
+  agentTaskQueue: [],
+  agentCompletedToday: 0,
+  agentAutoMode: false,
+  agentStartTime: Date.now(),
+  setAgentState: (agentState) => set({ agentState }),
+  loadAgentState: async () => {
+    try {
+      const { agentState: fetchAgentState } = await import('../web/backend');
+      const st = await fetchAgentState();
+      set({
+        agentState: st.state as AgentStateType,
+        agentCapabilities: st.capabilities,
+        agentCompletedToday: st.completed_today,
+      });
+    } catch {
+      // offline — keep current state
+    }
+  },
+  toggleAutoMode: () => set((s) => ({ agentAutoMode: !s.agentAutoMode })),
+  addTaskToQueue: (task) => {
+    const id = `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const newTask: AgentTask = {
+      ...task,
+      id,
+      created_at: Date.now(),
+      steps: [],
+      tools_used: [],
+    };
+    set((s) => ({ agentTaskQueue: [...s.agentTaskQueue, newTask] }));
+    return id;
+  },
+  removeTaskFromQueue: (id) => set((s) => ({
+    agentTaskQueue: s.agentTaskQueue.filter((t) => t.id !== id),
+  })),
+  pauseTask: (id) => set((s) => ({
+    agentTaskQueue: s.agentTaskQueue.map((t) =>
+      t.id === id ? { ...t, status: 'paused' as const } : t
+    ),
+  })),
+  resumeTask: (id) => set((s) => ({
+    agentTaskQueue: s.agentTaskQueue.map((t) =>
+      t.id === id ? { ...t, status: 'queued' as const } : t
+    ),
+  })),
+  updateTaskStep: (taskId, stepId, update) => set((s) => ({
+    agentTaskQueue: s.agentTaskQueue.map((t) =>
+      t.id === taskId
+        ? { ...t, steps: t.steps.map((st) => st.id === stepId ? { ...st, ...update } : st) }
+        : t
+    ),
+  })),
   setBackendOnline: (online) => set({ backendOnline: online }),
   setBackendUrl: (url) => {
     set({ backendUrl: url });
@@ -545,6 +487,10 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
           circuit: st.circuit || undefined,
           llmDegraded: Boolean(st.llm?.degraded),
           llmFailureCount: st.llm?.failure_count || 0,
+          // OmniRoute gateway status
+          omniroute: st.omniroute || undefined,
+          // LSP server status
+          lsp: st.lsp || undefined,
         },
         llmError: st.llm?.error || null,
         // TURBO holati /api/status'da ham keladi — real vaqtda sinxronlash.
@@ -606,6 +552,14 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
   setStage: (stage) => set({ stage }),
   setStageDetail: (detail) => set({ stageDetail: detail }),
   setTaskRunning: (running) => set({ taskRunning: running }),
+  // JONLI stream'ni foydalanuvchi to'xtatadi — abort signal stream reader'ini
+  // buzadi, handleSend catch yo'li kursor to'xtatadi, qisman javob chatda qoladi.
+  stopStream: () => {
+    if (activeStreamCtrl) {
+      activeStreamCtrl.abort();
+      setActiveStreamCtrl(null);
+    }
+  },
   setMessages: (messages) => set((state) => ({
     messages: typeof messages === 'function' ? messages(state.messages) : messages,
   })),
@@ -640,6 +594,8 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
     // qolgan" ko'rinmasin): ~5 daqiqadan so'ng aniq xato ko'rsatiladi.
     const POLL_CAP = 75;
     let polls = 0;
+    // Poll orqali jonli ko'rsatilgan tool chaqiruvlar soni — dublikat kartochkalarni oldini oladi.
+    let shownToolCalls = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
       await new Promise((r) => setTimeout(r, 4000));
@@ -686,6 +642,25 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
         drawingPathsFromRun({ tool_calls: state.tool_calls }).forEach((p) =>
           get().pushDrawing(p, 'agent hozir chizmoqda — ▶ jarayonni jonli kuzatish'),
         );
+        // JONLI tool kartochkalari — yangi bajarilgan tool'lar darhol ko'rinadi
+        const freshTools = state.tool_calls.slice(shownToolCalls);
+        if (freshTools.length) {
+          shownToolCalls = state.tool_calls.length;
+          set((s) => ({
+            messages: [
+              ...s.messages,
+              ...freshTools.map((tc) => ({
+                kind: 'toolcall' as const,
+                name: tc.tool,
+                status: (tc.result && tc.result.ok ? 'done' : 'error') as 'done' | 'error',
+                detail: typeof tc.args === 'object' && tc.args ? JSON.stringify(tc.args).slice(0, 90) : '',
+                diff: tc.result && tc.result.ok && tc.output_preview
+                  ? tc.output_preview.split('\n').slice(0, 12).map((l) => `  ${l}`)
+                  : undefined,
+              })),
+            ],
+          }));
+        }
       }
       if (state.status === 'awaiting_human' && state.question) {
         const question = state.question || '';
@@ -698,7 +673,8 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
       if (state.status === 'done' || state.status === 'error') {
         const r = state.result;
         const drawings = state.status === 'done' ? drawingMessages(r) : [];
-        const toolMsgs: ChatMessage[] = (r?.tool_calls || []).map((tc) => ({
+        // Jonli poll'da allaqachon ko'rsatilgan tool'lar QAYTA qo'shilmasin
+        const toolMsgs: ChatMessage[] = (r?.tool_calls || []).slice(shownToolCalls).map((tc) => ({
           kind: 'toolcall',
           name: tc.tool,
           status: tc.result && tc.result.ok ? 'done' : 'error',
@@ -941,6 +917,31 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
       };
     });
   },
+  pushAgentState: (state, detail) => {
+    set((s) => ({
+      messages: [
+        ...s.messages,
+        { kind: 'agent_state' as const, text: state, detail } as ChatMessage,
+      ],
+    }));
+  },
+  pushTaskResult: (text, opts) => {
+    set((s) => ({
+      messages: [
+        ...s.messages,
+        {
+          kind: 'task_result' as const,
+          text,
+          name: opts?.name,
+          status: opts?.status,
+          duration_ms: opts?.duration_ms,
+          engine: opts?.engine,
+          diff: opts?.diff,
+          completion: opts?.completion,
+        } as ChatMessage,
+      ],
+    }));
+  },
   pushBrainLog: (reason) => {
     const text = reason.trim();
     if (!text) return;
@@ -983,14 +984,12 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
     // yakunlangan xabarga yozmasligi uchun (abort -> reader.read() xato beradi,
     // catch fallback yo'liga tushadi, lekin taskRunning holati tozalanadi).
     activeStreamCtrl?.abort();
-    activeStreamCtrl = null;
+    setActiveStreamCtrl(null);
 
     set({
       input: '',
       mainView: 'chat',
-      messages: [...messages, { role: 'user', text }],
-      // REAL pipeline: chat ham jonli bosqichlarni ko'rsatadi — backend progress
-      // buferidan poll qilinadi (soxta/bezak emas, haqiqiy agent bosqichi).
+      messages: [...messages, { role: 'user', text }, { kind: 'agent_state' as const, text: 'thinking', detail: 'So\'rov tahlil qilinmoqda...' } as ChatMessage],
       stage: 0,
       stageDetail: 'tahlil qilinmoqda…',
       taskRunning: true,
@@ -1034,7 +1033,7 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
       const streamed = await (async () => {
         // Abort signali — yangi xabar yuborilsa eski oqim to'xtatiladi
         const ctrl = new AbortController();
-        activeStreamCtrl = ctrl;
+        setActiveStreamCtrl(ctrl);
         // To'plangan javob/fikrlash matni — catch'da ham (stream uzilganda
         // qisman javobni saqlash uchun) ko'rinishi kerak, shuning uchun try
         // TASHQARISIDA e'lon qilinadi.
@@ -1066,6 +1065,34 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
               return { messages: msgs };
             });
           };
+          // JONLI TOOL KARTOCHKALARI — stream davomida agent nima qilayotganini
+          // real vaqtda ko'rsatadi (tool/mcp/skill start/done, layer eventlari).
+          // Kartochna streaming agent xabarining OLDIGA qo'yiladi — tokenlar
+          // oxirgi (streaming) xabarga to'g'ri oqib borishida davom etadi.
+          const insertLiveTool = (msg: ChatMessage) => {
+            set((state) => {
+              const msgs = [...state.messages];
+              let at = msgs.length;
+              for (let i = msgs.length - 1; i >= 0; i--) {
+                if (msgs[i].role === 'agent' && msgs[i].streaming) { at = i; break; }
+              }
+              msgs.splice(at, 0, msg);
+              return { messages: msgs };
+            });
+          };
+          const finishLiveTool = (name: string, status: 'done' | 'error', detail?: string) => {
+            set((state) => {
+              const msgs = [...state.messages];
+              for (let i = msgs.length - 1; i >= 0; i--) {
+                const m = msgs[i];
+                if (m.kind === 'toolcall' && m.status === 'running' && m.name === name) {
+                  msgs[i] = { ...m, status, detail: detail || m.detail } as ChatMessage;
+                  break;
+                }
+              }
+              return { messages: msgs };
+            });
+          };
           await chatStream(text, history, get().chatSessionId, (ev) => {
             if (ctrl.signal.aborted) return; // eski stream — voqealarni o'tkazib yuboramiz
             if (ev.type === 'stage') {
@@ -1089,6 +1116,27 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
               appendToken(ev.content);
             } else if (ev.type === 'meta' && ev.session_id) {
               set({ chatSessionId: ev.session_id });
+            } else if (ev.type === 'tool_start' && ev.tool) {
+              // JONLI tool chaqiruvi — agent ishlayotgan paytda ko'rinadi
+              // (LayeredAgent: {tool, layer, description})
+              insertLiveTool({ kind: 'toolcall', name: ev.tool, status: 'running', detail: ev.description || '' } as ChatMessage);
+            } else if (ev.type === 'tool_done' && ev.tool) {
+              finishLiveTool(ev.tool, ev.status === 'error' ? 'error' : 'done', ev.result || ev.detail);
+            } else if (ev.type === 'mcp_start' && ev.mcp) {
+              insertLiveTool({ kind: 'toolcall', name: `mcp:${ev.mcp}`, status: 'running', detail: ev.description || '' } as ChatMessage);
+            } else if (ev.type === 'mcp_done' && ev.mcp) {
+              finishLiveTool(`mcp:${ev.mcp}`, ev.status === 'error' ? 'error' : 'done', ev.result || ev.detail);
+            } else if (ev.type === 'skill_start' && ev.skill) {
+              insertLiveTool({ kind: 'toolcall', name: `skill:${ev.skill}`, status: 'running', detail: ev.description || '' } as ChatMessage);
+            } else if (ev.type === 'skill_done' && ev.skill) {
+              finishLiveTool(`skill:${ev.skill}`, ev.status === 'error' ? 'error' : 'done', ev.result || ev.detail);
+            } else if (ev.type === 'layer_start' && ev.layer) {
+              // Qatlam boshlandi — stepper ham yangilanadi (pipeline stage bo'lsa)
+              const lIdx = STAGE_INDEX[ev.layer];
+              if (typeof lIdx === 'number') set({ stage: lIdx, stageDetail: ev.detail || ev.layer });
+            } else if (ev.type === 'layer_done' && ev.layer) {
+              const lIdx = STAGE_INDEX[ev.layer];
+              if (typeof lIdx === 'number') set({ stage: lIdx + 1, stageDetail: ev.detail || `${ev.layer} tugadi` });
             } else if (ev.type === 'clarify' && ev.question) {
               // Layered agent clarification — userdan qo'shimcha ma'lumot so'ralmoqda
               // Multi-turn: turn/max_turns maydonlari orqali qaysi tur ekanligini ko'rsatadi
@@ -1152,6 +1200,19 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
                 };
               });
               if (ev.session_id) set({ chatSessionId: ev.session_id });
+              // Task result — chat'ga natija qo'shish
+              if (ev.tool_calls && ev.tool_calls.length > 0) {
+                get().pushTaskResult(
+                  `Bajarildi — ${ev.tool_calls.length} tool call`,
+                  {
+                    name: ev.tool_calls[0]?.tool,
+                    status: 'done',
+                    duration_ms: ev.duration_ms,
+                    engine: ev.engine,
+                    completion: ev.completion,
+                  }
+                );
+              }
             } else if (ev.type === 'end') {
               if (ev.session_id) set({ chatSessionId: ev.session_id });
             }
@@ -1215,7 +1276,7 @@ export const useAgentConsoleStore = create<AgentConsoleState>((set, get) => ({
           }));
           return false;
         } finally {
-          if (activeStreamCtrl === ctrl) activeStreamCtrl = null;
+          if (activeStreamCtrl === ctrl) setActiveStreamCtrl(null);
         }
       })();
       if (streamed) return;

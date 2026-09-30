@@ -1,0 +1,3 @@
+# igris_brick_knowledge — no external dependencies (stdlib only)
+# This is intentional: brick+knowledge system is designed to be
+# dependency-free for maximum portability and speed.

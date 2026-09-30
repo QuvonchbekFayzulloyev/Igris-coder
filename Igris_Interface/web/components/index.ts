@@ -12,3 +12,5 @@ export { WebAIBridgeView } from './WebAIBridgeView';
 export { CommandPalette } from './CommandPalette';
 export { SettingsModal } from './SettingsModal';
 export { StatusBar } from './StatusBar';
+export { SmartBuildPanel, VisionBuildPanel } from './SmartBuildPanel';
+export { ChatStreamView } from './ChatStreamView';

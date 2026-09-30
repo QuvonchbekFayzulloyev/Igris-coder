@@ -26,9 +26,12 @@ import time
 import urllib.parse
 import urllib.request
 
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from .base import Tool
 
-from safety import has_suspicious, sanitize  # noqa: E402 (N3: web chiqishini tozalash)
+from safety.safety import has_suspicious, sanitize  # noqa: E402 (N3: web chiqishini tozalash)
 
 # Wikimedia Commons so'rovlari uchun majburiy User-Agent (API qoidasi)
 _UA = "IgrisAgent/2.0 (local coding agent; contact: localhost)"

@@ -1,0 +1,130 @@
+{
+  "runtime": {
+    "session": [
+      {
+        "id": "session-bridge",
+        "type": "session",
+        "status": "active",
+        "started_at": "2026-09-29T19:45:06.419153+00:00",
+        "updated_at": "2026-09-29T19:45:06.419153+00:00",
+        "total_turns": 0,
+        "total_tool_calls": 0,
+        "total_tokens_used": 0,
+        "files_read": [],
+        "files_modified": [],
+        "errors_encountered": [],
+        "summary": "Session bridge started",
+        "timestamp": "2026-09-29T19:45:06.419193+00:00"
+      }
+    ]
+  },
+  "persistent": {
+    "experience": [
+      {
+        "id": "from-agent-short-turn-1785823382",
+        "type": "experience",
+        "source": "l1:short-turn",
+        "summary": "Write a Python function that takes two lists and returns their intersection preserving order.",
+        "data": {
+          "content": "def intersect_lists(list1, list2):\n    return [value for value in list1 if value in list2]",
+          "type": "short-turn",
+          "tags": [
+            "turn"
+          ],
+          "metadata": {},
+          "summary": "Write a Python function that takes two lists and returns their intersection preserving order.",
+          "remembered_at": "2026-08-04T06:03:02.626403+00:00",
+          "id": "agent-short-turn-1785823382",
+          "timestamp": "2026-08-04T06:03:02.626412+00:00"
+        },
+        "consolidated_at": "2026-08-04T06:03:08.047634+00:00",
+        "updated_at": "2026-09-21T14:00:50.116567+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T14:00:50.116560+00:00"
+      },
+      {
+        "id": "from-agent-short-turn-1785823388",
+        "type": "experience",
+        "source": "l1:short-turn",
+        "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+        "data": {
+          "content": "def find_max_min(numbers):\n    if not numbers:\n        return None, None\n    max_number = max(numbers)\n    min_number = min(numbers)\n    return max_number, min_number\n\n# Masalan:\nnumbers = [10, 20, 30, 40, 50]\nmax_num, min_num = find_max_min(numbers)\nprint(f\"Eng katta son: {max_num}, Eng kichik son: {min_num}\")",
+          "type": "short-turn",
+          "tags": [
+            "turn"
+          ],
+          "metadata": {},
+          "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+          "remembered_at": "2026-08-04T06:03:08.014772+00:00",
+          "id": "agent-short-turn-1785823388",
+          "timestamp": "2026-08-04T06:03:08.014816+00:00"
+        },
+        "consolidated_at": "2026-08-04T06:03:08.048047+00:00",
+        "updated_at": "2026-09-21T14:00:50.116850+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T14:00:50.116843+00:00"
+      },
+      {
+        "id": "exp-session-exec-test",
+        "type": "experience",
+        "sessions": [
+          {
+            "date": "2026-08-04",
+            "task": "done",
+            "outcome": "successful",
+            "key_learnings": [],
+            "tags": []
+          }
+        ],
+        "summary": "done",
+        "updated_at": "2026-09-21T14:00:50.117152+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T14:00:50.117142+00:00"
+      }
+    ],
+    "solution-memory": [
+      {
+        "content": "Q: tuya rasmini chiz\nA: The current model could not draw this accurately. Ask for a known subject (apple, house, tree, cat, car, flower, bird, fish, butterfly...) or pick a stronger model in Settings.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "tuya rasmini chiz",
+        "remembered_at": "2026-09-21T14:02:12.636968+00:00",
+        "id": "agent-solution-memory-1789999332",
+        "updated_at": "2026-09-21T14:02:12.637021+00:00"
+      },
+      {
+        "content": "Q: pcb balanceni ko'rsatadigan sxemani yasa\nA: I will draw a PCB balance schema.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm-fast",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "pcb balanceni ko'rsatadigan sxemani yasa",
+        "remembered_at": "2026-09-21T17:22:35.668310+00:00",
+        "id": "agent-solution-memory-1790011355",
+        "updated_at": "2026-09-21T17:22:35.668340+00:00"
+      },
+      {
+        "content": "Q: agentic pipline nima va bunda ragning ahamiyati nimada\nA: Agentic pipline — bu amaliyotda qiyinlik yoki xatoliklar bo'lganda avtomatik ravishda qilinadigan ishlar ketma-ketligi. Bu jarayonda \"rag\" (robot) asosan xatoliklarni aniqlash, ularni tuzatish va ishlar ketma-ketligini bajarish uchun qo'llaniladi. Ragning ahamiyati — bu xatoliklarni tez va to'g'ri aniqlash, ishlar ketma-ketligini samarali bajarish va amaliyotni samarali qilish.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "agentic pipline nima va bunda ragning ahamiyati nimada",
+        "remembered_at": "2026-09-21T17:24:39.063677+00:00",
+        "id": "agent-solution-memory-1790011479",
+        "updated_at": "2026-09-21T17:24:39.063691+00:00"
+      }
+    ]
+  }
+}

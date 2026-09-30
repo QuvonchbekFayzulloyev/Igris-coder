@@ -127,9 +127,25 @@ _MATH_RE = re.compile(r"^\s*[\d\s+\-*/().^%]+\s*$")
 class RequirementExtractor:
     """LLM orqali semantik, aks holda deterministik talab chiqaruvchi."""
 
-    def __init__(self, llm=None, cache=None):
+    def __init__(self, llm=None, cache=None, llm_provider=None):
         self.llm = llm
+        # llm_provider: ixtiyoriy Callable[[], llm] — HAR extract() chaqiruvida
+        # so'raladi. Agent `self.llm`'ni keyin almashtirsa (test fake LLM,
+        # runtime reconnect) ekstraktor ham sinxron ergashadi — aks holda
+        # konstruktor paytidagi ESKI klient qotib qoladi va testlar real
+        # LLM'ga tarmoq chaqiruvi qilib qolardi (bloklanish).
+        self._llm_provider = llm_provider
         self.cache = cache  # CagCache — kalit "req:<message>"
+
+    @property
+    def llm_active(self):
+        """Faol LLM — provider berilgan bo'lsa har chaqiruvda yangilanadi."""
+        if self._llm_provider is not None:
+            try:
+                return self._llm_provider()
+            except Exception:
+                return self.llm
+        return self.llm
 
     # ------------------------------------------------------------ #
     # Public
@@ -150,7 +166,8 @@ class RequirementExtractor:
         bo'lsa — deterministik fallback (eski kalit-so'z mantiqidan xavfsiz).
         """
         req = self._deterministic(message)
-        if self.llm is None:
+        llm = self.llm_active
+        if llm is None:
             return req
         try:
             cached = None
@@ -161,7 +178,7 @@ class RequirementExtractor:
                 if parsed is not None:
                     return parsed
             prompt = self._build_prompt(message, history)
-            text = self.llm.complete(system=EXTRACT_SYSTEM, prompt=prompt)
+            text = llm.complete(system=EXTRACT_SYSTEM, prompt=prompt)
             if not text:
                 return req
             parsed = self._parse(text)

@@ -146,6 +146,10 @@ export interface ChatStreamEvent {
   tool?: string;
   mcp?: string;
   skill?: string;
+  /** tool/mcp/skill_start: bajarilayotgan amal tavsifi (LayeredAgent). */
+  description?: string;
+  /** tool/mcp/skill_done: natija ko'rinishi (200 belgigacha). */
+  result?: string;
   /** final_result: yakuniy natija. */
   layers_executed?: string[];
   reprompt?: { role?: string; complexity?: string };
@@ -423,9 +427,27 @@ export interface SystemServicesResult {
     checked_at?: number | null;
     last_error?: string | null;
   };
-  mcp?: { connected: boolean; servers?: string[] };
+  mcp?: { connected: boolean; servers?: string[]; degraded?: boolean };
+  /** S3: silent-degradation registry — komponent jim zaif rejimga o'tganda mark bo'ladi. */
+  degradations?: DegradationEntry[];
+  /** So'nggi 10 daqiqada mark qilingan degradatsiyalar soni (0 = hammasi sog'lom). */
+  degradations_active?: number;
   timestamp?: number;
   error?: string;
+}
+
+/** S3: bitta silent-fallback yozuvi (logs/degradations.json). */
+export interface DegradationEntry {
+  /** Qayerda: "mcp.web_ai_bridge", "memory.keyword-index", "agent.cag"... */
+  component: string;
+  /** Nega: import xatosi / ulanmadi / timeout... (qisqa matn). */
+  reason: string;
+  /** Nimaga qaytdi: "BM25Index", "no-tools", "disabled"... */
+  fallback?: string;
+  /** Unix timestamp (so'nggi mark vaqti). */
+  ts: number;
+  /** Necha marta mark qilingan (bir xil component+fallback). */
+  count?: number;
 }
 
 export async function systemServices(): Promise<SystemServicesResult> {
@@ -439,6 +461,11 @@ export async function systemServices(): Promise<SystemServicesResult> {
 /** Backend'ni o'zini qayta ishga tushiradi (javob darhol qaytadi). */
 export async function systemRestart(): Promise<{ ok: boolean; restarting?: boolean; port?: number; error?: string }> {
   return post<{ ok: boolean; restarting?: boolean; port?: number; error?: string }>('/api/system/restart', {});
+}
+
+/** S3: silent-degradation registry tozalash (UI Settings→Services 'clear'). */
+export async function clearDegradations(): Promise<{ ok: boolean; cleared?: number; error?: string }> {
+  return post<{ ok: boolean; cleared?: number; error?: string }>('/api/system/degradations/clear', {});
 }
 
 /** Ollama serve'ni ishga tushiradi (agar ishlamayotgan bo'lsa). */
@@ -848,7 +875,7 @@ export interface WebAIActionResult {
   error?: string;
 }
 
-/** Whitelisted browser amali — navigate/back/forward/new_tab/switch_tab/close_tab/refresh. */
+/** Whitelisted browser amali — navigate/back/forward/new_tab/switch_tab/close_tab/refresh/scroll/zoom/... */
 export async function webaiAction(
   action: string,
   opts?: { url?: string; index?: number },
@@ -860,9 +887,20 @@ export async function webaiAction(
   });
 }
 
-/** Aktiv tabning real screenshot URL'i (har yangilanishda yangi t param). */
-export function webaiScreenshotUrl(): string {
-  return `${backendUrl()}/api/webai/screenshot?t=${Date.now()}`;
+/**
+ * Aktiv tabning real screenshot URL'i (har yangilanishda yangi t param).
+ * full=true — scroll qilib bo'ladigan to'liq sahifa rasmi.
+ */
+export function webaiScreenshotUrl(full = false): string {
+  const f = full ? '&full=1' : '';
+  return `${backendUrl()}/api/webai/screenshot?t=${Date.now()}${f}`;
+}
+
+/** Aktiv tabning ko'rinadigan matni (ads/cookie banner tozalangan). */
+export async function webaiPageText(): Promise<string> {
+  const r = await webaiAction('page_text');
+  if (!r.ok) throw new Error(r.error || 'page text unavailable');
+  return r.output || r.content || '';
 }
 
 export interface WorkspaceEntry {
@@ -1094,4 +1132,37 @@ export async function probeReport(): Promise<ProbeReportResult> {
   const res = await fetch(`${backendUrl()}/api/probe/report`, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`backend ${res.status}`);
   return (await res.json()) as ProbeReportResult;
+}
+
+// --------------------------------------------------------------------- //
+// Agent State — real-time agent status for status panel
+// --------------------------------------------------------------------- //
+
+export interface AgentCapability {
+  name: string;
+  icon: string;
+  description: string;
+  enabled: boolean;
+  tools: string[];
+}
+
+export interface AgentStateResult {
+  ok: boolean;
+  state: string;
+  current_task?: string;
+  current_step?: string;
+  capabilities: AgentCapability[];
+  task_queue: any[];
+  completed_today: number;
+  tools_available: number;
+  memory_entries: number;
+  uptime_seconds: number;
+  auto_mode: boolean;
+}
+
+/** Agent real-time holati — status panel uchun. */
+export async function agentState(): Promise<AgentStateResult> {
+  const res = await fetch(`${backendUrl()}/api/agent/state`, { signal: AbortSignal.timeout(5000) });
+  if (!res.ok) throw new Error(`backend ${res.status}`);
+  return (await res.json()) as AgentStateResult;
 }

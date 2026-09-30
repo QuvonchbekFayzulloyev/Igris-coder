@@ -391,6 +391,190 @@ def _svg_ball(color, tex):
     ]
 
 
+def _svg_camel(color, tex):
+    """Tuya (bactrian — ikki kamarli, oson va taniqli ko'rinish)."""
+    dark = _hex(_darken(color))
+    fur = _hex(_lighten(color, 0.35))
+    return [
+        # fon uzra yurish: oldingi oyog'lar
+        _e("path", {"d": "M 176 350 L 168 448 L 186 448 L 194 352", "fill": fur, "stroke": dark, "stroke-width": 4}),
+        _e("path", {"d": "M 330 350 L 338 448 L 356 448 L 350 352", "fill": fur, "stroke": dark, "stroke-width": 4}),
+        # tana
+        _e("ellipse", {"cx": 262, "cy": 330, "rx": 120, "ry": 62, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # ikki kamar
+        _e("path", {"d": "M 190 300 Q 216 216 252 296 Q 262 306 270 296 Q 300 214 332 298", "fill": tex, "stroke": dark, "stroke-width": 5, "stroke-linejoin": "round"}),
+        _e("ellipse", {"cx": 222, "cy": 258, "rx": 34, "ry": 30, "fill": fur, "opacity": 0.55}),
+        _e("ellipse", {"cx": 316, "cy": 260, "rx": 34, "ry": 30, "fill": fur, "opacity": 0.55}),
+        # bo'yin + bosh
+        _e("path", {"d": "M 352 320 Q 392 260 386 186 Q 384 158 364 158 Q 346 158 350 190 Q 356 250 322 302 Z", "fill": tex, "stroke": dark, "stroke-width": 5, "stroke-linejoin": "round"}),
+        _e("ellipse", {"cx": 358, "cy": 150, "rx": 40, "ry": 26, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        _e("circle", {"cx": 344, "cy": 144, "r": 6, "fill": "#202020"}),
+        # quloq + dumi
+        _e("ellipse", {"cx": 348, "cy": 128, "rx": 8, "ry": 14, "fill": fur, "stroke": dark, "stroke-width": 3, "transform": "rotate(-18 348 128)"}),
+        _e("path", {"d": "M 142 316 Q 106 296 100 258", "fill": "none", "stroke": dark, "stroke-width": 9, "stroke-linecap": "round"}),
+        # orqa oyog'lar
+        _e("path", {"d": "M 216 380 L 212 448 L 230 448 L 236 380", "fill": tex, "stroke": dark, "stroke-width": 4}),
+        _e("path", {"d": "M 296 380 L 300 448 L 318 448 L 314 380", "fill": tex, "stroke": dark, "stroke-width": 4}),
+        # yelka sohasi: sahna yer chizig'i
+        _e("line", {"x1": 60, "y1": 452, "x2": 452, "y2": 452, "stroke": "#c8b78e", "stroke-width": 5, "stroke-linecap": "round", "opacity": 0.6}),
+    ]
+
+
+def _svg_dog(color, tex):
+    dark = _hex(_darken(color))
+    snout = _hex(_lighten(color, 0.55))
+    return [
+        # dumi
+        _e("path", {"d": "M 380 300 Q 432 264 436 212", "fill": "none", "stroke": tex, "stroke-width": 16, "stroke-linecap": "round"}),
+        # tana
+        _e("ellipse", {"cx": 268, "cy": 322, "rx": 118, "ry": 72, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # oyog'lar
+        _e("rect", {"x": 186, "y": 366, "width": 34, "height": 86, "rx": 12, "fill": tex, "stroke": dark, "stroke-width": 4}),
+        _e("rect", {"x": 240, "y": 378, "width": 34, "height": 78, "rx": 12, "fill": tex, "stroke": dark, "stroke-width": 4}),
+        _e("rect", {"x": 306, "y": 378, "width": 34, "height": 78, "rx": 12, "fill": tex, "stroke": dark, "stroke-width": 4}),
+        _e("rect", {"x": 356, "y": 366, "width": 34, "height": 86, "rx": 12, "fill": tex, "stroke": dark, "stroke-width": 4}),
+        # bosh
+        _e("circle", {"cx": 152, "cy": 226, "r": 62, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # quloqlar (osilgan)
+        _e("ellipse", {"cx": 104, "cy": 218, "rx": 20, "ry": 42, "fill": _hex(_darken(color, 0.18)), "stroke": dark, "stroke-width": 4, "transform": "rotate(14 104 218)"}),
+        _e("ellipse", {"cx": 200, "cy": 218, "rx": 20, "ry": 42, "fill": _hex(_darken(color, 0.18)), "stroke": dark, "stroke-width": 4, "transform": "rotate(-14 200 218)"}),
+        # tumsa + ko'z + burun
+        _e("ellipse", {"cx": 122, "cy": 252, "rx": 34, "ry": 26, "fill": snout, "stroke": dark, "stroke-width": 4}),
+        _e("ellipse", {"cx": 104, "cy": 244, "rx": 9, "ry": 7, "fill": "#202020"}),
+        _e("path", {"d": "M 104 258 Q 116 268 128 260", "fill": "none", "stroke": "#202020", "stroke-width": 4, "stroke-linecap": "round"}),
+        _e("circle", {"cx": 142, "cy": 212, "r": 8, "fill": "#202020"}),
+        _e("circle", {"cx": 178, "cy": 212, "r": 8, "fill": "#202020"}),
+        # dog bone
+        _e("ellipse", {"cx": 176, "cy": 300, "rx": 26, "ry": 18, "fill": snout, "opacity": 0.7}),
+        _e("line", {"x1": 70, "y1": 456, "x2": 450, "y2": 456, "stroke": "#c8b78e", "stroke-width": 5, "stroke-linecap": "round", "opacity": 0.6}),
+    ]
+
+
+def _svg_owl(color, tex):
+    dark = _hex(_darken(color))
+    belly = _hex(_lighten(color, 0.5))
+    return [
+        # quloq cho'qqilari
+        _e("polygon", {"points": "150,140 178,84 204,132", "fill": tex, "stroke": dark, "stroke-width": 4}),
+        _e("polygon", {"points": "362,140 334,84 308,132", "fill": tex, "stroke": dark, "stroke-width": 4}),
+        # tana
+        _e("ellipse", {"cx": 256, "cy": 280, "rx": 132, "ry": 152, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # qorin
+        _e("ellipse", {"cx": 256, "cy": 330, "rx": 82, "ry": 88, "fill": belly}),
+        # qorin paternlari
+        _e("path", {"d": "M 220 310 q 12 10 24 0 q 12 10 24 0 q 12 10 24 0", "fill": "none", "stroke": _hex(_darken(color, 0.25)), "stroke-width": 4, "stroke-linecap": "round"}),
+        _e("path", {"d": "M 226 344 q 12 10 24 0 q 12 10 24 0 q 12 10 24 0", "fill": "none", "stroke": _hex(_darken(color, 0.25)), "stroke-width": 4, "stroke-linecap": "round"}),
+        # katta ko'zalar (oq disk)
+        _e("circle", {"cx": 206, "cy": 222, "r": 44, "fill": "#f8f4e8", "stroke": dark, "stroke-width": 4}),
+        _e("circle", {"cx": 306, "cy": 222, "r": 44, "fill": "#f8f4e8", "stroke": dark, "stroke-width": 4}),
+        _e("circle", {"cx": 206, "cy": 222, "r": 20, "fill": "#202020"}),
+        _e("circle", {"cx": 306, "cy": 222, "r": 20, "fill": "#202020"}),
+        _e("circle", {"cx": 212, "cy": 216, "r": 6, "fill": "#ffffff"}),
+        _e("circle", {"cx": 312, "cy": 216, "r": 6, "fill": "#ffffff"}),
+        # tumshuq
+        _e("polygon", {"points": "240,248 272,248 256,278", "fill": "#f5a623", "stroke": "#c47b08", "stroke-width": 3}),
+        # qanotlar
+        _e("path", {"d": "M 130 262 Q 108 330 148 396", "fill": "none", "stroke": _hex(_darken(color, 0.3)), "stroke-width": 8, "stroke-linecap": "round"}),
+        _e("path", {"d": "M 382 262 Q 404 330 364 396", "fill": "none", "stroke": _hex(_darken(color, 0.3)), "stroke-width": 8, "stroke-linecap": "round"}),
+        # panjalar
+        _e("line", {"x1": 216, "y1": 430, "x2": 216, "y2": 456, "stroke": "#c47b08", "stroke-width": 7, "stroke-linecap": "round"}),
+        _e("line", {"x1": 296, "y1": 430, "x2": 296, "y2": 456, "stroke": "#c47b08", "stroke-width": 7, "stroke-linecap": "round"}),
+        _e("line", {"x1": 196, "y1": 458, "x2": 236, "y2": 458, "stroke": "#c47b08", "stroke-width": 7, "stroke-linecap": "round"}),
+        _e("line", {"x1": 276, "y1": 458, "x2": 316, "y2": 458, "stroke": "#c47b08", "stroke-width": 7, "stroke-linecap": "round"}),
+    ]
+
+
+def _svg_duck(color, tex):
+    dark = _hex(_darken(color))
+    wing = _hex(_lighten(color, 0.3))
+    return [
+        # suv chizig'i
+        _e("path", {"d": "M 40 440 Q 90 428 140 440 Q 190 452 240 440 Q 290 428 340 440 Q 390 452 440 440 L 470 440", "fill": "none", "stroke": "#6db3d8", "stroke-width": 8, "stroke-linecap": "round", "opacity": 0.7}),
+        # tana
+        _e("path", {"d": "M 140 340 Q 130 258 220 250 Q 340 242 380 320 Q 396 372 340 398 Q 240 428 168 392 Q 142 374 140 340 Z", "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # dum
+        _e("path", {"d": "M 146 306 Q 108 292 96 258 Q 128 264 150 280 Z", "fill": wing, "stroke": dark, "stroke-width": 4, "stroke-linejoin": "round"}),
+        # qanot
+        _e("path", {"d": "M 210 320 Q 258 296 306 318 Q 300 366 252 374 Q 216 372 210 320 Z", "fill": wing, "stroke": dark, "stroke-width": 4}),
+        # bosh
+        _e("circle", {"cx": 342, "cy": 208, "r": 52, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # bo'yin
+        _e("path", {"d": "M 322 250 Q 330 290 346 310 L 386 300 Q 366 270 366 240 Z", "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # tumshuq (o'rdak — keng)
+        _e("ellipse", {"cx": 414, "cy": 212, "rx": 36, "ry": 18, "fill": "#f5a623", "stroke": "#c47b08", "stroke-width": 3}),
+        _e("circle", {"cx": 346, "cy": 196, "r": 7, "fill": "#202020"}),
+    ]
+
+
+def _svg_robot(color, tex):
+    dark = _hex(_darken(color))
+    light = _hex(_lighten(color, 0.5))
+    return [
+        # antenna
+        _e("line", {"x1": 256, "y1": 58, "x2": 256, "y2": 96, "stroke": dark, "stroke-width": 6}),
+        _e("circle", {"cx": 256, "cy": 48, "r": 12, "fill": "#e0435f", "stroke": dark, "stroke-width": 4}),
+        # bosh
+        _e("rect", {"x": 168, "y": 96, "width": 176, "height": 120, "rx": 22, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # ko'z oynalari
+        _e("rect", {"x": 192, "y": 128, "width": 56, "height": 44, "rx": 12, "fill": "#17171b", "stroke": dark, "stroke-width": 4}),
+        _e("rect", {"x": 264, "y": 128, "width": 56, "height": 44, "rx": 12, "fill": "#17171b", "stroke": dark, "stroke-width": 4}),
+        _e("circle", {"cx": 210, "cy": 144, "r": 7, "fill": "#7ef29a"}),
+        _e("circle", {"cx": 282, "cy": 144, "r": 7, "fill": "#7ef29a"}),
+        # og'iz (panjara)
+        _e("rect", {"x": 216, "y": 184, "width": 80, "height": 16, "rx": 6, "fill": "#17171b"}),
+        _e("line", {"x1": 236, "y1": 184, "x2": 236, "y2": 200, "stroke": light, "stroke-width": 3}),
+        _e("line", {"x1": 256, "y1": 184, "x2": 256, "y2": 200, "stroke": light, "stroke-width": 3}),
+        _e("line", {"x1": 276, "y1": 184, "x2": 276, "y2": 200, "stroke": light, "stroke-width": 3}),
+        # tana
+        _e("rect", {"x": 158, "y": 232, "width": 196, "height": 150, "rx": 20, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # ko'krak paneli
+        _e("rect", {"x": 190, "y": 258, "width": 76, "height": 54, "rx": 10, "fill": light, "stroke": dark, "stroke-width": 4}),
+        _e("circle", {"cx": 306, "cy": 270, "r": 14, "fill": "#e0435f", "stroke": dark, "stroke-width": 4}),
+        _e("circle", {"cx": 306, "cy": 308, "r": 14, "fill": "#f5d76e", "stroke": dark, "stroke-width": 4}),
+        _e("rect", {"x": 190, "y": 328, "width": 132, "height": 12, "rx": 6, "fill": "#17171b", "opacity": 0.8}),
+        # qo'llar
+        _e("rect", {"x": 96, "y": 246, "width": 44, "height": 118, "rx": 18, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        _e("rect", {"x": 372, "y": 246, "width": 44, "height": 118, "rx": 18, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        _e("circle", {"cx": 118, "cy": 382, "r": 18, "fill": dark}),
+        _e("circle", {"cx": 394, "cy": 382, "r": 18, "fill": dark}),
+        # oyoqlar
+        _e("rect", {"x": 186, "y": 382, "width": 52, "height": 72, "rx": 14, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        _e("rect", {"x": 274, "y": 382, "width": 52, "height": 72, "rx": 14, "fill": tex, "stroke": dark, "stroke-width": 5}),
+        _e("rect", {"x": 170, "y": 448, "width": 84, "height": 20, "rx": 9, "fill": dark}),
+        _e("rect", {"x": 258, "y": 448, "width": 84, "height": 20, "rx": 9, "fill": dark}),
+    ]
+
+
+def _svg_plane(color, tex):
+    dark = _hex(_darken(color))
+    wingc = _hex(_lighten(color, 0.3))
+    return [
+        # fon bulutlari
+        _e("ellipse", {"cx": 110, "cy": 120, "rx": 54, "ry": 20, "fill": "#ffffff", "opacity": 0.8}),
+        _e("ellipse", {"cx": 410, "cy": 180, "rx": 60, "ry": 22, "fill": "#ffffff", "opacity": 0.7}),
+        _e("ellipse", {"cx": 340, "cy": 80, "rx": 44, "ry": 16, "fill": "#ffffff", "opacity": 0.6}),
+        # fyuzelyaj
+        _e("path", {"d": "M 70 280 Q 200 232 350 240 Q 420 244 452 270 Q 420 296 350 300 Q 200 308 70 288 Z", "fill": tex, "stroke": dark, "stroke-width": 5}),
+        # kokpit
+        _e("path", {"d": "M 396 252 Q 428 258 446 270 Q 424 280 396 282 Z", "fill": "#bfe3f5", "stroke": dark, "stroke-width": 4}),
+        # qanot
+        _e("path", {"d": "M 240 292 L 196 402 Q 192 414 204 412 L 316 372 Q 330 366 326 350 L 310 300 Z", "fill": wingc, "stroke": dark, "stroke-width": 5, "stroke-linejoin": "round"}),
+        # ikkinchi qanot (orqada)
+        _e("path", {"d": "M 230 240 L 200 150 Q 196 138 208 142 L 306 186 Q 318 192 314 208 L 304 240 Z", "fill": wingc, "stroke": dark, "stroke-width": 5, "stroke-linejoin": "round"}),
+        # quyruq
+        _e("path", {"d": "M 84 282 L 46 214 Q 40 202 54 206 L 116 246 Z", "fill": wingc, "stroke": dark, "stroke-width": 5, "stroke-linejoin": "round"}),
+        _e("path", {"d": "M 88 288 L 52 346 Q 46 358 60 354 L 120 300 Z", "fill": wingc, "stroke": dark, "stroke-width": 5, "stroke-linejoin": "round"}),
+        # oynalar
+        _e("circle", {"cx": 150, "cy": 262, "r": 9, "fill": "#bfe3f5", "stroke": dark, "stroke-width": 3}),
+        _e("circle", {"cx": 190, "cy": 258, "r": 9, "fill": "#bfe3f5", "stroke": dark, "stroke-width": 3}),
+        _e("circle", {"cx": 230, "cy": 254, "r": 9, "fill": "#bfe3f5", "stroke": dark, "stroke-width": 3}),
+        _e("circle", {"cx": 270, "cy": 252, "r": 9, "fill": "#bfe3f5", "stroke": dark, "stroke-width": 3}),
+        # harakat chiziqlari
+        _e("line", {"x1": 70, "y1": 330, "x2": 160, "y2": 330, "stroke": dark, "stroke-width": 5, "stroke-linecap": "round", "opacity": 0.35}),
+        _e("line", {"x1": 46, "y1": 356, "x2": 136, "y2": 356, "stroke": dark, "stroke-width": 5, "stroke-linecap": "round", "opacity": 0.25}),
+    ]
+
+
 SCENE_OBJECTS = {
     "apple": _svg_apple, "olma": _svg_apple,
     "house": _svg_house, "uy": _svg_house,
@@ -409,6 +593,12 @@ SCENE_OBJECTS = {
     "butterfly": _svg_butterfly, "kapalak": _svg_butterfly,
     "mushroom": _svg_mushroom, "qo'ziqorin": _svg_mushroom,
     "ball": _svg_ball, "to'p": _svg_ball,
+    "camel": _svg_camel, "tuya": _svg_camel,
+    "dog": _svg_dog, "it": _svg_dog, "kuchuk": _svg_dog,
+    "owl": _svg_owl, "mifqush": _svg_owl, "oqqush": _svg_owl,
+    "duck": _svg_duck, "o'rdak": _svg_duck, "ordak": _svg_duck,
+    "robot": _svg_robot,
+    "plane": _svg_plane, "samolyot": _svg_plane, "airplane": _svg_plane,
 }
 
 

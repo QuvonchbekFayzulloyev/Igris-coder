@@ -3,7 +3,9 @@
 numpy>=1.24
 
 # MCP server support
-mcp>=0.1.0
+# mcp 2.x o'zgartirdi (FastMCP -> MCPServer) — art MCP serverlarimiz v1 API'da,
+# shuning uchun <2 bilan cheklanadi (aks holda art__draw_* toollari ishlamaydi).
+mcp>=0.1.0,<2
 
 # Optional: hybrid LLM client (uses stdlib urllib — no extra dep needed)
 # Optional: memory integration (Igris_Memory)
@@ -15,3 +17,4 @@ faiss-cpu ; extra == "memory"
 # For search_code with ripgrep: install ripgrep separately
 # For git_command: git must be installed
 # For filesystem MCP: no extra deps needed
+psutil>=5.9  # optional: CPU/RAM monitoring (/api/health/metrics) — bo'lmasa lightweight fallback

@@ -1,0 +1,39 @@
+name: igris_brick_knowledge
+version: 1.0.0
+description: "Atomic semantic primitives + knowledge rules for fast code resolution"
+
+bricks:
+  total_target: 4000
+  current: ~50
+  domains:
+    - math
+    - code
+    - data
+    - text
+    - system
+    - concept
+    - verb
+    - noun
+    - type
+
+chains:
+  default:
+    - chain_math
+    - chain_code
+    - chain_data
+    - chain_uz
+    - chain_sys
+
+resolver:
+  min_confidence: 0.5
+  max_healing_attempts: 3
+  timeout_ms: 100
+
+languages:
+  primary: uz
+  secondary: en
+  code: python
+
+logging:
+  level: INFO
+  file: logs/brick_agent.log

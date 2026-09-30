@@ -70,22 +70,15 @@ fn get_backend_url(state: State<AppState>) -> Result<Option<String>, String> {
 #[tauri::command]
 async fn send_chat_message(
     state: State<'_, AppState>,
-    message: String,
+    _message: String,
 ) -> Result<ChatMessage, String> {
     let backend_url = state.backend_url.lock().map_err(|e| e.to_string())?.clone();
-    if let Some(_url) = backend_url {
-        Ok(ChatMessage {
-            role: "agent".to_string(),
-            content: format!("Backend would process: {}", message),
-            timestamp: chrono::Utc::now().timestamp(),
-        })
+    let detail = if backend_url.is_some() {
+        "Tauri chat bridge is not implemented; use the FastAPI web bridge"
     } else {
-        Ok(ChatMessage {
-            role: "agent".to_string(),
-            content: format!("Local response: {}", message),
-            timestamp: chrono::Utc::now().timestamp(),
-        })
-    }
+        "Igris backend is offline"
+    };
+    Err(detail.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

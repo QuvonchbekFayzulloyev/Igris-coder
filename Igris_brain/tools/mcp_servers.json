@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "art": {
+      "command": "python",
+      "args": ["mcp_servers/art_server.py"],
+      "cwd": "..",
+      "enabled": true
+    },
+    "artifact": {
+      "command": "python",
+      "args": ["mcp_servers/artifact_server.py"],
+      "cwd": "..",
+      "description": "Local all-in-one artifact creation — DOCX/PPTX/XLSX/PDF, SVG diagrams, STL/OpenSCAD 3D, KiCad PCB/schematic, WAV audio, plus validation",
+      "enabled": true
+    }
+  }
+}

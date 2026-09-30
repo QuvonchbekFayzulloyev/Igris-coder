@@ -2,6 +2,14 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { brainGraph, brainGraphVersion, brainGraphShares, saveBrainGraphShares, BrainGraphNode, BrainGraphResult } from '../../Igris_Interface/web/backend';
 import { KIND_COLOR_TAILWIND as KIND_COLOR } from './colors';
 import { useAgentConsoleStore } from '../../Igris_Interface/shared/store';
+import { BranchingVisualizer } from './interactions/BranchingVisualizer';
+import { NodeExpansionRing } from './interactions/NodeExpansionRing';
+import { BranchPathTracer } from './interactions/BranchPathTracer';
+import { GraphNavigationHUD } from './interactions/GraphNavigationHUD';
+import { MouseControlsPanel } from './interactions/MouseControlsPanel';
+import { TreeLayoutEngine } from './components/TreeLayoutEngine';
+import { treeStore } from '../db/tree-store';
+import { NodeIndicator, getDomainColor, getVerificationColor } from './akms/AKMSOverlay';
 
 const SVG_W = 620;
 const SVG_H = 380;
@@ -178,13 +186,18 @@ export function BrainView() {
   /** Selected cluster for merge/split — tanlangan cluster. */
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null);
   const [view, setView] = useState<View>({ scale: 1, tx: 0, ty: 0 });
+  /** Layout scale — zoom qilganda node'lar markazdan uzoqlashadi,
+   *  lekin asl pozitsiyalar saqlanadi (offsets o'zgarmaydi). */
+  const [layoutScale, setLayoutScale] = useState(1);
   const [offsets, setOffsets] = useState<NodePos>(loadSavedPos);
   /** Semantik joylashuv: bog'langan node'lar tortish kuchi bilan yaqinlashadi. */
   const [semanticLayout, setSemanticLayout] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(LAYOUT_KEY) === '1';
+      const saved = localStorage.getItem(LAYOUT_KEY);
+      // Default: ON (birinchi marta ochilganda branching ko'rinsin)
+      return saved === null ? true : saved === '1';
     } catch {
-      return false;
+      return true;
     }
   });
   const svgRef = useRef<SVGSVGElement>(null);
@@ -234,6 +247,30 @@ export function BrainView() {
     shares: null,
     maxNodes: null,
   });
+
+  // ---- MOUSE INTERACTION STATE ----
+  /** Kengaytirilgan node'lar (branching view uchun). */
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  /** O'ng tugma kontekst menyusi — node ID va pozitsiya. */
+  const [contextMenu, setContextMenu] = useState<{ nodeId: string; x: number; y: number } | null>(null);
+  /** Branch view — qaysi node'dan branching ko'rsatish. */
+  const [branchViewNode, setBranchViewNode] = useState<string | null>(null);
+  /** Path tracing — manzil va maqsad node ID'lari. */
+  const [pathTarget, setPathTarget] = useState<{ source: string; target: string } | null>(null);
+  /** Expansion ring — qaysi node ustida animation. */
+  const [expansionSource, setExpansionSource] = useState<BrainGraphNode | null>(null);
+  /** Mouse modifier tugmalari holati. */
+  const [shiftDown, setShiftDown] = useState(false);
+  const [ctrlDown, setCtrlDown] = useState(false);
+  const [altDown, setAltDown] = useState(false);
+  /** Multi-select to'plami. */
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+  /** View mode: 'graph' yoki 'radial' (binary tree — DEFAULT). */
+  const [viewMode, setViewMode] = useState<'graph' | 'radial'>('radial');
+  /** Tanlangan semantic father (radial view uchun). */
+  const [selectedFather, setSelectedFather] = useState<string | null>(null);
+  /** Visual mode: 'kind' (default), 'domain', yoki 'verification' (AKMS). */
+  const [visualMode, setVisualMode] = useState<'kind' | 'domain' | 'verification'>('kind');
 
   /** State + ref'ni BIRGALIKDA yangilaydi — timer callback'lari doim eng
    *  so'nggi qiymatni ko'radi (stale closure muammosi yo'q). */
@@ -402,49 +439,90 @@ export function BrainView() {
   );
 
   /**
-   * Semantik joylashuv (interaktiv): bog'langan node'lar bir-biriga TORTILADI,
-   * bog'lanmaganlar itariladi — zoom qilganda "nima uchun yaqin" ko'rinadi.
-   * Deterministik iterativ relaksatsiya — hech qanday kutubxona shart emas.
+   * BRANCHING LAYOUT — semantic kategoriyalar asosida shoxlanuvchi tree.
+   * Har bir kind (session, fact, pattern, architecture) o'z branch'iga ega.
+   * Bog'langan node'lar bir-biriga yaqin, lekin turlari bo'yicha ajralgan.
+   * Barcha connection turlari saqlanadi.
    */
-  const computeSemanticLayout = useCallback((ns: BrainGraphNode[], ls: [string, string][], start: NodePos, zoomScale: number = 1): NodePos => {
-    const pos: Record<string, { x: number; y: number }> = {};
+  const computeSemanticLayout = useCallback((ns: BrainGraphNode[], ls: [string, string][], start: NodePos, _zoomScale: number = 1): NodePos => {
     const w = 620, h = 380;
+    const cx = w / 2, cy = h / 2;
+
+    // 1. Node'larni kind bo'yicha guruhlash
+    const kindGroups: Record<string, BrainGraphNode[]> = {};
     ns.forEach((n) => {
-      const s = start[n.id] || { x: n.x, y: n.y };
-      pos[n.id] = { x: s.x, y: s.y };
+      if (!kindGroups[n.kind]) kindGroups[n.kind] = [];
+      kindGroups[n.kind].push(n);
     });
-    // bog'langan juftliklar + kuch (umumiy so'zlar soni)
+
+    const kinds = Object.keys(kindGroups);
+    if (kinds.length === 0) return {};
+
+    // 2. Har bir kind uchun asosiy yo'nalish (branch direction)
+    // 4 ta kind: yuqori, o'ng, past, chap tomonga shoxlanadi
+    const BRANCH_ANGLES: Record<string, number> = {
+      session:      -Math.PI / 2,     // yuqori
+      fact:         0,                 // o'ng
+      pattern:      Math.PI / 2,      // past
+      architecture: Math.PI,          // chap
+    };
+    // Agar kind yo'q bo'lsa — teng taqsimlash
+    const fallbackAngle = (i: number) => (i / kinds.length) * Math.PI * 2 - Math.PI / 2;
+
+    // 3. Branch markazlarini aniqlash — har bir kind o'z yo'nalishida
+    const branchCenters: Record<string, { x: number; y: number; angle: number }> = {};
+    kinds.forEach((kind, i) => {
+      const angle = BRANCH_ANGLES[kind] ?? fallbackAngle(i);
+      const dist = 120; // markazdan uzoqligi
+      branchCenters[kind] = {
+        x: cx + Math.cos(angle) * dist,
+        y: cy + Math.sin(angle) * dist,
+        angle,
+      };
+    });
+
+    // 4. Initial positions — branch markazlaridan boshlash
+    const pos: Record<string, { x: number; y: number }> = {};
+    ns.forEach((n) => {
+      const bc = branchCenters[n.kind];
+      if (bc) {
+        // Branch ichida sekin tarqalish
+        const groupIdx = kindGroups[n.kind].indexOf(n);
+        const groupSize = kindGroups[n.kind].length;
+        const spread = Math.min(groupSize * 8, 80);
+        const localAngle = bc.angle + ((groupIdx / Math.max(groupSize - 1, 1)) - 0.5) * 0.8;
+        const localDist = (groupIdx / Math.max(groupSize, 1)) * spread;
+        pos[n.id] = {
+          x: bc.x + Math.cos(localAngle) * localDist,
+          y: bc.y + Math.sin(localAngle) * localDist,
+        };
+      } else {
+        pos[n.id] = { x: n.x, y: n.y };
+      }
+    });
+
+    // 5. Force simulation — bog'langanlar tortiladi, boshqalar itariladi
+    const ids = ns.map((n) => n.id);
+    const nodeKind: Record<string, string> = {};
+    ns.forEach((n) => { nodeKind[n.id] = n.kind; });
+
+    // Springs: bog'langan node'lar
     const springs: { a: string; b: string; k: number }[] = [];
     for (const [a, b] of ls) {
       if (!pos[a] || !pos[b]) continue;
-      springs.push({ a, b, k: 0.004 + 0.001 * linkWeight(a, b) });
+      const w = linkReasonOf(a, b).length;
+      springs.push({ a, b, k: 0.003 + 0.001 * w });
     }
-    const ids = ns.map((n) => n.id);
-    // Node radius: architecture=9, others=7; with rings: +6 => min safe distance ~28
+
     const NODE_R = 9;
-    // ZOOM-DEPENDENT: past zoomda zichroq, yuqorida kengroq
-    // scale=0.5 -> MIN_SEP=16 (zich), scale=1 -> MIN_SEP=24 (normal), scale=2 -> MIN_SEP=36 (keng)
-    const MIN_SEP = Math.round((NODE_R * 2 + 6) * Math.sqrt(Math.max(0.3, zoomScale)));
-    const minD = 46, rep = 22000, grav = 0.002;
-    // NODE KIND GROUPING: har bir tur uchun markaziy nuqta
-    // Canvas 4 qismga bo'linadi: session (chap-yuqori), fact (o'ng-yuqori),
-    // pattern (chap-past), architecture (o'ng-past)
-    const KIND_CENTERS: Record<string, { x: number; y: number }> = {
-      session:      { x: w * 0.25, y: h * 0.30 },  // chap-yuqori
-      fact:         { x: w * 0.75, y: h * 0.30 },  // o'ng-yuqori
-      pattern:      { x: w * 0.25, y: h * 0.70 },  // chap-past
-      architecture: { x: w * 0.75, y: h * 0.70 },  // o'ng-past
-    };
-    // Node kind -> center xaritasi (tezlashtrish uchun)
-    const nodeKind: Record<string, string> = {};
-    ns.forEach((n) => { nodeKind[n.id] = n.kind; });
-    // Kind grouping kuchi — o'xshash turdagi node'larni bir joyga tortadi
-    const KIND_GRAVITY = 0.006; // markazga tortishdan 3 baravar kuchliroq
-    // bir necha iteratsiya — joylashuv barqarorlashadi (tez)
-    for (let iter = 0; iter < 120; iter++) {
+    const MIN_SEP = NODE_R * 2 + 8;
+    const rep = 18000;
+
+    for (let iter = 0; iter < 100; iter++) {
       const forces: Record<string, { x: number; y: number }> = {};
       ids.forEach((id) => (forces[id] = { x: 0, y: 0 }));
-      // itarish (barcha juftliklar) + to'qnashuvdan qochish
+
+      // Itarish (barcha juftliklar)
       for (let i = 0; i < ids.length; i++) {
         for (let j = i + 1; j < ids.length; j++) {
           const a = ids[i], b = ids[j];
@@ -453,60 +531,61 @@ export function BrainView() {
           let d2 = dx * dx + dy * dy;
           let d = Math.sqrt(d2);
           if (d < 0.001) {
-            // deterministik itarish — Math.random emas (har yangilashda bir xil
-            // joylashuv qaytariladi, graf 'sakrab' qolmaydi).
             dx = ((i * 7 + j * 13) % 11) - 5;
             dy = ((i * 17 + j * 5) % 9) - 4;
             d2 = dx * dx + dy * dy;
             d = Math.sqrt(d2);
           }
-          // Asosiy itarish kuchi — masofaga teskari proporsional
           const f = rep / Math.max(d2, 200);
-          const fx = (dx / Math.max(d, 0.01)) * f, fy = (dy / Math.max(d, 0.01)) * f;
+          const fx = (dx / d) * f, fy = (dy / d) * f;
           forces[a].x += fx; forces[a].y += fy;
           forces[b].x -= fx; forces[b].y -= fy;
-          // QO'SHIMCHA: to'qnashuvdan qochish — node'lar juda yaqin bo'lsa
-          // kuchliroq itarish kuchi qo'llaniladi (MIN_SEP dan kam masofada)
+
+          // To'qnashuvdan qochish
           if (d < MIN_SEP) {
             const overlap = MIN_SEP - d;
-            const pushF = overlap * overlap * 0.5; // kvadratik kuch
-            const pfx = (dx / Math.max(d, 0.01)) * pushF;
-            const pfy = (dy / Math.max(d, 0.01)) * pushF;
-            forces[a].x += pfx; forces[a].y += pfy;
-            forces[b].x -= pfx; forces[b].y -= pfy;
+            const pushF = overlap * overlap * 0.5;
+            forces[a].x += (dx / d) * pushF;
+            forces[a].y += (dy / d) * pushF;
+            forces[b].x -= (dx / d) * pushF;
+            forces[b].y -= (dy / d) * pushF;
           }
         }
       }
-      // tortish (bog'langanlar — kuch ulushiga ko'ra)
+
+      // Springs: bog'langanlar tortiladi
       for (const { a, b, k } of springs) {
         const dx = pos[a].x - pos[b].x;
         const dy = pos[a].y - pos[b].y;
         const d = Math.sqrt(dx * dx + dy * dy) || 1;
-        const f = k * Math.max(d - minD, 0);
-        const fx = (dx / d) * f, fy = (dy / d) * f;
-        forces[a].x -= fx; forces[a].y -= fy;
-        forces[b].x += fx; forces[b].y += fy;
+        const f = k * Math.max(d - 40, 0);
+        forces[a].x -= (dx / d) * f;
+        forces[a].y -= (dy / d) * f;
+        forces[b].x += (dx / d) * f;
+        forces[b].y += (dy / d) * f;
       }
-      // markazga tortish + KIND GROUPING + harakat
-      const damping = iter < 60 ? 0.08 : 0.04; // dastlab tez, oxiri sekin
+
+      // Branch gravity: o'z turining branch markaziga tortish
+      const KIND_GRAVITY = 0.008;
+      const damping = iter < 50 ? 0.08 : 0.04;
       for (const id of ids) {
-        // Umumiy markazga tortish (kuchsiz)
-        forces[id].x += (w / 2 - pos[id].x) * grav;
-        forces[id].y += (h / 2 - pos[id].y) * grav;
-        // KIND GROUPING: o'z turining markaziga tortish (kuchliroq)
         const kind = nodeKind[id];
-        const center = KIND_CENTERS[kind];
-        if (center) {
-          forces[id].x += (center.x - pos[id].x) * KIND_GRAVITY;
-          forces[id].y += (center.y - pos[id].y) * KIND_GRAVITY;
+        const bc = branchCenters[kind];
+        if (bc) {
+          forces[id].x += (bc.x - pos[id].x) * KIND_GRAVITY;
+          forces[id].y += (bc.y - pos[id].y) * KIND_GRAVITY;
         }
+        // Umumiy markazga kuchsiz tortish
+        forces[id].x += (cx - pos[id].x) * 0.001;
+        forces[id].y += (cy - pos[id].y) * 0.001;
+
         pos[id].x += forces[id].x * damping;
         pos[id].y += forces[id].y * damping;
       }
     }
-    // POST-PROCESSING: yakuniy to'qnashuv tekshiruvi — har qanday qoldiq
-    // overlap'larni tuzatish (force simulation yetarli yaqinlashtirmagan bo'lsa)
-    for (let pass = 0; pass < 20; pass++) {
+
+    // 6. Post-processing: overlap tuzatish
+    for (let pass = 0; pass < 15; pass++) {
       let anyOverlap = false;
       for (let i = 0; i < ids.length; i++) {
         for (let j = i + 1; j < ids.length; j++) {
@@ -517,16 +596,16 @@ export function BrainView() {
           if (d < MIN_SEP && d > 0.001) {
             anyOverlap = true;
             const overlap = (MIN_SEP - d) / 2 + 0.5;
-            const nx = dx / d, ny = dy / d;
-            pos[a].x += nx * overlap;
-            pos[a].y += ny * overlap;
-            pos[b].x -= nx * overlap;
-            pos[b].y -= ny * overlap;
+            pos[a].x += (dx / d) * overlap;
+            pos[a].y += (dy / d) * overlap;
+            pos[b].x -= (dx / d) * overlap;
+            pos[b].y -= (dy / d) * overlap;
           }
         }
       }
       if (!anyOverlap) break;
     }
+
     const out: NodePos = {};
     for (const n of ns) {
       out[n.id] = {
@@ -535,7 +614,7 @@ export function BrainView() {
       };
     }
     return out;
-  }, [linkWeight]);
+  }, [linkReasonOf]);
 
   /** Yangi graf kelganda semantik rejim yoqilgan bo'lsa — joylashuvni qayta hisoblaymiz.
    *  `offsets` depda emas, lekin FUNKSIONAL setOffsets ishlatiladi — har doim
@@ -724,7 +803,7 @@ export function BrainView() {
     };
   }, [liveRefresh, applyGraph, shares, maxNodes, taskRunning]);
 
-  /** Semantik joylashuvni yoqish/o'chirish — node'lar jonli harakatlanadi. */
+  /** Semantik branch layout'ni yoqish/o'chirish — node'lar shoxlanuvchi tree tarzida joylashadi. */
   const toggleSemanticLayout = () => {
     setSemanticLayout((prev) => {
       const next = !prev;
@@ -734,10 +813,8 @@ export function BrainView() {
         /* ignore */
       }
       if (next && nodes.length) {
-        // joriy pozitsiyadan boshlab semantik joylashuvga o'tamiz
         setOffsets(computeSemanticLayout(nodes, links, offsets, view.scale));
       } else {
-        // radarga qaytamiz
         setOffsets({});
         persistOffsets({});
       }
@@ -747,7 +824,16 @@ export function BrainView() {
 
   const nodeMap = useMemo(() => Object.fromEntries(nodes.map((n) => [n.id, n])), [nodes]);
   const matches = (n: BrainGraphNode) => !query || n.label.toLowerCase().includes(query.toLowerCase());
-  const posOf = (n: BrainGraphNode) => offsets[n.id] || { x: n.x, y: n.y };
+  const posOf = (n: BrainGraphNode) => {
+    const base = offsets[n.id] || { x: n.x, y: n.y };
+    // Layout scale: node'lar markazdan uzoqlashadi (zoom effekti)
+    if (layoutScale === 1) return base;
+    const cx = SVG_W / 2, cy = SVG_H / 2;
+    return {
+      x: cx + (base.x - cx) * layoutScale,
+      y: cy + (base.y - cy) * layoutScale,
+    };
+  };
   const neighborsOf = (id: string): BrainGraphNode[] =>
     links
       .filter(([a, b]) => a === id || b === id)
@@ -882,68 +968,6 @@ export function BrainView() {
   }, [nodes, links, nodeMap]);
 
   // -------------------------------------------------------------- //
-  // KIND REGIONS — har bir tur uchun vizual chegara
-  // -------------------------------------------------------------- //
-  interface KindRegion {
-    kind: string;
-    cx: number;
-    cy: number;
-    width: number;
-    height: number;
-    rx: number;  // ellips radiusi X
-    ry: number;  // ellips radiusi Y
-    nodeCount: number;
-  }
-
-  const kindRegions = useMemo((): KindRegion[] => {
-    if (nodes.length < 2) return [];
-
-    // Har bir tur uchun node pozitsiyalarini yig'ish
-    const kindPositions: Record<string, { x: number; y: number }[]> = {};
-    nodes.forEach((n) => {
-      const p = posOf(n);
-      if (!kindPositions[n.kind]) kindPositions[n.kind] = [];
-      kindPositions[n.kind].push(p);
-    });
-
-    const result: KindRegion[] = [];
-    Object.entries(kindPositions).forEach(([kind, positions]) => {
-      if (positions.length < 2) return;
-
-      // Markaz
-      let sumX = 0, sumY = 0;
-      positions.forEach((p) => { sumX += p.x; sumY += p.y; });
-      const cx = sumX / positions.length;
-      const cy = sumY / positions.length;
-
-      // Standart chetga ozish (standard deviation) asosida radius
-      let sumDx2 = 0, sumDy2 = 0;
-      positions.forEach((p) => {
-        sumDx2 += (p.x - cx) ** 2;
-        sumDy2 += (p.y - cy) ** 2;
-      });
-      const stdX = Math.sqrt(sumDx2 / positions.length);
-      const stdY = Math.sqrt(sumDy2 / positions.length);
-
-      // Ellips radiysi — 2 * std + padding (95% node'larni qamrab oladi)
-      const padding = 30;
-      const rx = Math.max(stdX * 2 + padding, 50);
-      const ry = Math.max(stdY * 2 + padding, 40);
-
-      result.push({
-        kind,
-        cx, cy,
-        width: rx * 2,
-        height: ry * 2,
-        rx, ry,
-        nodeCount: positions.length,
-      });
-    });
-
-    return result;
-  }, [nodes, nodeMap]);
-
-  // -------------------------------------------------------------- //
   // KIND STATISTICS — har bir tur uchun statistika
   // -------------------------------------------------------------- //
   interface KindStat {
@@ -976,10 +1000,22 @@ export function BrainView() {
       }
     });
 
-    // Har bir tur uchun zichlikni hisoblash (kindRegions dan)
+    // Har bir tur uchun zichlikni hisoblash (node soni / maydon)
     const kindDensityMap: Record<string, number> = {};
-    kindRegions.forEach((r) => {
-      kindDensityMap[r.kind] = r.nodeCount / (Math.PI * r.rx * r.ry / 1000);
+    const kindPositions: Record<string, { x: number; y: number }[]> = {};
+    nodes.forEach((n) => {
+      const p = posOf(n);
+      if (!kindPositions[n.kind]) kindPositions[n.kind] = [];
+      kindPositions[n.kind].push(p);
+    });
+    Object.entries(kindPositions).forEach(([kind, positions]) => {
+      if (positions.length < 2) { kindDensityMap[kind] = 0; return; }
+      let sumX = 0, sumY = 0;
+      positions.forEach((p) => { sumX += p.x; sumY += p.y; });
+      const cx = sumX / positions.length, cy = sumY / positions.length;
+      let maxR = 0;
+      positions.forEach((p) => { maxR = Math.max(maxR, Math.hypot(p.x - cx, p.y - cy)); });
+      kindDensityMap[kind] = positions.length / (Math.PI * maxR * maxR / 1000 + 1);
     });
 
     const total = nodes.length;
@@ -993,7 +1029,7 @@ export function BrainView() {
     }));
 
     return result.sort((a, b) => b.count - a.count);
-  }, [nodes, links, nodeMap, kindRegions]);
+  }, [nodes, links, nodeMap]);
 
   // Statistika paneli ochiq/yopiq holati
   const [showStats, setShowStats] = useState(false);
@@ -1090,15 +1126,23 @@ export function BrainView() {
     });
   }, []);
 
-  const zoomIn = () => zoomAt(SVG_W / 2, SVG_H / 2, ZOOM_STEP);
-  const zoomOut = () => zoomAt(SVG_W / 2, SVG_H / 2, 1 / ZOOM_STEP);
-  const resetView = () => setView({ scale: 1, tx: 0, ty: 0 });
+  const zoomIn = () => {
+    zoomAt(SVG_W / 2, SVG_H / 2, ZOOM_STEP);
+    setLayoutScale((prev) => Math.min(5, prev * 1.12));
+  };
+  const zoomOut = () => {
+    zoomAt(SVG_W / 2, SVG_H / 2, 1 / ZOOM_STEP);
+    setLayoutScale((prev) => Math.max(0.3, prev / 1.12));
+  };
+  const resetView = () => { setView({ scale: 1, tx: 0, ty: 0 }); setLayoutScale(1); };
 
   /** Node'lar to'plamiga mos zoom/pan hisoblaydi — barcha ko'rsatilgan
    *  node'lar ko'rinadigan bo'ladi (bo'sh ro'yxat -> null). fitView ham,
    *  fresh-node fokusi ham shu helper'ni ishlatadi (matematika takrorlanmaydi). */
   const fitBounds = (list: BrainGraphNode[]): View | null => {
     if (!list.length) return null;
+    // Layout scale ni reset qilish — fit view asl holatga qaytaradi
+    setLayoutScale(1);
     const xs = list.map((n) => posOf(n).x);
     const ys = list.map((n) => posOf(n).y);
     const minX = Math.min(...xs), maxX = Math.max(...xs);
@@ -1188,20 +1232,41 @@ export function BrainView() {
     });
   };
 
-  // G'ildirak bilan zoom (mouse pozitsiyasiga) — non-passive listener kerak
+  // G'ildirak bilan zoom — cursor joyida kattalashadi
+  // node'lar orasidagi masofa ham kattalashadi (layoutScale)
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const rect = svg.getBoundingClientRect();
-      const cx = ((e.clientX - rect.left) / rect.width) * SVG_W;
-      const cy = ((e.clientY - rect.top) / rect.height) * SVG_H;
-      zoomAt(cx, cy, e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP);
+      const mouseX = ((e.clientX - rect.left) / rect.width) * SVG_W;
+      const mouseY = ((e.clientY - rect.top) / rect.height) * SVG_H;
+      const zoomIn = e.deltaY < 0;
+      const factor = zoomIn ? 1.12 : 1 / 1.12;
+
+      // 1) Layout scale — node'lar orasidagi masofa kattalashadi
+      setLayoutScale((prev) => {
+        const next = Math.min(5, Math.max(0.3, prev * factor));
+        // 2) View transform — cursor joyida qolishi uchun tx/ty ni moslashtirish
+        setView((v) => {
+          const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, v.scale * factor));
+          // Cursor nuqtasi world koordinatada qolishi kerak
+          // world = (screen - tx) / scale
+          // Yangi world = (screen - newTx) / newScale = old world
+          // newTx = screen - world * newScale
+          const worldX = (mouseX - v.tx) / v.scale;
+          const worldY = (mouseY - v.ty) / v.scale;
+          const newTx = mouseX - worldX * newScale;
+          const newTy = mouseY - worldY * newScale;
+          return { scale: newScale, tx: newTx, ty: newTy };
+        });
+        return next;
+      });
     };
     svg.addEventListener('wheel', onWheel, { passive: false });
     return () => svg.removeEventListener('wheel', onWheel);
-  }, [zoomAt]);
+  }, []);
 
   // KEYBOARD SHORTCUTS — 1-4 tugmalari kind filter uchun
   useEffect(() => {
@@ -1249,6 +1314,135 @@ export function BrainView() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [focusKind, clearKindFilter, fitView, resetView, showHelp]);
+
+  // ---- MODIFIER KEY TRACKING ----
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') setShiftDown(true);
+      if (e.key === 'Control' || e.key === 'Meta') setCtrlDown(true);
+      if (e.key === 'Alt') setAltDown(true);
+      // Escape — context menu yopish
+      if (e.key === 'Escape') {
+        setContextMenu(null);
+        setBranchViewNode(null);
+        setPathTarget(null);
+        setExpansionSource(null);
+        setMultiSelected(new Set());
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') setShiftDown(false);
+      if (e.key === 'Control' || e.key === 'Meta') setCtrlDown(false);
+      if (e.key === 'Alt') setAltDown(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, []);
+
+  // ---- NODE NEIGHBORS HELPER ----
+  const getNeighbors = useCallback((nodeId: string): BrainGraphNode[] => {
+    const neighbors = new Set<string>();
+    links.forEach(([a, b]) => {
+      if (a === nodeId) neighbors.add(b);
+      if (b === nodeId) neighbors.add(a);
+    });
+    return Array.from(neighbors).map((id) => nodeMap[id]).filter(Boolean);
+  }, [links, nodeMap]);
+
+  // ---- NODE RIGHT-CLICK HANDLER ----
+  const onNodeContextMenu = useCallback((e: React.MouseEvent, n: BrainGraphNode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ nodeId: n.id, x: e.clientX, y: e.clientY });
+  }, []);
+
+  // ---- NODE MIDDLE-CLICK HANDLER (EXPAND) ----
+  const onNodeMiddleClick = useCallback((e: React.MouseEvent, n: BrainGraphNode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(n.id)) next.delete(n.id); else next.add(n.id);
+      return next;
+    });
+    setExpansionSource(n);
+    setTimeout(() => setExpansionSource(null), 1500);
+  }, []);
+
+  // ---- NODE DOUBLE-CLICK (BRANCH VIEW) ----
+  const onNodeDoubleClick = useCallback((e: React.MouseEvent, n: BrainGraphNode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBranchViewNode(branchViewNode === n.id ? null : n.id);
+  }, [branchViewNode]);
+
+  // ---- CONTEXT MENU ACTIONS ----
+  const contextMenuNode = contextMenu ? nodeMap[contextMenu.nodeId] : null;
+  const contextMenuNeighbors = contextMenu ? getNeighbors(contextMenu.nodeId) : [];
+
+  const ctxFocus = useCallback(() => {
+    if (contextMenuNode) focusNode(contextMenuNode);
+    setContextMenu(null);
+  }, [contextMenuNode, focusNode]);
+
+  const ctxExpand = useCallback(() => {
+    if (contextMenu) {
+      setExpandedNodes((prev) => {
+        const next = new Set(prev);
+        if (next.has(contextMenu.nodeId)) next.delete(contextMenu.nodeId); else next.add(contextMenu.nodeId);
+        return next;
+      });
+      setExpansionSource(contextMenuNode);
+      setTimeout(() => setExpansionSource(null), 1500);
+    }
+    setContextMenu(null);
+  }, [contextMenu, contextMenuNode]);
+
+  const ctxBranchView = useCallback(() => {
+    if (contextMenu) {
+      setBranchViewNode(contextMenu.nodeId);
+    }
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const ctxTracePath = useCallback((targetId: string) => {
+    if (contextMenu) {
+      setPathTarget({ source: contextMenu.nodeId, target: targetId });
+    }
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const ctxCopyId = useCallback(() => {
+    if (contextMenu) {
+      navigator.clipboard.writeText(contextMenu.nodeId).catch(() => {});
+    }
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const ctxMultiSelect = useCallback(() => {
+    if (contextMenu) {
+      setMultiSelected((prev) => {
+        const next = new Set(prev);
+        if (next.has(contextMenu.nodeId)) next.delete(contextMenu.nodeId); else next.add(contextMenu.nodeId);
+        return next;
+      });
+    }
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  // ---- EXPAND/COLLAPSE ALL ----
+  const expandAll = useCallback(() => {
+    const allIds = new Set(nodes.map((n) => n.id));
+    setExpandedNodes(allIds);
+  }, [nodes]);
+
+  const collapseAll = useCallback(() => {
+    setExpandedNodes(new Set());
+  }, []);
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
@@ -1621,14 +1815,33 @@ export function BrainView() {
               </button>
               <span className="w-px h-4 bg-zinc-800 mx-0.5" />
               <button onClick={zoomOut} title="Zoom out" className={toolbarBtn}>−</button>
-              <span className="text-[10px] font-mono text-zinc-400 w-9 text-center select-none">
+              <span className="text-[10px] font-mono text-zinc-400 w-9 text-center select-none" title={`Layout spread: ${Math.round(layoutScale * 100)}%`}>
                 {Math.round(view.scale * 100)}%
               </span>
               <button onClick={zoomIn} title="Zoom in" className={toolbarBtn}>+</button>
+              {layoutScale > 1.05 && (
+                <span className="text-[8px] font-mono text-zinc-600" title="Node spread factor">
+                  ×{layoutScale.toFixed(1)}
+                </span>
+              )}
               <span className="w-px h-4 bg-zinc-800 mx-0.5" />
               <button onClick={resetView} title="Reset view" className={toolbarBtn}>⟲</button>
               <button onClick={fitView} title="Fit to content" className={toolbarBtn}>⛶</button>
               <span className="w-px h-4 bg-zinc-800 mx-0.5" />
+              <button
+                onClick={() => setViewMode(viewMode === 'graph' ? 'radial' : 'graph')}
+                title={viewMode === 'graph' ? 'Switch to Radial View (Binary Tree)' : 'Switch to Graph View'}
+                className={`${toolbarBtn} ${viewMode === 'radial' ? 'text-amber-300 bg-zinc-800' : 'text-zinc-400'}`}
+              >
+                {viewMode === 'graph' ? '⊙' : '◎'}
+              </button>
+              <button
+                onClick={() => setVisualMode(visualMode === 'kind' ? 'domain' : visualMode === 'domain' ? 'verification' : 'kind')}
+                title={`Visual mode: ${visualMode} (click to cycle)`}
+                className={`${toolbarBtn} ${visualMode !== 'kind' ? 'text-amber-300 bg-zinc-800' : 'text-zinc-400'}`}
+              >
+                {visualMode === 'kind' ? '◉' : visualMode === 'domain' ? '◆' : '✓'}
+              </button>
               <button
                 onClick={() => setShowHelp((v) => !v)}
                 title="Keyboard shortcuts (?)"
@@ -1677,6 +1890,23 @@ export function BrainView() {
                 </div>
               </div>
             )}
+            {viewMode === 'radial' ? (
+              <TreeLayoutEngine
+                width={800}
+                height={600}
+                nodes={nodes}
+                links={links}
+                nodeMap={nodeMap}
+                selectedFatherId={selectedFather}
+                onNodeSelect={(nodeId) => {
+                  const node = nodes.find(n => n.id === nodeId);
+                  if (node) setSelected(node);
+                }}
+                onFatherSelect={(fatherId) => {
+                  setSelectedFather(fatherId);
+                }}
+              />
+            ) : (
             <svg
               ref={svgRef}
               viewBox={`0 0 ${SVG_W} ${SVG_H}`}
@@ -1687,44 +1917,6 @@ export function BrainView() {
               onPointerLeave={endDrag}
             >
               <g transform={`translate(${view.tx} ${view.ty}) scale(${view.scale})`}>
-                {/* KIND REGIONS — har bir tur uchun vizual chegara */}
-                {kindRegions.map((region) => {
-                  const kindColor = KIND_COLOR[region.kind as keyof typeof KIND_COLOR];
-                  const fillColor = kindColor ? kindColor.fill : '#71717a';
-                  const isActive = kindFilter.has(region.kind);
-                  return (
-                    <g key={`kind-${region.kind}`} style={{ cursor: 'pointer' }} onClick={() => focusKind(region.kind)}>
-                      {/* Kind region ellips */}
-                      <ellipse
-                        cx={region.cx}
-                        cy={region.cy}
-                        rx={region.rx}
-                        ry={region.ry}
-                        fill={fillColor}
-                        fillOpacity={isActive ? 0.08 : 0.03}
-                        stroke={fillColor}
-                        strokeWidth={isActive ? 2 : 1}
-                        strokeOpacity={isActive ? 0.4 : 0.15}
-                        strokeDasharray={isActive ? 'none' : '6 3'}
-                        style={{ transition: 'fill-opacity 0.3s ease, stroke-opacity 0.3s ease, stroke-width 0.3s ease' }}
-                      />
-                      {/* Kind label */}
-                      <text
-                        x={region.cx}
-                        y={region.cy - region.ry - 8}
-                        textAnchor="middle"
-                        fontSize="8"
-                        fill={fillColor}
-                        fillOpacity={isActive ? 0.7 : 0.4}
-                        fontFamily="IBM Plex Mono, monospace"
-                        fontWeight={isActive ? 'bold' : 'normal'}
-                        style={{ pointerEvents: 'none', transition: 'fill-opacity 0.3s ease' }}
-                      >
-                        {region.kind} ({region.nodeCount})
-                      </text>
-                    </g>
-                  );
-                })}
                 {/* CLUSTER BOUNDARIES — zich to'plamlarning chegaralari */}
                 {clusters.map((cluster) => {
                   const kindColor = KIND_COLOR[cluster.kind as keyof typeof KIND_COLOR];
@@ -1852,15 +2044,43 @@ export function BrainView() {
                   const isHovered = hovered === n.id;
                   const isFresh = fresh.has(n.id);
                   const isFreshChat = freshChat.has(n.id);
+                  const isMultiSelected = multiSelected.has(n.id);
+                  const isExpanded = expandedNodes.has(n.id);
                   return (
                     <g
                       key={n.id}
                       opacity={dim ? 0.15 : 1}
-                      onClick={() => {
+                      onClick={(e) => {
                         if (movedRef.current) { movedRef.current = false; return; }
+                        // Ctrl+click: multi-select
+                        if (e.ctrlKey || e.metaKey) {
+                          e.stopPropagation();
+                          setMultiSelected((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(n.id)) next.delete(n.id); else next.add(n.id);
+                            return next;
+                          });
+                          return;
+                        }
+                        // Shift+click: toggle expand
+                        if (e.shiftKey) {
+                          e.stopPropagation();
+                          setExpandedNodes((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(n.id)) next.delete(n.id); else next.add(n.id);
+                            return next;
+                          });
+                          setExpansionSource(n);
+                          setTimeout(() => setExpansionSource(null), 1500);
+                          return;
+                        }
                         setSelected(n);
                       }}
-                      onDoubleClick={() => focusNode(n)}
+                      onDoubleClick={(e) => onNodeDoubleClick(e, n)}
+                      onContextMenu={(e) => onNodeContextMenu(e, n)}
+                      onMouseDown={(e) => {
+                        if (e.button === 1) { onNodeMiddleClick(e, n); return; }
+                      }}
                       onPointerDown={(e) => onNodePointerDown(e, n)}
                       onPointerMove={onNodePointerMove}
                       onPointerUp={onNodePointerUp}
@@ -1893,11 +2113,36 @@ export function BrainView() {
                           className="brain-fresh-ring"
                         />
                       )}
+                      {/* Multi-select indicator — sky ring */}
+                      {isMultiSelected && (
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r={r + 4}
+                          fill="none"
+                          stroke="#38bdf8"
+                          strokeWidth="1.5"
+                          opacity={0.7}
+                        />
+                      )}
+                      {/* Expanded indicator — dashed ring */}
+                      {isExpanded && (
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r={r + 7}
+                          fill="none"
+                          stroke={KIND_COLOR[n.kind].fill}
+                          strokeWidth="1"
+                          strokeDasharray="3 2"
+                          opacity={0.5}
+                        />
+                      )}
                       <circle
                         cx={p.x}
                         cy={p.y}
                         r={(isSelected || isHovered) ? r + 3 : r}
-                        fill={KIND_COLOR[n.kind].fill}
+                        fill={visualMode === 'domain' ? getDomainColor(n.id) : visualMode === 'verification' ? getVerificationColor(n.id) : KIND_COLOR[n.kind].fill}
                         stroke={isSelected ? '#f59e0b' : isHovered ? '#e4e4e7' : '#09090b'}
                         strokeWidth={isSelected ? 2.5 : 2}
                         className={isFreshChat ? 'brain-fresh-pop' : undefined}
@@ -1928,13 +2173,152 @@ export function BrainView() {
                           {relTime(n.updated_at)}
                         </text>
                       )}
+                      {/* AKMS Node Indicator — verification badge, evidence count, domain icon */}
+                      <NodeIndicator
+                        nodeId={n.id}
+                        x={p.x}
+                        y={p.y}
+                        radius={r}
+                        visualMode={visualMode}
+                      />
                     </g>
                   );
                 })}
               </g>
             </svg>
+            )}
+
+            {/* ---- BRANCH VIEWER ---- */}
+            {branchViewNode && (
+              <BranchingVisualizer
+                nodes={nodes}
+                links={links}
+                nodeMap={nodeMap}
+                rootId={branchViewNode}
+                expandedNodes={expandedNodes}
+                onToggleExpand={(id) => {
+                  setExpandedNodes((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+                onSelectNode={(n) => setSelected(n)}
+                onFocusNode={(n) => focusNode(n)}
+                onClose={() => setBranchViewNode(null)}
+                position={{ x: SVG_W / 2, y: SVG_H / 2 }}
+              />
+            )}
+
+            {/* ---- EXPANSION RING ---- */}
+            <NodeExpansionRing
+              sourceNode={expansionSource}
+              neighbors={expansionSource ? getNeighbors(expansionSource.id) : []}
+              nodeMap={nodeMap}
+              position={expansionSource ? posOf(expansionSource) : { x: 0, y: 0 }}
+              isExpanding={!!expansionSource}
+              onSelectNode={(n) => setSelected(n)}
+            />
+
+            {/* ---- PATH TRACER ---- */}
+            <BranchPathTracer
+              nodes={nodes}
+              links={links}
+              nodeMap={nodeMap}
+              posOf={posOf}
+              sourceId={pathTarget?.source ?? null}
+              targetId={pathTarget?.target ?? null}
+              isActive={!!pathTarget}
+              onComplete={() => setPathTarget(null)}
+            />
+
+            {/* ---- GRAPH NAVIGATION HUD ---- */}
+            <GraphNavigationHUD
+              zoom={view.scale}
+              selectedNode={selected}
+              expandedCount={expandedNodes.size}
+              multiSelectCount={multiSelected.size}
+              totalNodes={nodes.length}
+              totalLinks={links.length}
+              onFitView={fitView}
+              onResetView={resetView}
+              onToggleHelp={() => setShowHelp((v) => !v)}
+            />
+
+            {/* ---- MOUSE CONTROLS PANEL ---- */}
+            <MouseControlsPanel
+              isShiftDown={shiftDown}
+              isCtrlDown={ctrlDown}
+              isAltDown={altDown}
+              onToggleShift={() => setShiftDown((v) => !v)}
+              onToggleCtrl={() => setCtrlDown((v) => !v)}
+              onToggleAlt={() => setAltDown((v) => !v)}
+              onClearModifiers={() => { setShiftDown(false); setCtrlDown(false); setAltDown(false); }}
+              expandedNodes={expandedNodes}
+              onToggleExpandAll={expandAll}
+              onCollapseAll={collapseAll}
+            />
+
+            {/* ---- CONTEXT MENU ---- */}
+            {contextMenu && contextMenuNode && (
+              <div
+                className="fixed z-50 pointer-events-auto"
+                style={{ left: contextMenu.x, top: contextMenu.y }}
+              >
+                <div
+                  className="bg-zinc-950/95 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden min-w-[180px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Node info header */}
+                  <div className="px-2.5 py-1.5 border-b border-zinc-800">
+                    <div className="text-[10px] font-ui text-zinc-200 truncate">{contextMenuNode.label}</div>
+                    <div className="text-[8px] font-mono text-zinc-600">{contextMenuNode.kind}</div>
+                  </div>
+                  {/* Actions */}
+                  <div className="py-0.5">
+                    <button onClick={ctxFocus} className="w-full text-left px-2.5 py-1 text-[10px] font-mono text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2">
+                      <span>⛶</span> Focus node
+                    </button>
+                    <button onClick={ctxExpand} className="w-full text-left px-2.5 py-1 text-[10px] font-mono text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2">
+                      <span>⊕</span> {expandedNodes.has(contextMenu.nodeId) ? 'Collapse' : 'Expand'} neighbors
+                    </button>
+                    <button onClick={ctxBranchView} className="w-full text-left px-2.5 py-1 text-[10px] font-mono text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2">
+                      <span>🌳</span> Branch view
+                    </button>
+                    <button onClick={ctxMultiSelect} className="w-full text-left px-2.5 py-1 text-[10px] font-mono text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2">
+                      <span>{multiSelected.has(contextMenu.nodeId) ? '✓' : '☐'}</span> {multiSelected.has(contextMenu.nodeId) ? 'Deselect' : 'Multi-select'}
+                    </button>
+                    <div className="border-t border-zinc-800 my-0.5" />
+                    <button onClick={ctxCopyId} className="w-full text-left px-2.5 py-1 text-[10px] font-mono text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2">
+                      <span>📋</span> Copy ID
+                    </button>
+                  </div>
+                  {/* Trace path submenu */}
+                  {contextMenuNeighbors.length > 0 && (
+                    <div className="border-t border-zinc-800 py-0.5">
+                      <div className="px-2.5 py-0.5 text-[8px] font-mono text-zinc-600 uppercase">Trace path to</div>
+                      {contextMenuNeighbors.slice(0, 5).map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => ctxTracePath(n.id)}
+                          className="w-full text-left px-2.5 py-0.5 text-[9px] font-mono text-zinc-500 hover:text-amber-300 hover:bg-zinc-800 transition-colors flex items-center gap-1.5"
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${KIND_COLOR[n.kind]?.dot || 'bg-zinc-600'}`} />
+                          {n.label.length > 18 ? n.label.slice(0, 16) + '…' : n.label}
+                        </button>
+                      ))}
+                      {contextMenuNeighbors.length > 5 && (
+                        <div className="px-2.5 py-0.5 text-[8px] font-mono text-zinc-600">+{contextMenuNeighbors.length - 5} more</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ---- BOTTOM HINTS ---- */}
             <div className="absolute bottom-2 left-2 text-[10px] font-mono text-zinc-600 select-none pointer-events-none">
-              drag node · move &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; double-click · focus &nbsp;|&nbsp; <button onClick={() => setShowHelp(true)} className="text-zinc-500 hover:text-amber-300 pointer-events-auto transition-colors" title="Keyboard shortcuts">? shortcuts</button>
+              drag node · move &nbsp;|&nbsp; wheel · zoom &nbsp;|&nbsp; double-click · branch &nbsp;|&nbsp; r-click · menu &nbsp;|&nbsp; shift+click · expand &nbsp;|&nbsp; <button onClick={() => setShowHelp(true)} className="text-zinc-500 hover:text-amber-300 pointer-events-auto transition-colors" title="Keyboard shortcuts">? shortcuts</button>
             </div>
             {/* KEYBOARD HELP OVERLAY */}
             {showHelp && (

@@ -52,6 +52,13 @@ WEIGHTS = {
     "logprob": 0.15,            # OpenAI-mos logprob re-so'ruvi: o'rtacha token
                                 # ehtimoli 0.5 dan yuqori -> ishonch oshadi,
                                 # past -> tushadi (ixtiyoriy, 2x inference)
+    "grounding_ok": 0.10,       # A4: javob web-manbalar bilan grounding
+                                # tekshiruvidan o'tdi (deterministik,
+                                # qo'shimcha LLM chaqiruvi yo'q)
+    "grounding_fail": -0.15,    # A4: javob manbaga tayanmaydi (ungrounded) —
+                                # hallucination ehtimoli baland
+                                # ehtimoli 0.5 dan yuqori -> ishonch oshadi,
+                                # past -> tushadi (ixtiyoriy, 2x inference)
 }
 
 
@@ -86,6 +93,7 @@ class SelfEvaluator:
         verified: Optional[str] = None,
         resolver_score: Optional[float] = None,
         avg_logprob: Optional[float] = None,
+        grounding: Optional[float] = None,
     ) -> SelfEvalResult:
         """Ishonch darajasini hisoblaydi.
 
@@ -109,6 +117,10 @@ class SelfEvaluator:
             re-so'ruvidan o'rtacha token ehtimoli. 0.5 dan yuqori -> ishonch
             oshadi (max +0.15), past -> tushadi (max -0.15). None (Ollama
             eski/offline, yoki signal o'chirilgan) -> neytral.
+          - grounding (0..1 | None): A4 web manba tekshiruvi. 1.0 = grounded
+            (javob manbaga tayanadi, +0.10), 0.0 = ungrounded (manbada yo'q
+            faktlar, −0.15), 0.5 = qismiy (neytral). None = tekshirilmagan
+            (web tool ishlatilmagan) — signal yo'q.
 
         `verified` — A2 qo'shimchasi: native Ollama logprob qaytarmagani
         uchun verifikator natijasi ishlatiladi (struktura tekshiruvi /
@@ -223,6 +235,19 @@ class SelfEvaluator:
             ap = max(0.0, min(1.0, float(avg_logprob)))
             signals["logprob"] = WEIGHTS["logprob"] * (2.0 * ap - 1.0)
             notes.append(f"avg_logprob={ap:.3f}")
+
+        # --- grounding signali (A4 web manba tekshiruvi) ---
+        # 1.0 (grounded) -> +0.10; 0.0 (ungrounded) -> -0.15; 0.5/partial ->
+        # neytral (0*(2g-1) formula bilan avtomatik); None -> signal yo'q.
+        if grounding is not None:
+            g = max(0.0, min(1.0, float(grounding)))
+            if g >= 0.75:
+                signals["grounding"] = WEIGHTS["grounding_ok"]
+                notes.append("web_grounded")
+            elif g <= 0.25:
+                signals["grounding"] = WEIGHTS["grounding_fail"]
+                notes.append("web_ungrounded")
+            # 0.25 < g < 0.75 (partial) — neytral
 
         confidence = 0.5 + sum(signals.values())
         confidence = max(0.0, min(1.0, confidence))

@@ -41,7 +41,7 @@ def _get_memory():
     """Lazy MemoryBridge singleton (bir marta yuklanadi)."""
     global _MEMORY_BRIDGE
     if _MEMORY_BRIDGE is None:
-        from memory_bridge import MemoryBridge
+        from agent.memory_bridge import MemoryBridge
         _MEMORY_BRIDGE = MemoryBridge(enabled=True)
     return _MEMORY_BRIDGE if _MEMORY_BRIDGE.enabled else None
 
@@ -96,7 +96,7 @@ def skills_plan(task: str) -> str:
     Returns:
         a JSON plan with goal + ordered steps.
     """
-    from planner import TaskPlanner
+    from planning.planner import TaskPlanner
     planner = TaskPlanner(llm=None)
     import json
     return json.dumps(planner.plan(task), ensure_ascii=False, indent=1)
@@ -134,7 +134,7 @@ def skills_recall(query: str, top_k: int = 3) -> str:
 def skills_cag_status() -> str:
     """CAG (Cache-Augmented Generation) response-cache stats: size, hit rate,
     TTL. Use to decide whether caching is effective for repeated queries."""
-    from cag import DEFAULT_CAG
+    from agent.cag import DEFAULT_CAG
     import json
     return json.dumps(DEFAULT_CAG.status(), ensure_ascii=False)
 
@@ -143,7 +143,7 @@ def skills_cag_status() -> str:
 def skills_cag_invalidate() -> str:
     """Clear the CAG response cache. Call after context changes (files edited,
     new info learned) so stale cached answers are not reused."""
-    from cag import DEFAULT_CAG
+    from agent.cag import DEFAULT_CAG
     cleared = DEFAULT_CAG.invalidate()
     return f"cleared {cleared} cached responses"
 
@@ -157,7 +157,7 @@ def skills_mag_context(query: str) -> str:
     """MAG (Memory-Augmented Generation): assemble a memory context for the
     query from all memory layers (L1 runtime + L2 persistent + RAG retrieval).
     Use for continuing work / decisions that depend on past session history."""
-    from mag import MagAssembler
+    from agent.mag import MagAssembler
     mem = _get_memory()
     mag = MagAssembler(memory=mem)
     res = mag.assemble(query)

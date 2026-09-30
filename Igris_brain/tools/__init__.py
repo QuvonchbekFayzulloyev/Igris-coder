@@ -14,9 +14,9 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .base import Tool
+from .base import Tool, ToolError, ErrorType, tool_error_result
 from .workspace import Workspace
-from . import fs_tools, shell_tools, python_tools, web_tools, extra_tools
+from . import fs_tools, shell_tools, python_tools, web_tools, extra_tools, lsp_tools
 
 
 class ToolRegistry:
@@ -31,6 +31,10 @@ class ToolRegistry:
         self.register(fs_tools.WRITE_FILE)
         self.register(fs_tools.APPLY_PATCH)
         self.register(fs_tools.LIST_FILES)
+        self.register(fs_tools.EDIT_FILE)
+        self.register(fs_tools.SEARCH_IN_FILE)
+        self.register(fs_tools.GREP)
+        self.register(fs_tools.GLOB)
         self.register(shell_tools.RUN_COMMAND)
         self.register(python_tools.PYTHON_EXEC)
         # Tez deterministik web vositalar (brauzersiz): web_fetch + rasm qidiruv
@@ -42,6 +46,16 @@ class ToolRegistry:
         self.register(extra_tools.GIT_COMMAND)
         self.register(extra_tools.RENAME_FILE)
         self.register(extra_tools.DELETE_FILE)
+        # Task boshqaruv va savol tool'lari
+        self.register(extra_tools.TODOWRITE)
+        self.register(extra_tools.QUESTION)
+        # LSP — code intelligence
+        self.register(lsp_tools.LSP_DEFINITION)
+        self.register(lsp_tools.LSP_REFERENCES)
+        self.register(lsp_tools.LSP_HOVER)
+        self.register(lsp_tools.LSP_COMPLETION)
+        self.register(lsp_tools.LSP_DIAGNOSTICS)
+        self.register(lsp_tools.LSP_STATUS)
 
     def register(self, tool: Tool) -> "ToolRegistry":
         self.tools[tool.name] = tool
@@ -63,14 +77,17 @@ class ToolRegistry:
     def execute(self, workspace: Workspace, name: str, args: dict) -> dict:
         tool = self.get(name)
         if tool is None:
-            return {"ok": False, "error": f"Unknown tool: {name}"}
+            # §7 standart error formati: {error, code, recoverable}
+            return {"ok": False, "error": f"Unknown tool: {name}",
+                    "code": 1, "recoverable": True}
         try:
             return tool.execute(workspace, args or {})
         except Exception as exc:
-            return {"ok": False, "error": f"{tool.name} raised: {exc}"}
+            return {"ok": False, "error": f"{tool.name} raised: {exc}",
+                    "code": 5, "recoverable": True}
 
 
 # Singleton — server va agent foydalanadi
 DEFAULT_REGISTRY = ToolRegistry()
 
-__all__ = ["Tool", "ToolRegistry", "Workspace", "DEFAULT_REGISTRY"]
+__all__ = ["Tool", "ToolError", "ErrorType", "tool_error_result", "ToolRegistry", "Workspace", "DEFAULT_REGISTRY"]

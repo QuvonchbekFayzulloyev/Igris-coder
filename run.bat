@@ -140,13 +140,22 @@ exit /b 0
 
 :start_server
 echo [server] checking port 8765...
-curl -s --max-time 2 http://127.0.0.1:8765/api/status >nul 2>&1
+curl -s --max-time 2 http://127.0.0.1:8765/api/health >nul 2>&1
 if not errorlevel 1 (
     echo [server] already running
     exit /b 0
 )
+rem ---- eskirgan launch/marker fayllarini tozalaymiz ----
+rem (eski server_launch.json o'lgan/mavjud bo'lmagan skriptga ishora qilsa,
+rem  watchdog uni qayta ishlatib crash-loop qilardi; restart_*.ok esa UI
+rem  restart handshake'ini soxta faollashtirardi)
+if exist "%~dp0Igris_brain\logs\server_launch.json" del /q "%~dp0Igris_brain\logs\server_launch.json" >nul 2>&1
+if exist "%~dp0Igris_brain\server\logs\server_launch.json" del /q "%~dp0Igris_brain\server\logs\server_launch.json" >nul 2>&1
+del /q "%~dp0Igris_brain\logs\restart_*.ok" >nul 2>&1
+rem stop fayli qolgan bo'lsa — yangi watchdog uni ko'rib darhol to'xtamasin
+if exist "%~dp0Igris_brain\logs\watchdog.stop" del /q "%~dp0Igris_brain\logs\watchdog.stop" >nul 2>&1
 echo [server] starting (hidden)...
-wscript.exe "%~dp0_hidden.vbs" "cmd /c cd /d ""%~dp0Igris_brain"" && %PYCMD% server.py >> ""%~dp0Igris_brain\logs\server.log"" 2>&1"
+wscript.exe "%~dp0_hidden.vbs" "cmd /c cd /d ""%~dp0Igris_brain"" && %PYCMD% -m server.server >> ""%~dp0Igris_brain\logs\server.log"" 2>&1"
 exit /b 0
 
 :start_watchdog
@@ -165,7 +174,9 @@ if defined WD_PID (
     )
 )
 echo [watchdog] starting (hidden)...
-wscript.exe "%~dp0_hidden.vbs" "cmd /c cd /d ""%~dp0Igris_brain"" && %PYCMD% watchdog.py >> ""%~dp0Igris_brain\logs\watchdog.log"" 2>&1"
+rem ---- watchdog.py monitor/ paketida (oldin ildizdan chaqirilgani uchun
+rem hech qachon ishga tushmasdi va server o'chib qolsa tiklanmasdi) ----
+wscript.exe "%~dp0_hidden.vbs" "cmd /c cd /d ""%~dp0Igris_brain"" && %PYCMD% monitor\watchdog.py >> ""%~dp0Igris_brain\logs\watchdog.log"" 2>&1"
 exit /b 0
 
 :start_web
@@ -194,7 +205,7 @@ if %N% gtr 45 (
     echo [server] WARNING: backend javob bermayapti - Igris_brain\logs\server.log ni tekshiring
     exit /b 1
 )
-curl -s --max-time 1 http://127.0.0.1:8765/api/status >nul 2>&1
+curl -s --max-time 1 http://127.0.0.1:8765/api/health >nul 2>&1
 if not errorlevel 1 (
     echo [server] backend ready - http://127.0.0.1:8765
     exit /b 0

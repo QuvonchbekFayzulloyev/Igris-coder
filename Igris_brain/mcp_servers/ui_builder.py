@@ -226,7 +226,7 @@ def build_spec(app: str, theme: str = "dark") -> dict:
     # Eslatma: bu yerda LAZY import qilinadi — `ui_compose.compose_app()` ham
     # `build_spec`ni lazy import qiladi, aks holda modul yuklanish sikli bo'ladi.
     try:
-        from ui_compose import compose_ui
+        from ui.ui_compose import compose_ui
         plan = compose_ui(spec)
         if plan.get("ok"):
             spec["plan"] = {

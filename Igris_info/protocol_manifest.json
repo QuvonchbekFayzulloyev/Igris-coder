@@ -1,0 +1,223 @@
+{
+  "meta": {
+    "created_at": "2026-09-12T00:00:00.000000+00:00",
+    "updated_at": "2026-09-13T12:00:00.000000+00:00",
+    "version": "2.1.0",
+    "description": "Igris tizimining barcha boshqaruv protokollarining manifesti. v2.1: D1 API validatsiya + T2 mtime-cache + A4 web grounding + A1-2 run-verification (2026-09-13).",
+    "verification": "D1 32 + T2 10 + A4 21 + A1-2 13 yangi test; regressiya 160+ test — 2026-09-13"
+  },
+  "protocols": [
+    {
+      "id": "P00_orchestration",
+      "name": "IgrisAgent",
+      "path": "protocols/00_orchestration.md",
+      "files": ["Igris_brain/igris_agent.py"],
+      "summary": "Har bir so'rovni boshqaradi: resolve() (deterministik + LLM fallback), chat() (turbo/llm+tools/offline), chat_stream() (turbo/plain-stream/tool). Pipeline, RAG recall, compliance, graceful degradation, CAG/MAG integratsiyasi.",
+      "status": "✅ ishlayapti",
+      "quality": "94%",
+      "verified": {
+        "date": "2026-09-12",
+        "tests": "test_turbo_consistency 6/6, test_intelligence 41/41"
+      },
+      "fixed_this_session": [
+        "llm_failed UnboundLocalError — offline rejimda chat() crash qilardi",
+        "_cacheable_out junk-guard eskirgan edi (5 marker bilan kengaytirildi)",
+        "fallback matn kontrakti + extract_code doimiy chaqiruv"
+      ],
+      "shortcomings": [
+        "god-file: 6000 satr",
+        "repair-before-write naqshi 4 joyda takrorlangan",
+        "cooldown qiymatlari hardcoded"
+      ],
+      "todo": [
+        "modullashtirish (S5) — 1-qadam bajarildi (2026-09-14): igris_agent → quick_paths/web_strategy/agent_stack_data/request_classifier",
+        "repair-before-write helper'ga birlashtirish",
+        "cooldown'ni config'ga chiqarish"
+      ]
+    },
+    {
+      "id": "P01_execution",
+      "name": "AgentExecutor",
+      "path": "protocols/01_execution.md",
+      "files": ["Igris_brain/executor.py", "Igris_brain/planner.py", "Igris_brain/tools/__init__.py"],
+      "summary": "Plan → act → observe → correct ReAct sikli. max_iter=8, max_retries=2, quality gate (_verify_deliverable + corrective_pass), capability-gap fallback (use_skill/mcp/request_human), hooks on_plan/on_step_start/on_step_done/on_task_done.",
+      "status": "✅ ishlayapti",
+      "quality": "95%",
+      "verified": {
+        "date": "2026-09-13",
+        "tests": "test_executor 7/7 + syntax 11/11 + run 13/13"
+      },
+      "fixed_this_session": [
+        "A1-2: run-verification — .py fayl izolyatsiyada ishga tushiriladi; runtime xatolar gate'dan o'tmaydi"
+      ],
+      "shortcomings": ["A1: pytest-suite/PDF/PCB oracle'lar qolgan", "python_exec to'liq sandbox emas"],
+      "todo": ["A1: pytest-suite verifikatori", "plan domain-shablonlari"]
+    },
+    {
+      "id": "P02_task_management",
+      "name": "TaskSupervisor + Composition + Todo",
+      "path": "protocols/02_task_management.md",
+      "files": ["Igris_brain/task_supervisor.py", "Igris_brain/composition.py", "Igris_brain/todo_integration.py", "Igris_brain/todo_manager.py"],
+      "summary": "Murakkab vazifalar: decomposition → DAG → node execution → summarise. Composition pipeline: plan/read/edit/test/review (plan_then_execute), max_iter=8, max_repair=3. Todo: /todo list|add|complete (todos.json).",
+      "status": "✅ ishlayapti",
+      "quality": "90%",
+      "verified": { "date": "2026-09-12", "tests": "test_composition 8/8; test_task_supervisor 39 test mavjud" },
+      "shortcomings": ["decomposition kichik modelda zaif", "DAG vizualizatsiyasi yo'q", "paralel node yo'q"],
+      "todo": ["domain-shablonlar", "DAG UI", "summarise → L2 yozuv"]
+    },
+    {
+      "id": "P03_safety_and_policy",
+      "name": "HarmFilter + Safety + Corrigibility",
+      "path": "protocols/03_safety_and_policy.md",
+      "files": ["Igris_brain/safety.py", "Igris_brain/core/intelligence/harm_filter.py", "Igris_brain/tools/shell_tools.py", "Igris_brain/tools/workspace.py", "Igris_brain/tools/python_tools.py"],
+      "summary": "Harm-filter 2.10 (aniq zarar chegarasi, rad + sabab, LLM/xotiraga yo'q). safety.has_suspicious (injection naqshlar). Corrigibility: avtonomiya NOL. Tool darajasi: DENY_PATTERNS, realpath sandbox, python deny-list. 3 qatlam MCP output-guard.",
+      "status": "✅ ishlayapti",
+      "quality": "92%",
+      "verified": { "date": "2026-09-12", "tests": "test_intelligence::TestHarmFilter ✅" },
+      "shortcomings": ["python_exec resource limits yo'q (Dp4)", "injection ro'yxati statik"],
+      "todo": ["to'liq sandbox", "LLM-asosiy injection classifier", "o'zbekcha injection naqshlari"]
+    },
+    {
+      "id": "P04_web_strategy",
+      "name": "WebStrategy",
+      "path": "protocols/04_web_strategy.md",
+      "files": ["Igris_brain/igris_agent.py (metodlar: _web_strategy ~4845, _log_web_strategy)", "Igris_brain/web_strategy_report.py", "Igris_brain/tools/web_tools.py", "web-ai-bridge/"],
+      "summary": "Eng arzon vosita chizig'i: to'g'ridan-to'g'ri javob → web_fetch → ask_web_ai → real browser (CDP). BUTTON_SAFETY_TIERS (1/2/3), deep research polling, download check, BLOCKED/OBSTRUCTED, HTTP status+Content-Type tahlil, chat'da avtomatik browser tool.",
+      "status": "✅ ishlayapti",
+      "quality": "95%",
+      "verified": {
+        "date": "2026-09-13",
+        "tests": "test_web_strategy 39 test + test_web_verify 21/21 (A4)"
+      },
+      "fixed_this_session": [
+        "A4: web_verify.py — javob manba grounding tekshiruvi (deterministik, LLM yo'q)"
+      ],
+      "shortcomings": ["2-manba tasdiqlash hali yo'q", "CAPTCHA'da qo'lda oqim yo'q"],
+      "todo": ["2-manba tasdiqlash (A4 kengaytmasi)", "CAPTCHA user-oqimi"]
+    },
+    {
+      "id": "P05_svg_assurance",
+      "name": "SVGAssurance",
+      "path": "protocols/05_svg_assurance.md",
+      "files": ["Igris_brain/svg_validator.py", "Igris_brain/svg_quality_report.py", "Igris_brain/mcp_servers/art_server.py", "Igris_brain/mcp_servers/art_svg.py"],
+      "summary": "SVG sifat tekshiruvi: gradient/soya/fon/markazlash/margin/chegara/ranglar/uslub. style_comment: flat/realistic/cartoon. Fail-guard + redraw_note + _fake_draw_claim (soxta 'chizdim' blok).",
+      "status": "✅ ishlayapti",
+      "quality": "88%",
+      "verified": { "date": "2026-09-12", "tests": "test_svg_validator 34 test mavjud, E2E bor" },
+      "shortcomings": ["Dp7: predmet kutubxonasi tor (12 PNG + 19 SVG)", "rastr/OCR yo'q"],
+      "todo": ["generativ yondashuv (PIL)", "murakkab kompozitsiyalar"]
+    },
+    {
+      "id": "P06_hooks_and_events",
+      "name": "HooksAndEvents + Watchdog",
+      "path": "protocols/06_hooks_and_events.md",
+      "files": ["Igris_brain/hooks.py", "Igris_brain/watchdog.py", "Igris_brain/executor.py"],
+      "summary": "DEFAULT_BUS: on_plan/on_step_start/on_step_done/on_task_done (ixtiyoriy). Watchdog 16 funksiya: 4s poll, avtomatik restart ~20-30s, rate-limit, boot-grace, marker handshake, single-instance qulf, atomik holat.",
+      "status": "✅ to'liq ishlayapti (eng puxta)",
+      "quality": "95%",
+      "verified": { "date": "2026-08-07", "tests": "jonli E2E: 54.2s tiklanish (checklist.md)" },
+      "shortcomings": ["S3: telemetry signal/alert emas"],
+      "todo": ["degraded flag + alert", "watchdog dashboard"]
+    },
+    {
+      "id": "P07_cag_and_mag",
+      "name": "CAG&MAG",
+      "path": "protocols/07_cag_and_mag.md",
+      "files": ["Igris_brain/cag.py", "Igris_brain/mag.py"],
+      "summary": "CAG: o'zgarmas kalit, faqat sifatli javoblar (_cacheable_out + fail-guard), keshlangan ham repair'dan o'tadi, TURBO/MAG/lag keshlanmaydi. MAG: L1+L2+RAG sessiya konteksti.",
+      "status": "✅ ishlayapti",
+      "quality": "90%",
+      "verified": { "date": "2026-09-12", "tests": "test_rag_cag_mag_hooks 25 test" },
+      "shortcomings": ["model o'zgarsa kesh invalidatsiyasi yo'q", "hit-rate statistikasi UI'da yo'q"],
+      "todo": ["model-fingerprint kalit", "kesh statistikasi"]
+    },
+    {
+      "id": "P08_memory_control",
+      "name": "MemoryControl",
+      "path": "protocols/08_memory_control.md",
+      "files": ["Igris_brain/memory_bridge.py"],
+      "summary": "L1 + L2 + RAG + CAG + MAG. Faqat sifatli javoblar (fail-guard 7 joyda). Dedup. Snapshot integrity. Cleanup. Recall tozalash (has_suspicious + PoisoningProtection).",
+      "status": "✅ ishlayapti",
+      "quality": "93%",
+      "verified": { "date": "2026-09-13", "tests": "test_t2_mtime_cache 10 + FTS5 12 + bm25" },
+      "fixed_this_session": [
+        "T2: load_documents mtime-cache (faqat o'zgargan fayllar) + remove_source API'lari"
+      ],
+      "shortcomings": ["T3: vector retrieval ishlamaydi", "N4/N5 retrieval filtr", "D2 kompaktlash yo'q"],
+      "todo": ["T3 qisqa embedding", "compaction scheduler"]
+    },
+    {
+      "id": "P09_tool_and_mcp",
+      "name": "Tool&MCP",
+      "path": "protocols/09_tool_and_mcp.md",
+      "files": ["Igris_brain/tools/__init__.py (ToolRegistry+DEFAULT_REGISTRY)", "Igris_brain/tools/workspace.py", "Igris_brain/tools/fs_tools.py", "Igris_brain/tools/python_tools.py", "Igris_brain/tools/shell_tools.py", "Igris_brain/tools/web_tools.py", "Igris_brain/mcp_bridge.py", "Igris_brain/mcp_servers/"],
+      "summary": "ToolRegistry (DEFAULT_REGISTRY) + Workspace (realpath sandbox) + vositalar (read/write/list/apply_patch/python_exec/run_command/web_fetch). MCP: art, ui_builder, skills, database, filesystem, github, redis, websocket. Transport xatosida run() fallback. Barcha MCP chiqishi tozalanadi.",
+      "status": "✅ ishlayapti",
+      "quality": "85%",
+      "verified": { "date": "2026-09-12", "tests": "test_executor registry ✅; test_skills_mcp_hitl 18 test" },
+      "shortcomings": ["Dp8: apply_patch append rejimi", "domain-MCP serverlar yo'q (office/diagram/3d/eda/audio)"],
+      "todo": ["unified diff patch", "Office+Diagramma serverlar", "MCP health-check"]
+    },
+    {
+      "id": "P10_requirements",
+      "name": "RequirementExtractor",
+      "path": "protocols/10_requirements.md",
+      "files": ["Igris_brain/core/requirements.py"],
+      "summary": "Requirement + RequirementExtractor: til/format/chuqurlik/intent (math/weather/draw/web/summarize/code/file/compose_ui) JSON. CAG kesh 'req:<message>'. LLM + deterministik fallback (exception bermaydi). extract_fast (LLM'siz).",
+      "status": "✅ ishlayapti",
+      "quality": "88%",
+      "verified": { "date": "2026-09-12", "tests": "test_requirements 15 test" },
+      "shortcomings": ["fallback tilga bog'liq (uz/en)", "compose_ui kalitlari umumiy"],
+      "todo": ["ko'proq til qoidalari", "req ko'rsatish UI'da"]
+    },
+    {
+      "id": "P11_intelligence",
+      "name": "IntelligenceCore + modullar",
+      "path": "protocols/11_intelligence.md",
+      "files": ["Igris_brain/core/intelligence/orchestrator.py", "Igris_brain/core/intelligence/logic.py", "Igris_brain/core/intelligence/self_eval.py", "Igris_brain/core/intelligence/creative.py", "Igris_brain/core/intelligence/harm_filter.py", "Igris_brain/core/intelligence/ (12 modul)"],
+      "summary": "IntelligenceCore: adapt_system, reasoning_suffix, observe, screen, self_eval (SelfEvaluator signallari: engine/status/verified/resolver_score/avg_logprob; evaluate() 1 marta — kesh), creative multi-temperature, quick_math/weather delegatsiya, fail-guard.",
+      "status": "✅ ishlayapti",
+      "quality": "92%",
+      "verified": { "date": "2026-09-13", "tests": "test_intelligence 41/41 + grounding testlar" },
+      "fixed_this_session": [
+        "grounding signali (A4): SelfEvaluator + IntelligenceCore — grounded +0.10 / ungrounded -0.15"
+      ],
+      "shortcomings": ["T5: creative parallel emas", "avg_logprob faqat OpenAI-mos endpoint"],
+      "todo": ["asyncio variants", "self-eval auto-tune"]
+    },
+    {
+      "id": "P12_quick_paths",
+      "name": "QuickPaths (math + weather)",
+      "path": "protocols/12_quick_paths.md",
+      "files": ["Igris_brain/igris_agent.py (~1796-1860, ~4515-4725 qatorlar)", "Igris_brain/core/intelligence/logic.py (safe_math)"],
+      "summary": "Math: safe_math (AST) + MATH_EXPR_RE — LLM/brauzer keraksiz. Weather: Open-Meteo geocoding+forecast (kalit yo'q, 2-4s), manba ko'rsatiladi. DIQQAT: quick_math.py/quick_weather.py fayllari MAVJUD EMAS — funksionallik igris_agent ichida (manifest v1 xatosi tuzatildi).",
+      "status": "✅ ishlayapti",
+      "quality": "93%",
+      "verified": { "date": "2026-09-12", "tests": "test_intelligence::TestLogicQuickMath ✅" },
+      "shortcomings": ["alohida modul emas (god-file qismi)"],
+      "todo": ["quick_paths.py modulga ajratish", "birlik konvertatsiyalari"]
+    },
+    {
+      "id": "P13_memory_fayllari",
+      "name": "MemoryFayllari",
+      "path": "protocols/13_memory_fayllari.md",
+      "files": ["Igris_Memory/brain_data/runtime/01-short-turn.jsonl", "Igris_Memory/brain_data/runtime/02-session.jsonl", "Igris_Memory/brain_data/persistent/07-solution.jsonl", "Igris_Memory/brain_data/snapshots/"],
+      "summary": "Fizik xotira: L1 short-turn/session, L2 solution-memory, snapshots (memory_state+metadata). Faqat sifatli yozuv, dedup, snapshot integrity, cleanup.",
+      "status": "✅ ishlayapti (jonli yozilyapti)",
+      "quality": "85%",
+      "verified": { "date": "2026-09-12", "tests": "fayllar faol o'zgargan (git holati)" },
+      "shortcomings": ["D2: append-only — kompaktlash yo'q", "snapshotlar to'planib boradi"],
+      "todo": ["compaction scheduler", "eski snapshot arxivlash"]
+    }
+  ],
+  "protocols_count": 13,
+  "total_quality": "~92%",
+  "manifest_v2_1_additions": [
+    "D1: input_validation.py — /api POST validatsiya middleware (413/422, fail-safe) — server.py ulandi",
+    "T2: retrieval.py mtime-cache + remove_source (FTS5/BM25/Vector/Hybrid) — faqat o'zgargan fayllar indekslanadi",
+    "A4: web_verify.py — web javob manba grounding; SelfEvaluator grounding signali",
+    "A1-2: executor.py _python_run_check — .py fayl izolyatsiyada ishga tushiriladi; runtime xatolar gate'dan o'tmaydi"
+  ],
+  "shortcomings_summary": "Eng muhim ochiq zaifliklar: A1 qolgan domain-oracle'lar (pytest-suite/PDF/PCB), T3 vector retrieval, S5 qolgan god-fayllar (server.py 3078, store.ts 1320 — igris_agent 2026-09-14 da bo'lindi), domain-MCP serverlar yo'qligi",
+  "todo_summary": "Har protokolning 'todo' ro'yxati bor. Boshlash tartibi (health_matrix.md): T1 ✅ → D1 ✅ → A1 sintaksis+run ✅ → S5 🟡 jarayonda (igris_agent ✅ 2026-09-14, server.py/store.ts navbatda) → Office/Diagramma serverlar"
+}

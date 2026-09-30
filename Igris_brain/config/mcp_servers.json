@@ -1,0 +1,62 @@
+{
+  "servers": {
+    "art": {
+      "command": "python",
+      "args": ["mcp_servers/art_server.py"],
+      "cwd": "..",
+      "description": "Local image drawing (Pillow) — draw_object_png, list_subjects",
+      "enabled": true
+    },
+    "meta": {
+      "command": "python",
+      "args": ["mcp_servers/skills_server.py"],
+      "cwd": "..",
+      "description": "Meta-tools: meta__skills_list/load, meta__skills_plan (plan-first), meta__skills_recall (RAG), meta__skills_cag_status/invalidate (CAG), meta__skills_mag_context (MAG)",
+      "enabled": true
+    },
+    "web_ai_bridge": {
+      "command": "node",
+      "args": ["src/index.js"],
+      "cwd": "C:/Users/user/Desktop/IGRIS_Coder/web-ai-bridge/server",
+      "env": {
+        "WAB_HEADLESS": "false",
+        "WAB_BROWSER_CHANNEL": "chrome",
+        "WAB_CDP_ENABLED": "true",
+        "WAB_CDP_URL": "http://127.0.0.1:9222",
+        "WAB_CDP_PORT": "9222",
+        "WAB_CHROME_USER_DATA": "C:/Users/user/AppData/Local/Google/Chrome/User Data",
+        "WAB_CHROME_PROFILE": "Profile 1"
+      },
+      "description": "Real-browser automation — haqiqiy Google Chrome (mr.wtin profili, CDP) — browser_navigate, browser_get_text, browser_click, browser_type, browser_screenshot, browser_wait_for, ask_web_ai",
+      "enabled": true
+    },
+    "filesystem": {
+      "command": "python",
+      "args": ["mcp_servers/filesystem_server.py"],
+      "cwd": "..",
+      "description": "Advanced file operations — search_files, get_file_info, copy_file, compress_files",
+      "enabled": true
+    },
+    "github": {
+      "command": "python",
+      "args": ["mcp_servers/github_server.py"],
+      "cwd": "..",
+      "description": "GitHub operations — list_repos, get_file, create_file, issues, pull requests, search code, commits",
+      "enabled": true
+    },
+    "database": {
+      "command": "python",
+      "args": ["mcp_servers/database_server.py"],
+      "cwd": "..",
+      "description": "Database operations — PostgreSQL/MySQL query, list tables, describe table; MongoDB find, insert, update, delete, list collections",
+      "enabled": true
+    },
+    "redis": {
+      "command": "python",
+      "args": ["mcp_servers/redis_server.py"],
+      "cwd": "..",
+      "description": "Redis caching — get/set/delete, hash/list/set/sorted set operations, pub/sub, TTL management",
+      "enabled": true
+    }
+  }
+}

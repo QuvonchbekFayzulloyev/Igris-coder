@@ -772,8 +772,13 @@ class OllamaClient:
 
     # ------------------------------------------------------------ #
 
-    def extract_code(self, text: Optional[str]) -> str:
-        """Best-effort extraction of a code block from LLM output."""
+    @staticmethod
+    def extract_code(text: Optional[str]) -> str:
+        """Best-effort extraction of a code block from LLM output.
+
+        `@staticmethod` — OmniRouteClient ham shu bitta mantiqni (bir xil
+        xulq uchun) qayta ishlatadi, kopiyalamaslik uchun.
+        """
         if not text:
             return ""
         # fenced block

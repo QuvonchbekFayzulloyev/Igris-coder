@@ -161,13 +161,61 @@ CREATE_DIRECTORY = Tool(
 # git_command — git operatsiyalari (xavfsiz)
 # ---------------------------------------------------------------- #
 
-# Xavfli git buyruqlari — agent tizimni buzmasligi uchun bloklaymiz
+# Xavfli git buyruqlari — agent tizimni buzmasligi uchun bloklaymiz.
+# Phase 1 audit §7 tuzatishi: tool'ga command "push origin main" ko'rinishida
+# uzatiladi ("git" prefikssiz) — regex faqat "git push"ni ushlab, prefikssiz
+# shaklni o'tkazib yuborardi (BYPASS). Endi birinchi TOKEN = git subcommand
+# deb deterministik tahlil qilinadi + regex ikkinchi qatlam qoladi.
+_GIT_ALWAYS_DENY = {"push", "rebase", "revert", "filter-branch"}
+
+
+def _git_denied(command: str) -> str:
+    """Git buyrug'i xavfli bo'lsa sabab matni qaytaradi, aks holda "".
+
+    Deterministik (§17): token tahlili, LLM ishlovi yo'q. "git ..." prefiksi
+    bo'lsa birinchi token o'tkazib yuboriladi.
+    """
+    tokens = (command or "").strip().split()
+    if not tokens:
+        return ""
+    sub = tokens[0].lower()
+    if sub == "git" and len(tokens) > 1:
+        sub = tokens[1].lower()
+        rest = tokens[2:]
+    else:
+        rest = tokens[1:]
+    flags = [t for t in rest if t.startswith("-")]
+
+    if sub in _GIT_ALWAYS_DENY:
+        return f"git {sub} blocked (remote/history rewrite)"
+    if sub == "reset" and any(f in ("--hard", "--merge", "--keep") for f in rest):
+        return "git reset --hard/--merge/--keep blocked"
+    if sub == "clean" and any("f" in f.lower() for f in flags):
+        return "git clean -f blocked"
+    if sub == "branch" and any(f.lower() in ("-d", "--delete") for f in flags):
+        return "git branch -D blocked"
+    if sub == "config" and "--global" in rest:
+        return "git config --global blocked"
+    if sub == "remote" and rest and rest[0].lower() in ("remove", "set-url", "add"):
+        return "git remote modify blocked"
+    if sub == "reflog" and rest and rest[0].lower() == "delete":
+        return "git reflog delete blocked"
+    if sub == "gc" and any(f.lower() in ("--prune", "--aggressive") for f in flags):
+        return "git gc --prune blocked"
+    return ""
+
+
+# Ikkinchi qatlam: murakkab shakllar ("commit && push", yangi satr va h.k.)
 _DANGEROUS_GIT = [
-    re.compile(r"\bgit\s+(push|force-push|push\s+--force)\b", re.IGNORECASE),
-    re.compile(r"\bgit\s+reset\s+--(hard|merge|keep)\b", re.IGNORECASE),
-    re.compile(r"\bgit\s+clean\s+-[a-zA-Z]*f\b", re.IGNORECASE),
-    re.compile(r"\bgit\s+(branch\s+-D|branch\s+--delete)\b", re.IGNORECASE),
-    re.compile(r"\bgit\s+config\s+--global\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+push\b|\bpush\s+.*--force\b|\bpush\s+-f\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+reset\s+--(hard|merge|keep)\b|\breset\s+--(hard|merge|keep)\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+clean\s+-[a-zA-Z]*f\b|\bclean\s+-[a-zA-Z]*f\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+branch\s+(-D|--delete)\b|\bbranch\s+(-D|--delete)\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+config\s+--global\b|\bconfig\s+--global\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+(rebase|filter-branch)\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+revert\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+remote\s+(remove|set-url|add)\b", re.IGNORECASE),
+    re.compile(r"\bgit\s+(reflog\s+delete|gc\s+--(prune|aggressive))\b", re.IGNORECASE),
 ]
 
 
@@ -178,10 +226,16 @@ def _git_command(ws, args: dict) -> dict:
     if not command:
         return {"ok": False, "error": "command is required"}
     
-    # Xavfli buyruqlarni tekshiramiz
+    # 1-qatlam: deterministik subcommand tahlili (prefikssiz shakl ham ushlanadi)
+    deny_reason = _git_denied(command)
+    if deny_reason:
+        return {"ok": False, "error": f"dangerous git command blocked: {deny_reason}",
+                "code": 3, "recoverable": True}
+    # 2-qatlam: regex naqshlari (murakkab shakllar uchun himoya)
     for pat in _DANGEROUS_GIT:
         if pat.search(command):
-            return {"ok": False, "error": f"dangerous git command blocked: {command[:80]}"}
+            return {"ok": False, "error": f"dangerous git command blocked: {command[:80]}",
+                    "code": 3, "recoverable": True}
     
     search_dir = ws.resolve(cwd) if cwd else ws.root
     
@@ -329,4 +383,166 @@ DELETE_FILE = Tool(
         {"name": "force", "type": "boolean", "description": "Skip backup creation", "default": False},
     ],
     fn=_delete_file,
+)
+
+
+# ---------------------------------------------------------------- #
+# todowrite — task boshqaruv tool'i
+# ---------------------------------------------------------------- #
+
+# In-memory todo store (singleton)
+_todos: list[dict] = []
+_todo_id_counter = 0
+
+
+def _todowrite(ws, args: dict) -> dict:
+    """Task ro'yxatini boshqarish — qo'shish, yangilash, o'chirish, ro'yxat.
+
+    args: {action, id, content, status}
+    - action: "add", "update", "delete", "list", "clear"
+    """
+    global _todo_id_counter
+    action = args.get("action", "list")
+
+    if action == "add":
+        content = args.get("content", "")
+        if not content:
+            return {"ok": False, "error": "content is required"}
+        _todo_id_counter += 1
+        todo = {
+            "id": _todo_id_counter,
+            "content": content,
+            "status": args.get("status", "pending"),
+            "created_at": time.time(),
+        }
+        _todos.append(todo)
+        return {"ok": True, "todo": todo, "total": len(_todos)}
+
+    elif action == "update":
+        todo_id = args.get("id")
+        if todo_id is None:
+            return {"ok": False, "error": "id is required"}
+        for todo in _todos:
+            if todo["id"] == todo_id:
+                if "content" in args:
+                    todo["content"] = args["content"]
+                if "status" in args:
+                    todo["status"] = args["status"]
+                return {"ok": True, "todo": todo}
+        return {"ok": False, "error": f"todo {todo_id} not found"}
+
+    elif action == "delete":
+        todo_id = args.get("id")
+        if todo_id is None:
+            return {"ok": False, "error": "id is required"}
+        for i, todo in enumerate(_todos):
+            if todo["id"] == todo_id:
+                _todos.pop(i)
+                return {"ok": True, "deleted": todo_id}
+        return {"ok": False, "error": f"todo {todo_id} not found"}
+
+    elif action == "list":
+        status_filter = args.get("status")
+        if status_filter:
+            filtered = [t for t in _todos if t["status"] == status_filter]
+        else:
+            filtered = list(_todos)
+        return {"ok": True, "todos": filtered, "total": len(filtered)}
+
+    elif action == "clear":
+        _todos.clear()
+        return {"ok": True, "cleared": True}
+
+    return {"ok": False, "error": f"unknown action: {action}"}
+
+
+TODOWRITE = Tool(
+    name="todowrite",
+    description=(
+        "Manage task lists during coding sessions. Add, update, delete, or list todos. "
+        "Use to track progress on multi-step tasks."
+    ),
+    parameters=[
+        {"name": "action", "type": "string", "description": "Action: 'add', 'update', 'delete', 'list', 'clear'",
+         "enum": ["add", "update", "delete", "list", "clear"]},
+        {"name": "id", "type": "integer", "description": "Todo ID (for update/delete)", "default": None},
+        {"name": "content", "type": "string", "description": "Task description (for add/update)", "default": ""},
+        {"name": "status", "type": "string", "description": "Status: 'pending', 'in_progress', 'completed', 'cancelled'",
+         "enum": ["pending", "in_progress", "completed", "cancelled"], "default": "pending"},
+    ],
+    fn=_todowrite,
+)
+
+
+# ---------------------------------------------------------------- #
+# question — foydalanuvchiga savol berish
+# ---------------------------------------------------------------- #
+
+# In-memory question store
+_questions: list[dict] = []
+
+
+def _question(ws, args: dict) -> dict:
+    """Foydalanuvchiga savol berish — javob kutish.
+
+    args: {question, options, multiple}
+    """
+    question_text = args.get("question", "")
+    if not question_text:
+        return {"ok": False, "error": "question is required"}
+
+    options = args.get("options", [])
+    multiple = args.get("multiple", False)
+
+    q = {
+        "id": len(_questions) + 1,
+        "question": question_text,
+        "options": options,
+        "multiple": multiple,
+        "answer": None,
+        "timestamp": time.time(),
+    }
+    _questions.append(q)
+
+    # Javobni kutish — placeholder (real implementation server-side)
+    return {
+        "ok": True,
+        "question_id": q["id"],
+        "question": question_text,
+        "options": options,
+        "multiple": multiple,
+        "note": "Answer will be provided by user through UI",
+    }
+
+
+def _get_question_answer(question_id: int) -> dict:
+    """Savol javobini olish (server-side)."""
+    for q in _questions:
+        if q["id"] == question_id:
+            return {"ok": True, "answer": q.get("answer")}
+    return {"ok": False, "error": "question not found"}
+
+
+def _set_question_answer(question_id: int, answer) -> dict:
+    """Savol javobini o'rnatish (server-side)."""
+    for q in _questions:
+        if q["id"] == question_id:
+            q["answer"] = answer
+            return {"ok": True}
+    return {"ok": False, "error": "question not found"}
+
+
+QUESTION = Tool(
+    name="question",
+    description=(
+        "Ask the user a question during execution. Use for gathering preferences, "
+        "clarifying ambiguous instructions, or getting decisions on implementation choices."
+    ),
+    parameters=[
+        {"name": "question", "type": "string", "description": "The question to ask"},
+        {"name": "options", "type": "array", "description": "List of options for the user to choose from",
+         "items": {"type": "object", "properties": {"label": {"type": "string"}, "description": {"type": "string"}}}},
+        {"name": "multiple", "type": "boolean", "description": "Allow selecting multiple options", "default": False},
+    ],
+    fn=_question,
 )

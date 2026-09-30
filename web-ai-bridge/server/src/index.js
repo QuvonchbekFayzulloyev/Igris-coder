@@ -25,7 +25,7 @@ import { classifyContentType, classifyNetError, detectCaptchaWall, detectObstruc
 import { sanitizeIfNeeded } from "./safety.js";
 import { runAdaptiveTask } from "./adaptive.js";
 
-const MAX_TEXT_CHARS = 8000;
+const MAX_TEXT_CHARS = 20000;
 const LENGTH_WARNING_PATTERN =
   /getting long|reached the (length|context) limit|maximum length|start a new (chat|conversation|thread)|this conversation is (long|too long)/i;
 

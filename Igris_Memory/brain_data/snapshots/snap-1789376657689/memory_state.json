@@ -1,0 +1,110 @@
+{
+  "runtime": {
+    "session": [
+      {
+        "id": "session-bridge",
+        "type": "session",
+        "status": "active",
+        "started_at": "2026-09-14T09:04:17.686303+00:00",
+        "updated_at": "2026-09-14T09:04:17.686303+00:00",
+        "total_turns": 0,
+        "total_tool_calls": 0,
+        "total_tokens_used": 0,
+        "files_read": [],
+        "files_modified": [],
+        "errors_encountered": [],
+        "summary": "Session bridge started",
+        "timestamp": "2026-09-14T09:04:17.686337+00:00"
+      }
+    ]
+  },
+  "persistent": {
+    "experience": [
+      {
+        "id": "exp-session-exec-test",
+        "type": "experience",
+        "sessions": [
+          {
+            "date": "2026-08-04",
+            "task": "done",
+            "outcome": "successful",
+            "key_learnings": [],
+            "tags": []
+          }
+        ],
+        "summary": "done",
+        "updated_at": "2026-08-04T06:11:38.702092+00:00"
+      },
+      {
+        "content": "TASK: tetris o'yinini yasab ber\nSTATUS: ok\nSTEPS: 0 TOOLS: 2 FIXES: 0",
+        "type": "experience",
+        "tags": [
+          "agent-task",
+          "ok"
+        ],
+        "metadata": {},
+        "summary": "ok | 2 tools | 0 fixes",
+        "remembered_at": "2026-08-25T15:25:58.353642+00:00",
+        "id": "agent-experience-1787671558",
+        "updated_at": "2026-08-25T15:25:58.353654+00:00"
+      },
+      {
+        "content": "TASK: mini iloncha o'yinini yasab ber\nSTATUS: ok\nSTEPS: 0 TOOLS: 1 FIXES: 0",
+        "type": "experience",
+        "tags": [
+          "agent-task",
+          "ok"
+        ],
+        "metadata": {},
+        "summary": "ok | 1 tools | 0 fixes",
+        "remembered_at": "2026-09-14T03:54:42.321815+00:00",
+        "id": "agent-experience-1789358082",
+        "updated_at": "2026-09-14T03:54:42.321837+00:00"
+      }
+    ],
+    "solution-memory": [
+      {
+        "content": "Q: bu oqqushga yaqrin ham emasku\nA: I added a subtle mask effect to the oqqush in the SVG file, making it appear more refined and elegant. The mask is applied to the bird's body and wings, giving it a soft, glowing edge. File updated: `oqqush.svg`.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "bu oqqushga yaqrin ham emasku",
+        "remembered_at": "2026-09-14T07:59:48.578850+00:00",
+        "id": "agent-solution-memory-1789372788",
+        "updated_at": "2026-09-14T07:59:48.578863+00:00"
+      },
+      {
+        "content": "Q: add more details\nA: I enhanced the oqqush by adding more intricate feathers, a detailed beak, and a subtle gradient background. The bird now has a more realistic texture and a refined look. File updated: `oqqush.svg`.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "add more details",
+        "remembered_at": "2026-09-14T08:00:19.938302+00:00",
+        "id": "agent-solution-memory-1789372819",
+        "updated_at": "2026-09-14T08:00:19.938314+00:00"
+      },
+      {
+        "content": "Q: endi uni yon tomondan ko'rinishini ham chiq\nA: I drew the oqqush from a side view, emphasizing its structure and depth with shading and perspective. The image is saved as `oqqush_yon.svg` in a realistic style with detailed textures and lighting. File created: `oqqush_yon.svg`.",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "llm",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "endi uni yon tomondan ko'rinishini ham chiq",
+        "remembered_at": "2026-09-14T08:02:08.061550+00:00",
+        "id": "agent-solution-memory-1789372928",
+        "updated_at": "2026-09-14T08:02:08.061564+00:00"
+      }
+    ]
+  }
+}

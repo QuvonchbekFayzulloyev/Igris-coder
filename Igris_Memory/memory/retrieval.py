@@ -22,6 +22,62 @@ from typing import Any, Optional
 # BM25 KEYWORD INDEX
 # ============================================================
 
+# Roadmap v2 A3 (§5): O'zbekcha morfologiya yordamchisi.
+# BM25/FTS5 tokenizatsiyasi morfologiyasiz — "kitoblarni" "kitob"ga mos
+# kelmaydi. Yechim: index VA query tomonda bir xil yengil stemmer.
+
+# O'zbek tilidagi eng ko'p uchraydigan qo'shimchalar (uzunligi bo'yicha
+# kamayish tartibida — iterativ kesish uchun). Affiks almashinuvi (k→g,
+# q→', p→b) bilan birga.
+_UZ_SUFFIXES = (
+    "laridagilardan", "laridagi", "dagilardan", "liklaridan", "imizdan",
+    "lardan", "lariga", "larini", "larida", "larda", "dagi", "ganlar",
+    "larin", "larin", "im_ga", "imiz", "ingiz", "lari", "larni", "lar",
+    "ning", "nik", "lik", "gan", "magan", "ayotgan", "yotgan", "ilgan",
+    "uvchi", "vchi", "ish", "dan", "dun", "kan", "gan", "ga", "qa",
+    "da", "ta", "ni", "ning", "im", "iz", "ing", "i", "u", "a",
+)
+# yakka takror: to'plam — tez tekshiruv uchun (protsessda tartib muhim,
+# tuple'dan foydalanamiz)
+
+_UZ_CONSONANT_FRONT = {"k": "g", "q": "'", "p": "b", "t": "d"}
+
+
+def uz_stem(word: str) -> str:
+    """Yengil o'zbekcha stemmer — qo'shimchalarni kesadi (affiks almashinuvi bilan).
+
+    Qoidalar:
+      - so'z (2+ bo'g'in) qisqarmasdan keyin kamida 3 belgi qolishi kerak
+      - uzun suffiks birinchi tekshiriladi (iterativ, max 2 bosqich)
+      - k/q/p/t tugashida affiks almashinuvi (kitoblarni→kitob, kitobk→xato)
+
+    Bu to'liq morfologik tahlil EMAS — recall uchun maqsad "kitoblarni" va
+    "kitob" bir index kalitiga tushishi. Deterministik, stdlib faqat.
+    """
+    w = (word or "").strip().lower()
+    if len(w) < 5:  # qisqa so'zlar allaqachon ildizga yaqin
+        return w
+    # max 3 bosqich kesish: "kitoblarimdagi" (dagi→im→lar) kabi zanjirlar uchun
+    for _ in range(3):
+        changed = False
+        for suf in _UZ_SUFFIXES:
+            if len(w) - len(suf) >= 3 and w.endswith(suf):
+                w = w[: len(w) - len(suf)]
+                changed = True
+                break
+        if not changed:
+            break
+    # affiks almashinuvi: kesilgandan keyingi oxirgi undosh
+    if w[-1:] in _UZ_CONSONANT_FRONT:
+        w = w[:-1] + _UZ_CONSONANT_FRONT[w[-1]]
+        # ba'zan almashinuvdan keyin ham suffix qoldig'i bo'ladi (kitob+ni → kitob)
+        for suf in ("ni", "i", "ga", "da"):
+            if len(w) - len(suf) >= 3 and w.endswith(suf):
+                w = w[: len(w) - len(suf)]
+                break
+    return w
+
+
 class BM25Index:
     """
     BM25 keyword search index.
@@ -39,10 +95,31 @@ class BM25Index:
         self._built = False
 
     def tokenize(self, text: str) -> list[str]:
-        """Simple whitespace + lowercase tokenization."""
+        """Tokenization + A3: o'zbekcha yengil stemming + apostrof normalizatsiya.
+
+        Har token: asl shakli + stem (ikkalasi ham kalit bo'ladi) — leksik
+        moslik yo'qolmaydi, morfologik moslik QO'SHILADI. Document va query
+        tomonda bir xil qo'llaniladi.
+
+        Apostrof (o'qish/g'oya, to'g'ri yozuvda ʻ/ʼ/'): bo'shliq EMAS,
+        O'CHIRILADI — 'o'qish' va 'oqish' bir token ('oqish') bo'ladi.
+        """
         text = text.lower()
+        # A3: apostrof turlari (', ', ʻ, ʼ, `) — so'z ichida bo'lsa ham olib tashlanadi
+        text = re.sub(r"[\u0027\u2018\u2019\u02bc\u02ee\u0060]", "", text)
         text = re.sub(r"[^\w\s]", " ", text)
-        return [t for t in text.split() if len(t) > 1]
+        raw = [t for t in text.split() if len(t) > 1]
+        out: list[str] = []
+        seen: set[str] = set()
+        for t in raw:
+            if t not in seen:
+                seen.add(t)
+                out.append(t)
+            s = uz_stem(t)
+            if s != t and len(s) > 1 and s not in seen:
+                seen.add(s)
+                out.append(s)
+        return out
 
     def add_document(self, content: str, metadata: Optional[dict] = None):
         """Add a document to the index."""
@@ -132,15 +209,109 @@ class BM25Index:
             "avg_doc_length": self.avg_dl,
         }
 
+    def remove_source(self, source: str) -> int:
+        """Berilgan `source` metadata'ga ega hujjatlarni index'dan o'chiradi.
+
+        T2 (mtime cache): fayl o'zgarganda eski versiyasi o'chirilib, yangisi
+        qo'shiladi — to'liq rebuild Yo'Q. `doc_freqs` va `avg_dl` qayta
+        hisoblanadi (O(N) faqat o'chirilganda; add_document'dagi kabi).
+
+        Qaytaradi: o'chirilgan hujjatlar soni.
+        """
+        keep_docs: list[list[str]] = []
+        keep_meta: list[dict] = []
+        removed = 0
+        for doc, meta in zip(self.documents, self.metadata):
+            if isinstance(meta, dict) and meta.get("source") == source:
+                removed += 1
+                continue
+            keep_docs.append(doc)
+            keep_meta.append(meta)
+        if not removed:
+            return 0
+        self.documents = keep_docs
+        self.metadata = keep_meta
+        # doc_freqs qayta hisoblash
+        self.doc_freqs = {}
+        for doc in self.documents:
+            for term in set(doc):
+                self.doc_freqs[term] = self.doc_freqs.get(term, 0) + 1
+        self.total_docs = len(self.documents)
+        self.avg_dl = (
+            sum(len(doc) for doc in self.documents) / self.total_docs
+            if self.total_docs else 0.0
+        )
+        self._built = True  # statistikalar yangi — rebuild shart emas
+        return removed
+
 
 # ============================================================
 # VECTOR INDEX (FAISS - optional)
 # ============================================================
 
+# Roadmap v2 A1: hash-based DETERMINISTIC embedding fallback.
+# MiniLM/FAISS o'rnatilmagan holatda ham vector search ishlashi kerak
+# (avval: model yo'q bo'lsa search() JIM bo'sh qaytarardi — T3 "ishlamaydi").
+# Yondashuv: char 3-4-gram hash signaturasi → normallashtirilgan vektor
+# (sketch/n-gram hashing). Kosinus o'xshashlik sharh bilan taqqoslanadi.
+
+def _hash_embedding(text: str, dim: int = 384) -> list[float]:
+    """Deterministik, model-siz embedding: char n-gram hashing sketch.
+
+    - 3 va 4-gram'lar (pastki registr, faqat [a-z0-9' ] qoladi)
+    - Har gram stabil FNV-1a hash → bucket indeksi, ±1 sign (hash mod 2)
+    - Bucketlarga qo'shish → L2 normallashtirish → kosinusga tayyor
+    Xususiyatlari: tez (~100KB/s dan yuqori), izchil (ayni matn → ayni
+    vektor), modul-tashqisiz (faqat stdlib). Semantik chuqurlik MiniLM'dan
+    past, lekin leksik parafrazalar/morfologik o'zgarishlarni tutadi.
+    """
+    vec = [0.0] * dim
+    low = re.sub(r"[^\w\s]", " ", (text or "").lower())
+    low = re.sub(r"\s+", " ", low).strip()
+    if not low:
+        return vec
+    grams: list[str] = []
+    for n in (3, 4):
+        padded = f" {low} "
+        for i in range(len(padded) - n + 1):
+            grams.append(padded[i:i + n])
+    for g in grams:
+        h = 2166136261  # FNV-1a offset basis
+        for ch in g:
+            h = ((h ^ ord(ch)) * 16777619) & 0xFFFFFFFF
+        idx = h % dim
+        sign = 1.0 if (h >> 31) & 1 else -1.0
+        vec[idx] += sign
+    norm = math.sqrt(sum(x * x for x in vec))
+    if norm > 0:
+        vec = [x / norm for x in vec]
+    return vec
+
+
+def _cosine(a: list[float], b: list[float]) -> float:
+    """Pure-python kosinus (numpy shart emas; dim=384 uchun tez yetarli)."""
+    dot = 0.0
+    na = 0.0
+    nb = 0.0
+    for x, y in zip(a, b):
+        dot += x * y
+        na += x * x
+        nb += y * y
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    return dot / math.sqrt(na * nb)
+
+
 class VectorIndex:
     """
     Vector similarity search using FAISS.
     Optional: falls back to cosine similarity if FAISS not available.
+
+    Roadmap v2 A1: uchinchi qatlam — HASH-BASED deterministic embedding.
+    Zanjir: MiniLM (semantic, eng sifatli) → hash sketch (deterministik,
+    offline kafolat). Model yo'q bo'lsa ham search() endi JIM BO'SH
+    QAYTARMAYDI — hash sketch natija beradi (T3 "ishlamaydi" muammosi
+    yopildi). `_embedding_mode`: "minilm" | "hash".
     """
 
     def __init__(self, dimension: int = 384):
@@ -150,6 +321,8 @@ class VectorIndex:
         self._model = None
         self._use_faiss = False
         self._faiss_index = None
+        # A1: embedding rejimi — build() da aniqlanadi ("minilm" yoki "hash")
+        self._embedding_mode = "none"
 
         # Try to load FAISS
         try:
@@ -175,33 +348,79 @@ class VectorIndex:
         self.metadata.append(metadata or {"source": "unknown"})
 
     def build(self):
-        """Build FAISS index from stored vectors."""
-        model = self._get_model()
-        if model is None or not self.vectors:
+        """Build index from stored texts.
+
+        A1: avval MiniLM sinanadi (semantic sifat); o'rnatilmagan bo'lsa —
+        HASH-BASED sketch bilan barcha hujjatlar embedding qilinadi
+        (deterministik, stdlib faqat). Endi hech qanday holatda jim
+        ishdan chiqmaydi.
+        """
+        if not self.vectors:
             return
 
-        try:
-            import numpy as np
+        model = self._get_model()
+        if model is not None:
+            try:
+                import numpy as np
 
-            # Encode all documents
-            texts = [v if isinstance(v, str) else str(v) for v in self.vectors]
-            embeddings = model.encode(texts, batch_size=64, show_progress_bar=False)
-            embeddings = np.array(embeddings).astype("float32")
+                # Encode all documents
+                texts = [v if isinstance(v, str) else str(v) for v in self.vectors]
+                embeddings = model.encode(texts, batch_size=64, show_progress_bar=False)
+                embeddings = np.array(embeddings).astype("float32")
 
-            if self._faiss_available:
-                import faiss
-                self._faiss_index = faiss.IndexFlatIP(self.dimension)
-                self._faiss_index.add(embeddings)
-                self._use_faiss = True
-            else:
-                # Store embeddings for manual cosine similarity
-                self.vectors = embeddings.tolist()
+                if self._faiss_available:
+                    import faiss
+                    self._faiss_index = faiss.IndexFlatIP(self.dimension)
+                    self._faiss_index.add(embeddings)
+                    self._use_faiss = True
+                else:
+                    # Store embeddings for manual cosine similarity
+                    self.vectors = embeddings.tolist()
+                self._embedding_mode = "minilm"
+                return
+            except Exception:
+                pass
 
-        except Exception:
-            pass
+        # A1 FALLBACK: hash-based deterministic sketch (model yo'q / xato).
+        # remove_source() bilan mos bo'lishi uchun vektorlar `self.vectors`
+        # ichida saqlanadi (docs o'rniga) — remove_source vektorlarni filtrlaydi.
+        self._use_faiss = False
+        self._faiss_index = None
+        self.vectors = [_hash_embedding(v if isinstance(v, str) else str(v), self.dimension)
+                        for v in self.vectors]
+        self._embedding_mode = "hash"
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
-        """Search using vector similarity."""
+        """Search using vector similarity.
+
+        A1: uch rejim —
+          1) FAISS + MiniLM embeddings (eng sifatli)
+          2) MiniLM embeddings + pure/numpy cosine
+          3) HASH sketch + pure-python cosine (offline kafolat — endi default)
+        Model bo'lmasa JIM BO'SH QAYTARMAYDI — hash sketch ishlaydi.
+        """
+        if not self.metadata:
+            return []
+
+        # REJIM 3: hash sketch (model yo'q yoki build hash rejimida bo'ldi)
+        if self._embedding_mode == "hash" or (self._model is None and not self._use_faiss):
+            # build() chaqirilmagan bo'lsa ham ishlashi uchun lazily embed qilamiz
+            if self.vectors and not isinstance(self.vectors[0], list):
+                self.build()
+            if not self.vectors or not isinstance(self.vectors[0], list):
+                return []
+            qvec = _hash_embedding(query, self.dimension)
+            scored = []
+            for i, dvec in enumerate(self.vectors):
+                sim = _cosine(qvec, dvec)
+                if sim > 0.05:  # hash sketch noise floor
+                    scored.append((sim, i))
+            scored.sort(key=lambda t: t[0], reverse=True)
+            return [
+                {"score": float(s), "metadata": self.metadata[i], "index": i}
+                for s, i in scored[:top_k]
+            ]
+
         model = self._get_model()
         if model is None:
             return []
@@ -245,12 +464,41 @@ class VectorIndex:
 
         return []
 
+    def remove_source(self, source: str) -> int:
+        """Berilgan `source` metadata'ga ega hujjatlarni o'chiradi (T2).
+
+        FAISS'dan ayrim rowid o'chirib bo'lmaydi (IndexFlat) — index tozalanadi
+        (qayta qurish keyingi build() da). Recall vaqtinchalik kamayishi
+        mumkin; keyword index (FTS5/BM25) asosiy qidiruv qatlami.
+
+        Qaytaradi: o'chirilgan hujjatlar soni.
+        """
+        keep_vectors: list = []
+        keep_meta: list[dict] = []
+        removed = 0
+        for vec, meta in zip(self.vectors, self.metadata):
+            if isinstance(meta, dict) and meta.get("source") == source:
+                removed += 1
+                continue
+            keep_vectors.append(vec)
+            keep_meta.append(meta)
+        if not removed:
+            return 0
+        self.vectors = keep_vectors
+        self.metadata = keep_meta
+        if self._faiss_index is not None:
+            self._faiss_index = None
+            self._use_faiss = False
+        return removed
+
     def get_stats(self) -> dict:
         return {
             "total_documents": len(self.metadata),
             "dimension": self.dimension,
             "faiss_available": self._faiss_available,
             "faiss_index_built": self._use_faiss,
+            # A1: qaysi embedding rejimi ishlayapti ("minilm" | "hash" | "none")
+            "embedding_mode": self._embedding_mode,
         }
 
 
@@ -267,8 +515,47 @@ class HybridSearch:
 
     def __init__(self, rrf_k: int = 60):
         self.rrf_k = rrf_k
-        self.bm25 = BM25Index()
+        # T1 optimization (2026-09-12): BM25Index o'rniga FTS5Index —
+        # incremental insert (har add_document'da rebuild YO'Q), diskda
+        # saqlanadi (restart'da qayta yuklash kerak emas). Interfeys bir xil:
+        # add_document/build/search/get_stats. FTS5 yo'q bo'lsa avtomatik
+        # asl BM25Index ga qaytadi (fts5_index.py ichida).
+        self.bm25 = self._make_keyword_index()
         self.vector = VectorIndex()
+
+    def _make_keyword_index(self):
+        """FTS5Index yaratadi; imkoni bo'lmasa asl BM25Index (hech qachon crash yo'q).
+
+        Import izchilligi: fts5_index.py bu papkada (memory/) yashaydi, lekin
+        MemoryBridge faqat Igris_Memory ildizini sys.path'ga qo'shadi — shu
+        sababli yalang'ich `from fts5_index import ...` ishlab turgan serverda
+        topilmasdi (jim BM25 fallback). Endi: 1) shu papkani sys.path'ga
+        qo'shamiz, 2) paket-ichki nisbiy import ham sinab ko'ramiz.
+        """
+        try:
+            try:
+                from fts5_index import FTS5Index
+            except ImportError:
+                import os as _os, sys as _sys
+                _here = _os.path.dirname(_os.path.abspath(__file__))
+                if _here not in _sys.path:
+                    _sys.path.insert(0, _here)
+                from fts5_index import FTS5Index
+            return FTS5Index()
+        except Exception as exc:
+            # S3: FTS5 yo'q bo'lsa BM25 ga qaytish ENDI JIM EMAS —
+            # /api/system/services'da ko'rinadi (3-6x sekinlik = muhim signal).
+            try:
+                import sys as _sys2
+                if ".." not in [p for p in _sys2.path]:
+                    _brain = _os.path.normpath(_os.path.join(_here, "..", "..", "Igris_brain"))
+                    if _os.path.isdir(_brain) and _brain not in _sys2.path:
+                        _sys2.path.insert(0, _brain)
+                from monitor.degradation import mark
+                mark("memory.keyword-index", str(exc)[:300], fallback="BM25Index")
+            except Exception:
+                pass
+            return BM25Index()
 
     def add_document(self, content: str, metadata: Optional[dict] = None):
         """Add a document to both indexes."""
@@ -279,6 +566,22 @@ class HybridSearch:
         """Build both indexes."""
         self.bm25.build()
         self.vector.build()
+
+    def remove_source(self, source: str) -> int:
+        """Ikkala index'dan `source` hujjatlarni o'chiradi (T2 mtime cache).
+
+        Qaytaradi: o'chirilgan hujjatlar soni (bm25 + vector, max ikkalasi).
+        """
+        removed = 0
+        try:
+            removed += self.bm25.remove_source(source)
+        except Exception:
+            pass
+        try:
+            removed += self.vector.remove_source(source)
+        except Exception:
+            pass
+        return removed
 
     def search(self, query: str, top_k: int = 5, use_vector: bool = True) -> list[dict]:
         """
@@ -501,31 +804,69 @@ class RetrievalPipeline:
         self.rewriter = QueryRewriter()
         self.cache = SessionCache()
         self._loaded = False
+        # T2 (mtime cache): fayl yo'li -> (mtime, size) xaritasi.
+        # load_documents qayta chaqirilganda FAQAT o'zgargan/yangi fayllar
+        # o'qiladi va index'ga qo'shiladi; o'zgargan faylning eski versiyasi
+        # index'dan o'chiriladi (remove_source). O'zgarmagan fayllar
+        # o'chirib-qo'shilmaydi (dedup ham bor, lekin o'qish/skan tejaladi).
+        self._file_state: dict[str, tuple[float, int]] = {}
 
-    def load_documents(self, memory_dir: str):
+    def load_documents(self, memory_dir: str, force: bool = False):
         """
         Load all .md and .json files from memory directory.
-        
+
+        T2: mtime cache — faqat o'zgargan fayllar qayta indekslanadi.
+        `force=True` — barcha fayllarni qayta o'qish (cache bekor).
+
         Args:
             memory_dir: Path to memory directory (e.g., "memory/")
+            force: Skip mtime cache and re-index everything
         """
         if not os.path.exists(memory_dir):
             return
+
+        dir_prefix = os.path.normpath(memory_dir) + os.sep
+        seen_paths: set[str] = set()
 
         for root, dirs, files in os.walk(memory_dir):
             for fname in files:
                 if fname.endswith((".md", ".json", ".jsonl")):
                     fpath = os.path.join(root, fname)
+                    fpath_norm = os.path.normpath(fpath)
+                    seen_paths.add(fpath_norm)
+                    try:
+                        st = os.stat(fpath)
+                        mtime, size = st.st_mtime, st.st_size
+                    except OSError:
+                        continue
+                    prev = self._file_state.get(fpath_norm)
+                    if not force and prev == (mtime, size):
+                        continue  # o'zgarmagan — o'tkazib yuborish
                     try:
                         with open(fpath, "r", encoding="utf-8") as f:
                             content = f.read()
                         if len(content.strip()) > 10:
+                            source_key = fpath_norm
+                            # O'zgargan fayl: eski versiyani index'dan o'chirish
+                            if prev is not None:
+                                self.hybrid.remove_source(source_key)
                             self.hybrid.add_document(
                                 content,
-                                {"source": fpath, "type": fname.split(".")[-1]},
+                                {"source": source_key, "type": fname.split(".")[-1]},
                             )
+                            self._file_state[fpath_norm] = (mtime, size)
                     except Exception:
                         pass
+
+        # O'chirilgan fayllarni index'dan ham o'chirish
+        stale = [p for p in self._file_state
+                 if p.startswith(dir_prefix) and p not in seen_paths]
+        for p in stale:
+            try:
+                self.hybrid.remove_source(p)
+            except Exception:
+                pass
+            self._file_state.pop(p, None)
 
         self.hybrid.build()
         self._loaded = True

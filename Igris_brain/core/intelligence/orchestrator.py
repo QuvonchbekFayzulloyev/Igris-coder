@@ -174,13 +174,14 @@ class IntelligenceCore:
         verified: Optional[str] = None,
         resolver_score: Optional[float] = None,
         avg_logprob: Optional[float] = None,
+        grounding: Optional[float] = None,
     ) -> SelfEvalResult:
         """Javobga ishonch darajasini hisoblaydi (faqat metrika)."""
         return self.self_eval.evaluate(
             engine=engine, status=status, output=output,
             tool_calls=tool_calls, memory_hits=memory_hits, healed=healed,
             verified=verified, resolver_score=resolver_score,
-            avg_logprob=avg_logprob,
+            avg_logprob=avg_logprob, grounding=grounding,
         )
 
     # ------------------------------------------------------------ #

@@ -28,7 +28,13 @@ jobs:
       
       - name: Run tests
         run: |
+          # Roadmap v2 C3: nightly'da TO'LIQ suite — e2e qatlami bilan
           pytest test_*.py -v --tb=short
+
+      - name: Run performance benchmark
+        run: |
+          # Roadmap v2 C3: nightly benchmark — regressiya kuzatuvi
+          python -m benchmarks.test_performance || true
       
       - name: Generate nightly version
         id: version

@@ -35,6 +35,8 @@ export default defineConfig({
     watch: {
       // Tauri Rust build artefaktlari Windows'da EBUSY beradi — kuzatuvdan chiqaramiz
       ignored: ['**/src-tauri/target/**'],
+      // 2nd_brain papkasidagi o'zgarishlarni ham kuzatish (HMR uchun)
+      include: ['../2nd_brain/**/*.{ts,tsx}'],
     },
   },
   build: {

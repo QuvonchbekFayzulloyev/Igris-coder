@@ -1,0 +1,50 @@
+{
+  "task_id": "task_1789721407387",
+  "goal": "supabase saytini och",
+  "dag": {
+    "main": {
+      "id": "main",
+      "description": "Veb tadqiqot",
+      "need": "web",
+      "predecessors": [],
+      "status": "completed",
+      "result": "IGRIS hozir javob bera olmadi — Ollama (lokal AI) yoqilmagan. Iltimos `run.bat` orqali yoki terminalda `ollama serve` bilan Ollama'ni ishga tushiring, so'ng qayta yozing. (Deterministik dvigatel faqat oldindan ma'lum bo'lgan oddiy kod so'rovlarini biladi — suhbat savollariga javob bera olmaydi.)",
+      "error": null,
+      "context": {
+        "clarified": "obyekt: Supabase (baza) · vositalar: web_ai_bridge__browser_navigate",
+        "subject": "Supabase (baza)",
+        "loop_shape": "react_iterative",
+        "max_iter": 8,
+        "max_repair": 0
+      },
+      "tool_calls": [],
+      "files_changed": [],
+      "iterations_used": 1,
+      "repairs_used": 0
+    },
+    "sub_0_code": {
+      "id": "sub_0_code",
+      "description": "Kod vazifasi",
+      "need": "code",
+      "predecessors": [
+        "main"
+      ],
+      "status": "completed",
+      "result": "IGRIS hozir javob bera olmadi — Ollama (lokal AI) yoqilmagan. Iltimos `run.bat` orqali yoki terminalda `ollama serve` bilan Ollama'ni ishga tushiring, so'ng qayta yozing. (Deterministik dvigatel faqat oldindan ma'lum bo'lgan oddiy kod so'rovlarini biladi — suhbat savollariga javob bera olmaydi.)",
+      "error": null,
+      "context": {
+        "loop_shape": "build_verify",
+        "max_iter": 8,
+        "max_repair": 3
+      },
+      "tool_calls": [],
+      "files_changed": [],
+      "iterations_used": 1,
+      "repairs_used": 0
+    }
+  },
+  "total_iterations_used": 2,
+  "total_repairs_used": 0,
+  "budget_remaining": 38,
+  "timestamp": 1789721407.4193757
+}

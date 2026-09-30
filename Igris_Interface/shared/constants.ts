@@ -88,7 +88,7 @@ export interface BrainNode {
 
 export interface ChatMessage {
   role?: 'user' | 'agent';
-  kind?: 'toolcall' | 'human' | 'drawing' | 'log' | 'clarify';
+  kind?: 'toolcall' | 'human' | 'drawing' | 'log' | 'clarify' | 'agent_state' | 'task_result';
   text?: string;
   name?: string;
   status?: 'running' | 'done' | 'error';
@@ -146,8 +146,57 @@ export interface ChatCompletion {
   sub_pipelines?: string[];
 }
 
-export type MainView = 'chat' | 'preview' | 'brain' | 'webai' | 'quality';
+export type MainView = 'chat' | 'preview' | 'brain';
 export type SidebarMode = 'chats' | 'workspace' | 'agent';
+
+// ── Agent state types ─────────────────────────────────────────────
+export type AgentStateType = 'idle' | 'thinking' | 'planning' | 'executing' | 'verifying' | 'error' | 'paused';
+
+export interface AgentTask {
+  id: string;
+  title: string;
+  description: string;
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'paused';
+  priority: 'low' | 'normal' | 'high';
+  created_at: number;
+  started_at?: number;
+  completed_at?: number;
+  steps: AgentTaskStep[];
+  result?: string;
+  error?: string;
+  tools_used: string[];
+  duration_ms?: number;
+}
+
+export interface AgentTaskStep {
+  id: number;
+  title: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  tool?: string;
+  result?: string;
+  duration_ms?: number;
+}
+
+export interface AgentCapability {
+  name: string;
+  icon: string;
+  description: string;
+  enabled: boolean;
+  tools: string[];
+}
+
+export interface AgentState {
+  state: AgentStateType;
+  current_task?: string;
+  current_step?: string;
+  capabilities: AgentCapability[];
+  task_queue: AgentTask[];
+  completed_today: number;
+  tools_available: number;
+  memory_entries: number;
+  uptime_seconds: number;
+  auto_mode: boolean;
+}
 
 /* Sidebar chat item — real /api/chat/history'dan to'ldiriladi (mock yo'q). */
 export interface SidebarChatItem {

@@ -1,0 +1,110 @@
+{
+  "runtime": {
+    "session": [
+      {
+        "id": "session-bridge",
+        "type": "session",
+        "status": "active",
+        "started_at": "2026-09-21T04:30:24.054339+00:00",
+        "updated_at": "2026-09-21T04:30:24.054339+00:00",
+        "total_turns": 0,
+        "total_tool_calls": 0,
+        "total_tokens_used": 0,
+        "files_read": [],
+        "files_modified": [],
+        "errors_encountered": [],
+        "summary": "Session bridge started",
+        "timestamp": "2026-09-21T04:30:24.054407+00:00"
+      }
+    ]
+  },
+  "persistent": {
+    "experience": [
+      {
+        "id": "exp-session-exec-test",
+        "type": "experience",
+        "sessions": [
+          {
+            "date": "2026-08-04",
+            "task": "done",
+            "outcome": "successful",
+            "key_learnings": [],
+            "tags": []
+          }
+        ],
+        "summary": "done",
+        "updated_at": "2026-08-04T06:11:38.702092+00:00"
+      },
+      {
+        "content": "TASK: tetris o'yinini yasab ber\nSTATUS: ok\nSTEPS: 0 TOOLS: 2 FIXES: 0",
+        "type": "experience",
+        "tags": [
+          "agent-task",
+          "ok"
+        ],
+        "metadata": {},
+        "summary": "ok | 2 tools | 0 fixes",
+        "remembered_at": "2026-08-25T15:25:58.353642+00:00",
+        "id": "agent-experience-1787671558",
+        "updated_at": "2026-08-25T15:25:58.353654+00:00"
+      },
+      {
+        "content": "TASK: mini iloncha o'yinini yasab ber\nSTATUS: ok\nSTEPS: 0 TOOLS: 1 FIXES: 0",
+        "type": "experience",
+        "tags": [
+          "agent-task",
+          "ok"
+        ],
+        "metadata": {},
+        "summary": "ok | 1 tools | 0 fixes",
+        "remembered_at": "2026-09-14T03:54:42.321815+00:00",
+        "id": "agent-experience-1789358082",
+        "updated_at": "2026-09-14T03:54:42.321837+00:00"
+      }
+    ],
+    "solution-memory": [
+      {
+        "content": "Q: matritsani teskari top\nA: np.linalg.inv(np.array)",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "deterministic",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "matritsani teskari top",
+        "remembered_at": "2026-09-17T06:17:26.886845+00:00",
+        "id": "agent-solution-memory-1789625846",
+        "updated_at": "2026-09-17T06:17:26.886869+00:00"
+      },
+      {
+        "content": "Q: matritsani teskari top\nA: np.linalg.inv(np.array)",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "deterministic",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "matritsani teskari top",
+        "remembered_at": "2026-09-17T06:17:27.128322+00:00",
+        "id": "agent-solution-memory-1789625847",
+        "updated_at": "2026-09-17T06:17:27.128382+00:00"
+      },
+      {
+        "content": "Q: test task\nA: {'task': 'test task', 'status': 'failed', 'complexity': 'medium', 'confidence': 0.0, 'evidence_count': 2, 'evidence_passed': 0, 'tokens_used': 0, 'token_budget': 4000, 'llm_decision': None, 'duration_seconds': 1789537476.31, 'context': {'task': 'test task', 'complexity': 'medium', 'entry_point': '', 'framework': '', 'language': '', 'relevant_files': 0, 'relevant_symbols': 0, 'dependencies': 0, 'constraints': [], 'facts': {}, 'tokens_used': 0, 'token_budget': 4000}, 'verification': {'status': 'failed', 'confidence': 0.0, 'evidence_count': 2, 'evidence_passed': 0, 'claim': 'test task', 'summary': '0/2 evidence passed', 'remaining_problems': ['Build FAILED', 'Tests FAILED']}}",
+        "type": "solution-memory",
+        "tags": [
+          "brain",
+          "smart_build",
+          "resolution"
+        ],
+        "metadata": {},
+        "summary": "test task",
+        "remembered_at": "2026-09-18T11:32:01.827324+00:00",
+        "id": "agent-solution-memory-1789731121",
+        "updated_at": "2026-09-18T11:32:01.827336+00:00"
+      }
+    ]
+  }
+}

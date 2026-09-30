@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAgentConsoleStore } from '../../shared/store';
 import { TreeNode as TreeNodeType } from '../../shared/constants';
+import { useMenu } from './ContextMenu';
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -11,6 +12,7 @@ interface TreeNodeProps {
 export function TreeNodeComponent({ node, path, depth }: TreeNodeProps) {
   const { expanded, toggleExpanded, selectedFile, setSelectedFile, setMainView } =
     useAgentConsoleStore();
+  const menu = useMenu();
 
   const isFolder = node.type === 'folder';
   const isOpen = expanded.has(path);
@@ -27,10 +29,50 @@ export function TreeNodeComponent({ node, path, depth }: TreeNodeProps) {
     }
   };
 
+  // Workspace fayl/papka o'ng-tugma menyusi
+  const onContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const openInPreview = () => {
+      setSelectedFile(path);
+      setMainView('preview');
+    };
+    menu.open(e.clientX, e.clientY, [
+      ...(isFolder
+        ? [
+            { id: 'tog', label: isOpen ? 'Yopish' : 'Ochish', icon: isOpen ? '▾' : '▸', action: () => toggleExpanded(path) },
+            { id: 'exp', label: 'Hammasini ochish', icon: '⧉', action: () => {
+              // Bu papka va barcha bolalarini ochamiz (depth-first)
+              const add = (p: string, n: TreeNodeType) => {
+                useAgentConsoleStore.getState().toggleExpanded(p);
+              };
+              add(path, node);
+              node.children?.forEach((c) => {
+                if (c.type === 'folder') useAgentConsoleStore.getState().toggleExpanded(`${path}/${c.name}`);
+              });
+            } },
+          ]
+        : [
+            { id: 'open', label: 'Preview’da ochish', icon: '👁', action: openInPreview },
+            { id: 'cp', label: 'Yo‘lni nusxalash', icon: '⧉', action: () => {
+              try { navigator.clipboard.writeText(path); } catch { /* ignore */ }
+            } },
+            { id: 'dn', label: 'Brauzerda ochish', icon: '↗', action: () => {
+              import('../backend').then(({ workspaceFileUrl }) => {
+                window.open(workspaceFileUrl(path), '_blank');
+              });
+            } },
+          ]),
+      { separator: true },
+      { id: 'rf', label: 'Workspace‘ni yangilash', icon: '↻', action: () => useAgentConsoleStore.getState().loadWorkspace() },
+    ]);
+  };
+
   return (
     <div>
       <button
         onClick={handleClick}
+        onContextMenu={onContextMenu}
         className={`w-full flex items-center gap-1.5 py-1 pr-2 rounded text-xs hover:bg-zinc-800 text-left ${
           isSelected
             ? 'bg-zinc-800 text-zinc-100'

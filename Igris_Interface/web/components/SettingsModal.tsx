@@ -280,7 +280,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                 className="w-full bg-zinc-950 border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-200 font-mono outline-none focus:border-amber-500"
               />
               <p className="text-[11px] font-ui text-zinc-600 mt-1.5">
-                Run <code className="font-mono text-zinc-500">python server.py</code> in Igris_brain to start the bridge.
+                Run <code className="font-mono text-zinc-500">python -m server.server</code> from Igris_brain to start the bridge.
               </p>
             </div>
             <button
@@ -486,11 +486,76 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-1.5 rounded-full ${services?.mcp?.connected ? 'bg-teal-400' : 'bg-zinc-600'}`} />
                 <span className="text-sm font-ui text-zinc-200">MCP servers</span>
+                {services?.mcp?.degraded && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-950/50 text-rose-300 border border-rose-800/50">degraded</span>
+                )}
               </div>
               <div className="text-[11px] font-ui text-zinc-600 mt-1 flex flex-wrap gap-1">
                 {(services?.mcp?.servers?.length ? services.mcp.servers : ['(none connected)']).map((s) => (
                   <span key={s} className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono text-[10px]">{s}</span>
                 ))}
+              </div>
+            </div>
+
+            {/* S3: Silent degradation — komponentlar jim zaif rejimga o'tganda ko'rinadi */}
+            <div className={`border rounded-md px-3 py-2 ${
+              (services?.degradations_active ?? 0) > 0
+                ? 'border-rose-800/60 bg-rose-950/20'
+                : 'border-zinc-800'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    (services?.degradations_active ?? 0) > 0 ? 'bg-rose-400 animate-pulse' : 'bg-teal-400'
+                  }`} />
+                  <span className="text-sm font-ui text-zinc-200">Degradations (silent fallback)</span>
+                  {(services?.degradations_active ?? 0) > 0 && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-950/50 text-rose-300 border border-rose-800/50">
+                      {services?.degradations_active} active
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { clearDegradations } = await import('../backend');
+                      await clearDegradations();
+                    } catch { /* backend offline — refresh baribir ishlaydi */ }
+                    await refreshServices();
+                  }}
+                  disabled={!servicesLoaded || !(services?.degradations?.length)}
+                  className="text-[10px] font-mono px-2 py-1 rounded border border-zinc-700 text-zinc-400 hover:text-amber-300 hover:border-amber-500/50 disabled:opacity-40 transition-colors"
+                  title="Degradation tarixini tozalash"
+                >
+                  ↺ clear
+                </button>
+              </div>
+              {services?.degradations?.length ? (
+                <div className="mt-1.5 space-y-1">
+                  {services.degradations.slice(0, 5).map((d, i) => (
+                    <div key={`${d.component}-${i}`} className="text-[11px] font-ui text-zinc-500 flex items-start gap-1.5">
+                      <span className="font-mono text-[10px] text-rose-400/80 shrink-0">{d.component}</span>
+                      <span className="shrink-0 text-zinc-700">→</span>
+                      <span className="font-mono text-[10px] text-amber-400/80 shrink-0">{d.fallback || '?'}</span>
+                      <span className="truncate" title={d.reason}>{d.reason}</span>
+                      {(d.count ?? 1) > 1 && (
+                        <span className="shrink-0 font-mono text-[10px] text-zinc-600">×{d.count}</span>
+                      )}
+                    </div>
+                  ))}
+                  {services.degradations.length > 5 && (
+                    <div className="text-[10px] font-ui text-zinc-600">
+                      +{services.degradations.length - 5} eski yozuv (log: Igris_brain/logs/degradations.json)
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-[11px] font-ui text-zinc-600 mt-1">
+                  {servicesLoaded ? 'hammasi sog\'lom — jim fallback yo\'q' : 'backend offline — holat olinmadi'}
+                </div>
+              )}
+              <div className="text-[10px] font-ui text-zinc-600/70 mt-1">
+                Komponent ishlamayotganda zaif rejimga o'tishi (MCP→no-tools, FTS5→BM25...) bu yerda ko'rinadi — "jim sekinlik" yo'q
               </div>
             </div>
 
@@ -514,16 +579,72 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
             </div>
           </div>
         ) : (
-          <div className="p-4 space-y-2">
+          <div className="p-4 space-y-3">
+            {/* OmniRoute Gateway */}
+            <div className="border border-zinc-800 rounded-md px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${agentInfo?.omniroute?.connected ? 'bg-teal-400' : 'bg-zinc-600'}`} />
+                  <span className="text-sm font-ui text-zinc-200">OmniRoute Gateway</span>
+                  {agentInfo?.omniroute?.connected && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-950/50 text-teal-300 border border-teal-800/50">
+                      {agentInfo.omniroute.models_count || 0} models
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-ui text-zinc-500">
+                  {agentInfo?.omniroute?.connected ? 'connected' : 'not connected'}
+                </span>
+              </div>
+              {agentInfo?.omniroute?.connected ? (
+                <div className="mt-1.5 space-y-1">
+                  <div className="text-[11px] font-ui text-zinc-600">
+                    URL: <code className="font-mono text-zinc-500">{agentInfo.omniroute.url || 'http://localhost:20128/v1'}</code>
+                  </div>
+                  <div className="text-[11px] font-ui text-zinc-600">
+                    Default model: <code className="font-mono text-zinc-500">{agentInfo.omniroute.default_model || 'openai/gpt-4o-mini'}</code>
+                  </div>
+                  {agentInfo.omniroute.providers?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {agentInfo.omniroute.providers.map((p: string) => (
+                        <span key={p} className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono text-[10px]">{p}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="text-[10px] font-ui text-zinc-600/70 mt-1">
+                    352+ provider • OpenAI, Claude, Gemini, DeepSeek, Qwen va boshqalar
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1.5 space-y-2">
+                  <div className="text-[11px] font-ui text-zinc-600">
+                    OmniRoute — barcha LLM'larni bitta endpoint orqali ishlatish gateway'i.
+                  </div>
+                  <div className="text-[11px] font-ui text-zinc-500">
+                    Setup: <code className="font-mono text-zinc-400">docker run -d -p 20128:20128 diegosouzapw/omniroute:latest</code>
+                  </div>
+                  <div className="text-[11px] font-ui text-zinc-500">
+                    Dashboard: <code className="font-mono text-zinc-400">http://localhost:20129</code>
+                  </div>
+                  <div className="text-[10px] font-ui text-zinc-600/70">
+                    .env faylga qo'shing: OMNIROUTE_URL, OMNIROUTE_API_KEY
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Ollama (Local) */}
             <div className="flex items-center justify-between border border-zinc-800 rounded-md px-3 py-2">
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-1.5 rounded-full ${agentInfo?.llmAvailable ? 'bg-teal-400' : 'bg-zinc-600'}`} />
-                <span className="text-sm font-ui text-zinc-200">Ollama (local)</span>
+                <span className="text-sm font-ui text-zinc-200">Ollama (local fallback)</span>
               </div>
               <span className="text-xs font-ui text-zinc-500">
                 {agentInfo?.llmAvailable ? 'connected' : 'not connected'}
               </span>
             </div>
+
+            {/* Igris_Memory (RAG) */}
             <div className="flex items-center justify-between border border-zinc-800 rounded-md px-3 py-2 opacity-70">
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-1.5 rounded-full ${agentInfo?.memoryEnabled ? 'bg-amber-400' : 'bg-zinc-600'}`} />
@@ -533,9 +654,6 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                 {agentInfo?.memoryEnabled ? 'on' : 'off'}
               </span>
             </div>
-            <p className="text-[11px] font-ui text-zinc-600 pt-1">
-              Boshqa provayderlar (OpenAI, Anthropic, Google) hozircha ulangan emas — Web AI Bridge'da real brauzer orqali ishlatiladi.
-            </p>
           </div>
         )}
       </div>

@@ -1,1 +1,1 @@
-{"command": "\"C:\\Python314\\python.exe\" \"C:\\Users\\user\\Desktop\\IGRIS_Coder\\Igris_brain\\server.py\" --host 127.0.0.1 --port 8765", "host": "127.0.0.1", "port": 8765, "pid": 10920, "started_at": 1788265667.7174027}
+{"command": "\"C:\\Python314\\python.exe\" \"C:\\Users\\user\\Desktop\\IGRIS_Coder\\Igris_brain\\server\\server.py\" --host 127.0.0.1 --port 8765", "host": "127.0.0.1", "port": 8765, "pid": 21384, "started_at": 1790711111.1712282}

@@ -12,6 +12,10 @@ export function StatusBar() {
   const circuitState = useAgentConsoleStore((s) => s.agentInfo?.circuit?.state);
   const retryLLM = useAgentConsoleStore((s) => s.retryLLM);
   const [retrying, setRetrying] = useState(false);
+  // S3: silent-degradations — komponentlar jim zaif rejimga o'tgan bo'lsa ko'rinadi
+  const degradationsActive = useAgentConsoleStore((s) => s.degradationsActive);
+  const degradations = useAgentConsoleStore((s) => s.degradations);
+  const loadDegradations = useAgentConsoleStore((s) => s.loadDegradations);
 
   const isDegraded = llmDegraded || circuitState === 'open';
 
@@ -45,6 +49,26 @@ export function StatusBar() {
           </button>
         </div>
       )}
+      {/* S3 banner — silent-degradatsiyalar (LLM banneridan farqli: zaiflashgan komponentlar) */}
+      {degradationsActive > 0 && backendOnline && (
+        <div className="flex items-center justify-between px-3 py-1.5 bg-rose-950/60 border-t border-rose-800/50">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse shrink-0" />
+            <span className="text-[11px] font-ui text-rose-200 truncate">
+              ⚠️ {degradationsActive} komponent zaif rejimda —{' '}
+              {degradations.slice(0, 2).map((d) => d.component).join(', ')}
+              {degradationsActive > 2 ? ` +${degradationsActive - 2}` : ''}
+            </span>
+          </div>
+          <button
+            onClick={() => loadDegradations()}
+            className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-900/50 text-rose-200 hover:bg-rose-800/50 hover:text-rose-100 shrink-0 transition-colors"
+            title="Holatni yangilash — tafsilot Settings→Services'da"
+          >
+            ↻ refresh
+          </button>
+        </div>
+      )}
       {/* Asosiy status bar */}
       <div className="h-6 flex items-center justify-between px-3 border-t border-zinc-800 bg-zinc-900 text-xs font-ui text-zinc-500">
         <div className="flex items-center gap-3">
@@ -65,6 +89,18 @@ export function StatusBar() {
             {intelligenceEnabled ? '✨ 12 intellekt on' : '✨ intellekt off'}
           </span>
           {model && <span className="font-mono text-zinc-400 truncate max-w-40">{model}</span>}
+          {/* S3 chip: doim ko'rinadi, faol bo'lsa qizil puls bilan */}
+          <span
+            className={`flex items-center gap-1 ${degradationsActive > 0 ? 'text-rose-300' : 'text-zinc-500'}`}
+            title={degradationsActive > 0
+              ? `${degradationsActive} komponent zaif rejimda (tafsilot: Settings→Services)`
+              : 'Silent-degradatsiyalar: hammasi sog\'lom (Settings→Services)'}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              degradationsActive > 0 ? 'bg-rose-400 animate-pulse' : 'bg-teal-400/60'
+            }`} />
+            {degradationsActive > 0 ? `${degradationsActive} degraded` : 'degraded: 0'}
+          </span>
         </div>
       </div>
     </div>

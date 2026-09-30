@@ -1,0 +1,139 @@
+{
+  "runtime": {
+    "session": [
+      {
+        "id": "session-bridge",
+        "type": "session",
+        "status": "active",
+        "started_at": "2026-09-21T13:56:31.868680+00:00",
+        "updated_at": "2026-09-21T13:56:31.868680+00:00",
+        "total_turns": 0,
+        "total_tool_calls": 0,
+        "total_tokens_used": 0,
+        "files_read": [],
+        "files_modified": [],
+        "errors_encountered": [],
+        "summary": "Session bridge started",
+        "timestamp": "2026-09-21T13:56:31.868728+00:00"
+      }
+    ]
+  },
+  "persistent": {
+    "experience": [
+      {
+        "id": "from-agent-short-turn-1785823382",
+        "type": "experience",
+        "source": "l1:short-turn",
+        "summary": "Write a Python function that takes two lists and returns their intersection preserving order.",
+        "data": {
+          "content": "def intersect_lists(list1, list2):\n    return [value for value in list1 if value in list2]",
+          "type": "short-turn",
+          "tags": [
+            "turn"
+          ],
+          "metadata": {},
+          "summary": "Write a Python function that takes two lists and returns their intersection preserving order.",
+          "remembered_at": "2026-08-04T06:03:02.626403+00:00",
+          "id": "agent-short-turn-1785823382",
+          "timestamp": "2026-08-04T06:03:02.626412+00:00"
+        },
+        "consolidated_at": "2026-08-04T06:03:08.047634+00:00",
+        "updated_at": "2026-09-21T04:30:24.181696+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T04:30:24.181679+00:00"
+      },
+      {
+        "id": "from-agent-short-turn-1785823388",
+        "type": "experience",
+        "source": "l1:short-turn",
+        "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+        "data": {
+          "content": "def find_max_min(numbers):\n    if not numbers:\n        return None, None\n    max_number = max(numbers)\n    min_number = min(numbers)\n    return max_number, min_number\n\n# Masalan:\nnumbers = [10, 20, 30, 40, 50]\nmax_num, min_num = find_max_min(numbers)\nprint(f\"Eng katta son: {max_num}, Eng kichik son: {min_num}\")",
+          "type": "short-turn",
+          "tags": [
+            "turn"
+          ],
+          "metadata": {},
+          "summary": "Python funksiya yozing: foydalanuvchi kiritgan sonlar ro'yxatining eng katta va eng kichik elementla",
+          "remembered_at": "2026-08-04T06:03:08.014772+00:00",
+          "id": "agent-short-turn-1785823388",
+          "timestamp": "2026-08-04T06:03:08.014816+00:00"
+        },
+        "consolidated_at": "2026-08-04T06:03:08.048047+00:00",
+        "updated_at": "2026-09-21T04:30:24.182937+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T04:30:24.182919+00:00"
+      },
+      {
+        "id": "exp-session-exec-test",
+        "type": "experience",
+        "sessions": [
+          {
+            "date": "2026-08-04",
+            "task": "done",
+            "outcome": "successful",
+            "key_learnings": [],
+            "tags": []
+          }
+        ],
+        "summary": "done",
+        "updated_at": "2026-09-21T04:30:24.184113+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T04:30:24.184059+00:00"
+      }
+    ],
+    "solution-memory": [
+      {
+        "content": "CHIZMA SIFATI (svg_validator auto-assessment): prompt='uy rasmini chiz, bola chizgandek uslubda' | file=uy_1786969271461.svg | viewBox=(0.0, 0.0, 512.0, 512.0) | style=cartoon | size=standard | score=60/100 (o'rta) | structure=13 composition=25 style=10 palette=12 | zaif jihatlar: fon, fon tartibi, gradient, soya, defs, fon rangi | taklif: asosiy tanaga gradient (linear/radial) qo'shish; yumshoq soya (feDropShadow yoki pastki opacity-ellipse); birinchi element: to'liq-canvas yumshoq fon rect",
+        "type": "solution-memory",
+        "tags": [
+          "drawing",
+          "svg-quality",
+          "cartoon",
+          "score-60"
+        ],
+        "metadata": {},
+        "summary": "SVG chizma sifati: 60/100 (uy_1786969271461.svg)",
+        "remembered_at": "2026-08-17T12:21:11.481493+00:00",
+        "id": "agent-solution-memory-1786969271",
+        "updated_at": "2026-09-21T04:30:24.806171+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T04:30:24.806118+00:00"
+      },
+      {
+        "content": "CHIZMA SIFATI (svg_validator auto-assessment): prompt='uy rasmini chiz, bola chizgandek uslubda' | file=uy_1786969271461.svg | viewBox=(0.0, 0.0, 512.0, 512.0) | style=cartoon | size=standard | score=60/100 (o'rta) | structure=13 composition=25 style=10 palette=12 | zaif jihatlar: fon, fon tartibi, gradient, soya, defs, fon rangi | taklif: asosiy tanaga gradient (linear/radial) qo'shish; yumshoq soya (feDropShadow yoki pastki opacity-ellipse); birinchi element: to'liq-canvas yumshoq fon rect",
+        "type": "solution-memory",
+        "tags": [
+          "drawing",
+          "svg-quality",
+          "cartoon",
+          "score-60"
+        ],
+        "metadata": {},
+        "summary": "SVG chizma sifati: 60/100 (uy_1786969271461.svg)",
+        "remembered_at": "2026-08-17T12:21:11.481493+00:00",
+        "id": "agent-solution-memory-1786969271",
+        "updated_at": "2026-09-21T04:30:24.807387+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T04:30:24.807294+00:00"
+      },
+      {
+        "content": "CHIZMA SIFATI (svg_validator auto-assessment): prompt='uy rasmini chiz, bola chizgandek uslubda' | file=uy_1786969271461.svg | viewBox=(0.0, 0.0, 512.0, 512.0) | style=cartoon | size=standard | score=60/100 (o'rta) | structure=13 composition=25 style=10 palette=12 | zaif jihatlar: fon, fon tartibi, gradient, soya, defs, fon rangi | taklif: asosiy tanaga gradient (linear/radial) qo'shish; yumshoq soya (feDropShadow yoki pastki opacity-ellipse); birinchi element: to'liq-canvas yumshoq fon rect",
+        "type": "solution-memory",
+        "tags": [
+          "drawing",
+          "svg-quality",
+          "cartoon",
+          "score-60"
+        ],
+        "metadata": {},
+        "summary": "SVG chizma sifati: 60/100 (uy_1786969271461.svg)",
+        "remembered_at": "2026-08-17T12:21:11.481493+00:00",
+        "id": "agent-solution-memory-1786969271",
+        "updated_at": "2026-09-21T04:30:24.808290+00:00",
+        "deleted": true,
+        "deleted_at": "2026-09-21T04:30:24.808242+00:00"
+      }
+    ]
+  }
+}
